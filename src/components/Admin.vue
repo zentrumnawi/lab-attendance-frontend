@@ -152,8 +152,7 @@
 import { parse } from "json2csv";
 import { format, addMinutes, differenceInMinutes } from "date-fns";
 import { mapGetters } from "vuex";
-import configuration from '../assets/courses_ws.json'
-import { log } from 'util';
+import configuration from '../assets/courses_ws.json';
 
 export default {
   config: configuration,
