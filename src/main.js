@@ -13,8 +13,8 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 
 import App from './App.vue'
-import Admin from '@/components/Admin'
-import Form from '@/components/AttendeeForm'
+import Admin from '@/components/Admin.vue'
+import Form from '@/components/AttendeeForm.vue'
 
 const vuetify = createVuetify({
   components,

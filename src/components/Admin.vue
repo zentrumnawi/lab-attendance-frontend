@@ -256,7 +256,7 @@ export default {
   created() {
 
     //set passeword to .env
-    this.requiredPassword = process.env.VUE_APP_ADMIN_PASSWORD
+    this.requiredPassword = import.meta.env.VITE_ADMIN_PASSWORD
 
     //this.attendeesTable = this.format(this.attendees) //Why doesn't this work?
     this.attendeesTable = this.attendees.map(element => ({ ...element, ...this.formatDates(element) }))

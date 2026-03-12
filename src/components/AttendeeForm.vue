@@ -239,7 +239,7 @@
 
 <script>
 import { format, subHours, subMinutes, setMinutes, setHours, isBefore } from "date-fns";
-import TimeInput from "@/components/TimeInput";
+import TimeInput from "@/components/TimeInput.vue";
 import uuid from "uuid/v4";
 import configuration from '../assets/courses_ws.json'
 
