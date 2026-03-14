@@ -61,7 +61,7 @@ export default {
       type: Array,
       default: null
     },
-    value: {
+    modelValue: {
       type: Date,
       required: true
     }
@@ -69,13 +69,13 @@ export default {
   computed: {
     time: {
       get() {
-        return format(this.value, "HH:mm");
+        return format(this.modelValue, "HH:mm");
       },
       set(val) {
-        const [year, month, day] = format(this.value, "YYYY-MM-DD").split("-");
+        const [year, month, day] = format(this.modelValue, "YYYY-MM-DD").split("-");
         const [hours, minutes] = val.split(":");
         const date = new Date(year, month - 1, day, hours, minutes);
-        this.$emit("input", date);
+        this.$emit("update:modelValue", date);
       }
     }
   }

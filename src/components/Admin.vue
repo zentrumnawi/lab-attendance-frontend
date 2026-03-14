@@ -149,7 +149,7 @@
 </template>
 
 <script>
-import { parse } from "json2csv";
+import { Parser } from "@json2csv/plainjs";
 import { format, addMinutes, differenceInMinutes } from "date-fns";
 import { mapGetters } from "vuex";
 import configuration from '../assets/courses_ws.json';
@@ -200,7 +200,7 @@ export default {
   },
   props: {
     downloadName: {
-      default: format(Date.now(), 'YYMMDD_HHmm') + '_mz.csv'
+      default: format(Date.now(), 'yyMMdd_HHmm') + '_mz.csv'
     },
     delimiter: {
       default: ";"
@@ -291,7 +291,7 @@ export default {
     },
     csv() {
       const opts = {fields: this.csv_flds, delimiter: this.delimiter, quote: this.quote, withBOM: true}
-      const csv = parse(this.export, opts)
+      const csv = Parser.parse(this.export, opts)
       return csv
     },  
     downloadURL() {
