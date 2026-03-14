@@ -240,7 +240,7 @@
 <script>
 import { format, subHours, subMinutes, setMinutes, setHours, isBefore } from "date-fns";
 import TimeInput from "@/components/TimeInput.vue";
-import uuid from "uuid/v4";
+import { v4 as uuidv4 } from 'uuid';
 import configuration from '../assets/courses_ws.json'
 
 function initializeForm() {
@@ -368,7 +368,7 @@ export default {
     submit() {
       this.$store.dispatch("submitForm", {
         ...this.localizedForm,
-        id: uuid()
+        id: uuidv4()
       });
       this.form = initializeForm();
       this.$refs.form_studinfo.resetValidation();
