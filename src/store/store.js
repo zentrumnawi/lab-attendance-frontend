@@ -1,10 +1,8 @@
-import Vue from 'vue'
+import { createStore } from 'vuex'
 import Vuex from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 
-Vue.use(Vuex);
-
-export const store = new Vuex.Store({
+export const store = createStore({
   state: {
     attendees: [],
     courses_phy_act: [],
