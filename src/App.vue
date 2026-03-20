@@ -8,23 +8,23 @@
         contain
         max-height="100px"
         max-width="80px"
-        :src="require('@/assets/Goethe-Kopf-weiss.svg')"
+        src="/Goethe-Kopf-weiss.svg"
       ></v-img>
     </v-toolbar>
-    <v-content>
+    <v-main>
       <v-container fluid>
         <router-view></router-view>
       </v-container>
-    </v-content>
+    </v-main>
     <v-footer app dark color="primary darken-1">
       <v-layout text-left ml-4>
-        <v-flex xs12>
+        <v-col xs12>
           &copy; 2019&nbsp;&nbsp;|&nbsp;&nbsp;
           <router-link to="/admin">
-            <img height="20px" :src="require('@/assets/Icon_ZentrumNaturwissenschaften.svg')" />
+            <img height="20px" src="/Icon_ZentrumNaturwissenschaften.svg" />
           </router-link>&nbsp;&nbsp;
           <strong>Zentrum Naturwissenschaften</strong>
-        </v-flex>
+        </v-col>
       </v-layout>
     </v-footer>
   </v-app>

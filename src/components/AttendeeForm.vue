@@ -1,20 +1,8 @@
 <template>
-  <v-stepper v-model="stepper">
-    <v-stepper-header>
-      <div class="step" v-for="(step, index) in steps" :key="index">
-        <v-stepper-step
-          color="success"
-          :edit-icon="'check_circle'"
-          :complete-icon="'edit'"
-          :step="index + 1"
-          :complete="(index + 1 ) <= stepper"
-          :editable="(index + 1) < stepper"
-        >{{ step.label }}</v-stepper-step>
-        <v-divider></v-divider>
-      </div>
-    </v-stepper-header>
-    <v-stepper-items>
-      <v-stepper-content step="1">
+  <v-stepper v-model="stepper" :items="steps" item-title="label" hideActions>
+    
+    
+    <template v-slot:item.1>
         <v-form ref="form_studinfo" v-model="valid">
           <v-card>
             <v-card-text>
@@ -23,13 +11,13 @@
                 :rules="rules.pid"
                 maxlength="8"
                 label="ID"
-                append-outer-icon="help"
+                append-icon="help"
                 persistent-hint
                 placeholder="XX999999"
                 required
-                @click:append-outer="idhelper = true"
+                @click:append="idhelper = true"
               ></v-text-field>
-              
+
               <v-select
                 v-model="form.semester"
                 :rules="rules.time"
@@ -52,9 +40,9 @@
             </v-card-actions>
           </v-card>
         </v-form>
-      </v-stepper-content>
+      </template>
 
-      <v-stepper-content step="2">
+      <template v-slot:item.2>
         <v-form ref="form_coursemath" v-model="valid2">
           <v-card>
             <v-card-title class="justify-center">
@@ -66,31 +54,24 @@
                 v-model="form.courses"
                 :items="this.$options.config.courses_math"
                 :rules="rules.course"
-                chips
+                chips closable-chips
                 label="Zu welchen Lehrveranstaltungen haben Sie heute gearbeitet?"
-                item-text="name"
+                item-title="name"
                 item-value="tag"
                 multiple
               >
-                <template v-slot:selection="data">
-                  <v-chip
-                    :selected="data.selected"
-                    close
-                    class="chip--select-multi"
-                    @input="remove(data.item)"
-                  >{{ data.item.name }}</v-chip>
-                </template>
-                <template v-slot:item="data">
-                  <template v-if="typeof data.item !== 'object'">
-                    <v-list-tile-content v-text="data.item"></v-list-tile-content>
+                
+                <template v-slot:item="{ item, props }">
+                <v-list-item v-bind="props">
+                  <template v-if="typeof item.raw !== 'object'">
+                    {{ item.raw }}
                   </template>
                   <template v-else>
-                    <v-list-tile-content>
-                      <v-list-tile-title v-html="data.item.name"></v-list-tile-title>
-                      <v-list-tile-sub-title v-html="data.item.group"></v-list-tile-sub-title>
-                    </v-list-tile-content>
+                    <v-list-item-title v-html="item.raw.name"></v-list-item-title>
+                    <v-list-item-subtitle v-html="item.raw.group"></v-list-item-subtitle>
                   </template>
-                </template>
+                </v-list-item>
+              </template>
               </v-select>
             </v-card-text>
 
@@ -103,32 +84,25 @@
                 v-model="form.courses"
                 :items="this.$options.config.courses_physics"
                 :rules="rules.course"
-                chips
+                chips closable-chips
                 label="Zu welchen Lehrveranstaltungen haben Sie heute gearbeitet?"
-                item-text="name"
+                item-title="name"
                 item-value="tag"
                 multiple
               >
-                <template v-slot:selection="data">
-                  <v-chip
-                    :selected="data.selected"
-                    close
-                    class="chip--select-multi"
-                    @input="remove(data.item)"
-                  >{{ data.item.name }}</v-chip>
-                </template>
 
-                <template v-slot:item="data">
-                  <template v-if="typeof data.item !== 'object'">
-                    <v-list-tile-content v-text="data.item"></v-list-tile-content>
+                <template v-slot:item="{ item, props }">
+                  <v-list-item v-bind="props">
+                  <template v-if="typeof item !== 'object'">
+                    <v-list-item v-text="item"></v-list-item>
                   </template>
-
                   <template v-else>
-                    <v-list-tile-content>
-                      <v-list-tile-title v-html="data.item.name"></v-list-tile-title>
-                      <v-list-tile-sub-title v-html="data.item.group"></v-list-tile-sub-title>
-                    </v-list-tile-content>
+                    <v-list-item>
+                      <v-list-item-title v-html="item.raw.name"></v-list-item-title>
+                      <v-list-item-subtitle v-html="item.raw.group"></v-list-item-subtitle>
+                    </v-list-item>
                   </template>
+                </v-list-item>
                 </template>
               </v-select>
             </v-card-text>
@@ -139,9 +113,9 @@
             </v-card-actions>
           </v-card>
         </v-form>
-      </v-stepper-content>
+      </template>
 
-      <v-stepper-content step="3">
+      <template v-slot:item.3>
         <v-card>
           <v-card-text>
             <time-input v-model="form.start" :max="maxStartTime" label="Startzeit" required></time-input>
@@ -153,72 +127,52 @@
             ></v-textarea>
           </v-card-text>
 
-          <v-dialog v-model="idhelper"  max-width="600">
-            <v-card>
-              <v-card-title class="headline">ID</v-card-title>
-              <v-card-text>
-                <p>Die ID setzt sich zusammen aus...</p> 
-                <ul>
-                  <li>den ersten 2 Buchstaben des Vornamens Ihrer Mutter.</li>
-                  <li>den 2 Ziffern des Geburts<em>tags</em> Ihrer Mutter.</li>
-                  <li>2 Ziffern Ihres eigenen Geburts<em>monats</em>.</li>
-                  <li>2 Ziffern der Nummer Ihres Fachbereichs.</li>
-                </ul>
-              </v-card-text>
-            </v-card>
-          </v-dialog>
 
           <v-card-actions>
             <v-dialog v-model="dialog" persistent max-width="500">
-              <template v-slot:activator="{ on }">
-                <v-btn color="primary" v-on="on">Absenden</v-btn>
+              <template v-slot:activator="{ props }">
+                <v-btn color="primary" v-bind="props">Absenden</v-btn>
               </template>
 
               <v-card>
                 <v-card-title class="headline" primary-title>Angaben bestätigen</v-card-title>
                
                 <v-list>
-                  <v-list-tile>
-                    <v-list-tile-content>
-                      <v-list-tile-sub-title>ID</v-list-tile-sub-title>
-                      {{form.pid}}
-                    </v-list-tile-content>
-                  </v-list-tile>
+                  <v-list-item>
+                      <v-list-item-subtitle>ID</v-list-item-subtitle>
+                      <v-list-item-title>{{form.pid}}</v-list-item-title>
+                      
+                    
+                  </v-list-item>
                   <v-divider></v-divider>
-                  <v-list-tile>
-                    <v-list-tile-content>
-                      <v-list-tile-sub-title>Studienfach</v-list-tile-sub-title>
-                      {{form.faculty}}
-                    </v-list-tile-content>
-
-                    <v-list-tile-content>
-                      <v-list-tile-sub-title>Fachsemester</v-list-tile-sub-title>
-                      {{form.semester}}
-                    </v-list-tile-content>
-                  </v-list-tile>
-
-                  <v-divider></v-divider>
-
-                  <v-list-tile>
-                    <v-list-tile-content>
-                      <v-list-tile-sub-title>Startzeit</v-list-tile-sub-title>
-                      {{form.start | formatTime}}
-                    </v-list-tile-content>
-
-                    <v-list-tile-content>
-                      <v-list-tile-sub-title>Endzeit</v-list-tile-sub-title>
-                      {{form.end | formatTime}}
-                    </v-list-tile-content>
-                  </v-list-tile>
+                  <v-list-item>
+                    <v-list-item-subtitle>Studienfach</v-list-item-subtitle>
+                    <v-list-item-title>{{form.faculty}}</v-list-item-title>
+                    
+                  </v-list-item>
+                 
+                  <v-list-item>
+                    <v-list-item-subtitle>Fachsemester</v-list-item-subtitle>
+                    <v-list-item-title>{{form.semester}}</v-list-item-title>
+                  </v-list-item>
 
                   <v-divider></v-divider>
 
-                  <v-list-tile>
-                    <v-list-tile-content>
-                      <v-list-tile-sub-title>Lehrveranstaltungen</v-list-tile-sub-title>
-                      {{form.courses | formatCourselist}}
-                    </v-list-tile-content>
-                  </v-list-tile>
+                  <v-list-item>
+                    <v-list-item-subtitle>Startzeit</v-list-item-subtitle>
+                    <v-list-item-title>{{formatTime(form.start)}}</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-subtitle>Endzeit</v-list-item-subtitle>
+                    <v-list-item-title>{{formatTime(form.end)}}</v-list-item-title>
+                  </v-list-item>
+
+                  <v-divider></v-divider>
+
+                  <v-list-item>
+                    <v-list-item-subtitle>Lehrveranstaltungen</v-list-item-subtitle>
+                    <v-list-item-title>{{formatCourselist(form.courses)}}</v-list-item-title>
+                  </v-list-item>
                 </v-list>
 
                 <v-card-text>Sind die Angaben korrekt?</v-card-text>
@@ -232,8 +186,7 @@
             <v-btn flat @click.native="stepper -= 1">Zurück</v-btn>
           </v-card-actions>
         </v-card>
-      </v-stepper-content>
-    </v-stepper-items>
+      </template>
   </v-stepper>
 </template>
 
@@ -317,23 +270,15 @@ export default {
       };
     }
   },
-  filters: {
+  methods: {
+    setEndTime() {
+      this.form.end = new Date();
+    },
     formatTime(time) {
       return format(time, "HH:mm")
     },
     formatCourselist(courselist) {
       return courselist.join(", ")
-    }
-  },
-  methods: {
-    remove(item) {
-      const index = this.form.courses.indexOf(item.name);
-      if (index >= 0) {
-        this.form.courses.splice(index, 1);
-      }
-    },
-    setEndTime() {
-      this.form.end = new Date();
     },
     validate() {
       if (this.stepper == 2) {

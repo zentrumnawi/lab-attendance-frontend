@@ -10,10 +10,10 @@
     :max-width="290"
     :disabled="disabled"
   >
-    <template v-slot:activator="{ on }">
+    <template v-slot:activator="{ props }">
       <v-text-field
         v-model="time"
-        v-on="on"
+        v-bind="props"
         :label="label"
         readonly
         prepend-icon="access_time"
@@ -72,7 +72,7 @@ export default {
         return format(this.modelValue, "HH:mm");
       },
       set(val) {
-        const [year, month, day] = format(this.modelValue, "YYYY-MM-DD").split("-");
+        const [year, month, day] = format(this.modelValue, "yyyy-MM-dd").split("-");
         const [hours, minutes] = val.split(":");
         const date = new Date(year, month - 1, day, hours, minutes);
         this.$emit("update:modelValue", date);

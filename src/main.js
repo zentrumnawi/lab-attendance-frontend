@@ -1,24 +1,27 @@
-import Vue from 'vue'
+import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
-import Vuetify from 'vuetify'
+//import Vuetify from 'vuetify'
 import 'vuetify/dist/vuetify.min.css' // Ensure you are using css-loader
-import VeeValidate from 'vee-validate'
-import DataTable from 'v-data-table'
+import * as VeeValidate from 'vee-validate';
+import { DataTable } from 'v-data-table'
 import { store } from './store/store'
-import json2csv from 'json2csv'
+import { Parser } from '@json2csv/plainjs'
 
-import 'vuetify/styles' // Import Vuetify styles
+import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
+import { md } from 'vuetify/iconsets/md'
 
 import App from './App.vue'
 import Admin from '@/components/Admin.vue'
 import Form from '@/components/AttendeeForm.vue'
 
 const vuetify = createVuetify({
-  components,
-  directives,
+  icons: {
+    defaultSet: 'md',
+    sets: {
+      md,
+    },
+  },
 })
 
 const routes = [
