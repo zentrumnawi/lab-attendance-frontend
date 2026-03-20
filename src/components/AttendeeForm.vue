@@ -40,6 +40,21 @@
             </v-card-actions>
           </v-card>
         </v-form>
+        
+        <v-dialog v-model="idhelper"  max-width="600">
+            <v-card>
+              <v-card-title class="headline">ID</v-card-title>
+              <v-card-text>
+                <p>Die ID setzt sich zusammen aus...</p> 
+                <ul>
+                  <li>den ersten 2 Buchstaben des Vornamens Ihrer Mutter.</li>
+                  <li>den 2 Ziffern des Geburts<em>tags</em> Ihrer Mutter.</li>
+                  <li>2 Ziffern Ihres eigenen Geburts<em>monats</em>.</li>
+                  <li>2 Ziffern der Nummer Ihres Fachbereichs.</li>
+                </ul>
+              </v-card-text>
+            </v-card>
+          </v-dialog>
       </template>
 
       <template v-slot:item.2>
