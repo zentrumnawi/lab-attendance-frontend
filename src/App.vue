@@ -21,7 +21,7 @@
       <v-list density="compact" nav>
         <v-list-item title="Attendance" link />
 
-        <v-list-item title="Departments" link />
+        <v-list-item title="Departments" to="/departments" link />
 
         <v-list-item title="Exercises" link />
 
