@@ -29,7 +29,7 @@
         </v-toolbar>
       </template>
 
-      <template v-slot:item.name="{ value }">
+      <template v-slot:[`item.name`]="{ value }">
         <v-chip
           :text="value"
           border="thin opacity-25"
@@ -42,7 +42,7 @@
         </v-chip>
       </template>
 
-      <template v-slot:item.actions="{ item }">
+      <template v-slot:[`item.actions`]="{ item }">
         <div class="d-flex ga-2 justify-end">
           <v-icon
             color="medium-emphasis"
