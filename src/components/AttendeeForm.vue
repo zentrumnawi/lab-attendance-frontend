@@ -35,10 +35,10 @@
 
 <script setup>
 import { useField, useForm } from "vee-validate";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { v4 as uuidv4 } from "uuid";
 
-const store = useStore();
+const store = useAppStore();
 
 const { handleSubmit, handleReset } = useForm({
   validationSchema: {
@@ -70,7 +70,7 @@ const email = useField("email");
 const labPartner = useField("labPartner");
 
 const submit = handleSubmit((values) => {
-  store.dispatch("submitForm", {
+  store.saveAttendee({
     ...values,
     id: uuidv4(),
   });
