@@ -93,8 +93,8 @@
 
 <script setup>
 import { computed, ref, shallowRef, toRef } from "vue";
-import { useStore } from "vuex";
-const store = useStore();
+import { useAppStore } from "@/stores/app";
+const store = useAppStore();
 
 function createNewRecord() {
   return {
@@ -103,7 +103,7 @@ function createNewRecord() {
   };
 }
 
-const departments = computed(() => store.getters.departments);
+const departments = computed(() => store.departments);
 const formModel = ref(createNewRecord());
 const dialog = shallowRef(false);
 const isEditing = computed(() => !!formModel.value.id);
@@ -118,7 +118,7 @@ function add() {
 }
 
 function edit(id) {
-  const found = store.getters.departments.find((department) => department.id === id);
+  const found = store.departments.find((department) => department.id === id);
 
   formModel.value = {
     id: found.id,
@@ -129,11 +129,11 @@ function edit(id) {
 }
 
 function remove(id) {
-  store.commit("removeDepartment", id);
+  store.removeDepartment(id);
 }
 
 function save() {
-  store.commit("saveDepartment", formModel.value);
+  store.saveDepartment(formModel.value);
   dialog.value = false;
 }
 </script>
