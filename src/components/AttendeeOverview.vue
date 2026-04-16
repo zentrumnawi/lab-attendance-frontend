@@ -29,7 +29,7 @@
         </v-toolbar>
       </template>
 
-      <template v-slot:item.name="{ value }">
+      <template v-slot:[`item.name`]="{ value }">
         <v-chip
           :text="value"
           border="thin opacity-25"
@@ -42,7 +42,7 @@
         </v-chip>
       </template>
 
-      <template v-slot:item.actions="{ item }">
+      <template v-slot:[`item.actions`]="{ item }">
         <div class="d-flex ga-2 justify-end">
           <v-icon
             color="medium-emphasis"
@@ -122,8 +122,8 @@
 
 <script setup>
 import { computed, ref, shallowRef, toRef } from "vue";
-import { useStore } from "vuex";
-const store = useStore();
+import { useAppStore } from "@/stores/app";
+const store = useAppStore();
 
 function createNewRecord() {
   return {
@@ -136,7 +136,7 @@ function createNewRecord() {
   };
 }
 
-const attendees = computed(() => store.getters.attendees);
+const attendees = computed(() => store.attendees);
 const formModel = ref(createNewRecord());
 const dialog = shallowRef(false);
 const isEditing = toRef(() => !!formModel.value.id);
@@ -154,7 +154,7 @@ function add() {
 }
 
 function edit(id) {
-  const found = store.getters.attendees.find((attendee) => attendee.id === id);
+  const found = store.attendees.find((attendee) => attendee.id === id);
 
   formModel.value = {
     id: found.id,
@@ -169,11 +169,11 @@ function edit(id) {
 }
 
 function remove(id) {
-  store.commit("removeAttendee", id);
+  store.removeAttendee(id);
 }
 
 function save() {
-  store.commit("saveAttendee", formModel.value);
+  store.saveAttendee(formModel.value);
   dialog.value = false;
 }
 </script>
