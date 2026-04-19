@@ -1,24 +1,13 @@
-<style scoped>
-.no-focus:focus,
-.no-focus:focus-visible,
-.no-focus:active {
-  outline: none !important;
-  box-shadow: none !important;
-}
-</style>
 <template>
   <v-app>
     <!-- Sidebar -->
     <v-navigation-drawer
+      class="pt-12"
       v-model="drawer"
       color="primary"
       width="250"
-      :rail="!drawer"
-      :rail-width="80"
-      :expand-on-hover="!drawer"
-      :temporary="$vuetify.display.smAndDown"
     >
-      <v-list density="compact" nav>
+      <v-list base-color="white" active-color="white" nav>
         <v-list-item title="Attendance" link />
 
         <v-list-item title="Departments" to="/departments" link />
@@ -34,17 +23,6 @@
     </v-navigation-drawer>
 
     <v-app-bar color="primary">
-      <v-btn
-        icon
-        size="small"
-        :ripple="false"
-        class="no-focus"
-        @click="toggleDrawer"
-      >
-        <v-icon>
-          {{ drawer ? "mdi-menu-open" : "mdi-menu" }}
-        </v-icon>
-      </v-btn>
       <v-toolbar-title class="headline text-uppercase"
         >Anwesenheitsformular</v-toolbar-title
       >
@@ -86,11 +64,6 @@ export default {
     return {
       drawer: true,
     };
-  },
-  methods: {
-    toggleDrawer() {
-      this.drawer = !this.drawer;
-    },
   },
 };
 </script>

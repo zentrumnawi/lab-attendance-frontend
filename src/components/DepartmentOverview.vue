@@ -2,6 +2,7 @@
   <v-sheet border rounded>
     <v-data-table
       :headers="headers"
+      :hide-default-footer="departments.length < 6"
       :items="departments"
     >
       <template v-slot:top>
@@ -27,7 +28,7 @@
         </v-toolbar>
       </template>
 
-      <template v-slot:item.name="{ value }">
+      <template v-slot:[`item.name`]="{ value }">
         <v-chip
           :text="value"
           border="thin opacity-25"
@@ -40,7 +41,7 @@
         </v-chip>
       </template>
 
-      <template v-slot:item.actions="{ item }">
+      <template v-slot:[`item.actions`]="{ item }">
         <div class="d-flex ga-2 justify-end">
           <v-icon
             color="medium-emphasis"
@@ -74,7 +75,6 @@
           <v-col cols="12">
             <v-text-field v-model="formModel.name" label="Name"></v-text-field>
           </v-col>
-
         </v-row>
       </template>
 
@@ -110,6 +110,7 @@ const isEditing = computed(() => !!formModel.value.id);
 
 const headers = [
   { title: "Name", key: "name", align: "start" },
+  { title: "Action", key: "actions", align: "end", sortable: false },
 ];
 
 function add() {
