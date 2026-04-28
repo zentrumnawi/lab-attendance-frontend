@@ -147,7 +147,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { Parser } from "@json2csv/plainjs";
 import { format, addMinutes, differenceInMinutes } from "date-fns";
 import { mapActions, mapState } from "pinia";
