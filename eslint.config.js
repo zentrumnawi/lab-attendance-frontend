@@ -3,6 +3,7 @@ import js from "@eslint/js";
 import vue from "eslint-plugin-vue";
 import globals from "globals";
 import vueParser from "vue-eslint-parser";
+import tsParser from "@typescript-eslint/parser";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 
 export default defineConfig([
@@ -16,6 +17,9 @@ export default defineConfig([
     files: ["**/*.vue"],
     languageOptions: {
       parser: vueParser,
+      parserOptions: {
+        parser: tsParser,
+      },
     },
     rules: {
       "vue/multi-word-component-names": "off",
@@ -23,14 +27,14 @@ export default defineConfig([
   },
 
   {
-    files: ["src/**/*.{js,vue}"],
+    files: ["src/**/*.{ts,js,vue}"],
     languageOptions: {
       globals: globals.browser,
     },
   },
 
   {
-    files: ["*.config.js", "eslint.config.js"],
+    files: ["*.config.{js,ts}", "eslint.config.js"],
     languageOptions: {
       globals: globals.node,
     },

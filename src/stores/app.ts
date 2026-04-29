@@ -15,15 +15,6 @@ interface Department {
   name: string;
 }
 
-interface AppState {
-  attendees: Attendee[];
-  departments: Department[];
-  courses_phy_act: string[];
-  courses_math_act: string[];
-  faculties_act: string[];
-  semester_toggle: number;
-}
-
 export const useAppStore = defineStore("app", {
   state: () => ({
     attendees: [] as Attendee[],
@@ -68,14 +59,14 @@ export const useAppStore = defineStore("app", {
       } as Attendee);
     },
 
-    saveDepartment(formData) {
+    saveDepartment(formData: Omit<Department, "id"> & { id?: string }): void {
       if (formData.id) {
         const index = this.departments.findIndex(
           (department) => department.id === formData.id,
         );
 
         if (index !== -1) {
-          this.departments[index] = { ...formData };
+          this.departments[index] = { ...formData, id: formData.id! };
         }
       } else {
         this.departments.push({
@@ -85,7 +76,7 @@ export const useAppStore = defineStore("app", {
       }
     },
 
-    removeDepartment(id) {
+    removeDepartment(id: string): void {
       const index = this.departments.findIndex(
         (department) => department.id === id,
       );
