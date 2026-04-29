@@ -5,7 +5,8 @@ import { createRouter, createWebHashHistory } from "vue-router";
 import "vuetify/dist/vuetify.min.css"; // Ensure you are using css-loader
 import "vuetify/styles";
 import { createVuetify } from "vuetify";
-import { md } from "vuetify/iconsets/md";
+import "@mdi/font/css/materialdesignicons.css";
+import { aliases, mdi } from "vuetify/iconsets/mdi";
 
 import App from "./App.vue";
 import Admin from "@/components/Admin.vue";
@@ -15,9 +16,10 @@ import DepartmentOverview from "@/components/DepartmentOverview.vue";
 
 const vuetify = createVuetify({
   icons: {
-    defaultSet: "md",
+    defaultSet: "mdi",
+    aliases,
     sets: {
-      md,
+      mdi,
     },
   },
 });
