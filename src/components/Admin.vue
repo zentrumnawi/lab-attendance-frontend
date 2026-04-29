@@ -197,12 +197,15 @@ export default {
   },
   props: {
     downloadName: {
+      type: String,
       default: format(Date.now(), "yyMMdd_HHmm") + "_mz.csv",
     },
     delimiter: {
+      type: String,
       default: ";",
     },
     quote: {
+      type: String,
       default: "",
     },
   },

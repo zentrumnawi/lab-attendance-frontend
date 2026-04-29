@@ -27,6 +27,14 @@ export default defineConfig([
   },
 
   {
+    files: ["**/*.ts"],
+    languageOptions: {
+      parser: tsParser,
+      globals: globals.browser,
+    },
+  },
+
+  {
     files: ["src/**/*.{ts,js,vue}"],
     languageOptions: {
       globals: globals.browser,
