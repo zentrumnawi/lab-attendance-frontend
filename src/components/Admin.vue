@@ -147,7 +147,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { Parser } from "@json2csv/plainjs";
 import { format, addMinutes, differenceInMinutes } from "date-fns";
 import { mapActions, mapState } from "pinia";
@@ -197,12 +197,15 @@ export default {
   },
   props: {
     downloadName: {
+      type: String,
       default: format(Date.now(), "yyMMdd_HHmm") + "_mz.csv",
     },
     delimiter: {
+      type: String,
       default: ";",
     },
     quote: {
+      type: String,
       default: "",
     },
   },

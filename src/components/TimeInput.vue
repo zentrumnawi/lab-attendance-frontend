@@ -3,14 +3,14 @@
     ref="menu"
     v-model="menu"
     :close-on-content-click="false"
-    :return-value.sync="time"
+    v-model:return-value="time"
     lazy
     transition="scale-transition"
     offset-y
     :max-width="290"
     :disabled="disabled"
   >
-    <template v-slot:activator="{ props }">
+    <template #activator="{ props }">
       <v-text-field
         v-model="time"
         v-bind="props"
@@ -32,52 +32,62 @@
   </v-menu>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, type PropType } from "vue";
 import { format } from "date-fns";
 
-export default {
+export default defineComponent({
   name: "TimeInput",
+  emits: ["update:modelValue"],
   data: () => ({
-    menu: false
+    menu: false,
   }),
   props: {
     disabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     label: {
       type: String,
-      default: null
+      default: null,
     },
     min: {
       type: String,
-      default: "08:00"
+      default: "08:00",
     },
     max: {
       type: String,
-      default: null
+      default: null,
     },
     rules: {
-      type: Array,
-      default: null
+      type: Array as PropType<unknown[]>,
+      default: null,
     },
     modelValue: {
       type: Date,
-      required: true
-    }
+      required: true,
+    },
   },
   computed: {
     time: {
       get() {
         return format(this.modelValue, "HH:mm");
       },
-      set(val) {
-        const [year, month, day] = format(this.modelValue, "yyyy-MM-dd").split("-");
+      set(val: string): void {
+        const [year, month, day] = format(this.modelValue, "yyyy-MM-dd").split(
+          "-",
+        );
         const [hours, minutes] = val.split(":");
-        const date = new Date(year, month - 1, day, hours, minutes);
+        const date = new Date(
+          Number(year),
+          Number(month) - 1,
+          Number(day),
+          Number(hours),
+          Number(minutes),
+        );
         this.$emit("update:modelValue", date);
-      }
-    }
-  }
-};
+      },
+    },
+  },
+});
 </script>

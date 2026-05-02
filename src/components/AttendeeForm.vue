@@ -33,41 +33,46 @@
   </form>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useField, useForm } from "vee-validate";
 import { useAppStore } from "@/stores/app";
 import { v4 as uuidv4 } from "uuid";
 
 const store = useAppStore();
-
-const { handleSubmit, handleReset } = useForm({
+interface AttendeeForm {
+  name: string;
+  studentId: string;
+  email: string;
+  labPartner: string;
+}
+const { handleSubmit, handleReset } = useForm<AttendeeForm>({
   validationSchema: {
-    name(value) {
+    name(value: string) {
       if (value?.length >= 2) return true;
 
       return "Name needs to be at least 2 characters.";
     },
-    studentId(value) {
+    studentId(value: string) {
       if (/^[0-9-]{7,}$/.test(value)) return true;
 
       return "Student ID needs to be at least 7 digits.";
     },
-    email(value) {
+    email(value: string) {
       if (/^[a-z.-]+@[a-z.-]+\.[a-z]+$/i.test(value)) return true;
 
       return "Must be a valid e-mail.";
     },
-    labPartner(value) {
+    labPartner(value: string) {
       if (value?.length >= 2) return true;
 
       return "Lab partner needs to be at least 2 characters.";
     },
   },
 });
-const name = useField("name");
-const studentId = useField("studentId");
-const email = useField("email");
-const labPartner = useField("labPartner");
+const name = useField<string>("name");
+const studentId = useField<string>("studentId");
+const email = useField<string>("email");
+const labPartner = useField<string>("labPartner");
 
 const submit = handleSubmit((values) => {
   store.saveAttendee({

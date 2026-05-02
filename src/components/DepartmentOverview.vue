@@ -5,7 +5,7 @@
       :hide-default-footer="departments.length < 6"
       :items="departments"
     >
-      <template v-slot:top>
+      <template #top>
         <v-toolbar flat>
           <v-toolbar-title>
             <v-icon
@@ -28,20 +28,20 @@
         </v-toolbar>
       </template>
 
-      <template v-slot:[`item.name`]="{ value }">
+      <template #[`item.name`]="{ value }">
         <v-chip
           :text="value"
           border="thin opacity-25"
           prepend-icon="mdi-account"
           label
         >
-          <template v-slot:prepend>
+          <template #prepend>
             <v-icon color="medium-emphasis"></v-icon>
           </template>
         </v-chip>
       </template>
 
-      <template v-slot:[`item.actions`]="{ item }">
+      <template #[`item.actions`]="{ item }">
         <div class="d-flex ga-2 justify-end">
           <v-icon
             color="medium-emphasis"
@@ -59,7 +59,7 @@
         </div>
       </template>
 
-      <template v-slot:no-data>
+      <template #no-data>
         <div><p>No departments found</p></div>
       </template>
     </v-data-table>
@@ -70,7 +70,7 @@
       :subtitle="`${isEditing ? 'Update' : 'Create'} department`"
       :title="`${isEditing ? 'Edit' : 'Add'} department`"
     >
-      <template v-slot:text>
+      <template #text>
         <v-row>
           <v-col cols="12">
             <v-text-field v-model="formModel.name" label="Name"></v-text-field>
@@ -91,12 +91,12 @@
   </v-dialog>
 </template>
 
-<script setup>
-import { computed, ref, shallowRef, toRef } from "vue";
-import { useAppStore } from "@/stores/app";
+<script setup lang="ts">
+import { computed, ref, shallowRef } from "vue";
+import { useAppStore, type Department } from "@/stores/app";
 const store = useAppStore();
 
-function createNewRecord() {
+function createNewRecord(): Department {
   return {
     id: "",
     name: "",
@@ -118,8 +118,9 @@ function add() {
   dialog.value = true;
 }
 
-function edit(id) {
+function edit(id: string): void {
   const found = store.departments.find((department) => department.id === id);
+  if (!found) return;
 
   formModel.value = {
     id: found.id,
@@ -129,7 +130,7 @@ function edit(id) {
   dialog.value = true;
 }
 
-function remove(id) {
+function remove(id: string): void {
   store.removeDepartment(id);
 }
 
