@@ -4,6 +4,7 @@
       :headers="headers"
       :hide-default-footer="attendees.length < 11"
       :items="attendees"
+      @click:row="handleClickRow"
     >
       <template #top>
         <v-toolbar flat>
@@ -123,7 +124,10 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, toRef } from "vue";
 import { useAppStore } from "@/stores/app";
+import { useRouter } from "vue-router";
+
 const store = useAppStore();
+const router = useRouter();
 
 function createNewRecord() {
   return {
@@ -180,5 +184,10 @@ function remove(id: string): void {
 function save() {
   store.saveAttendee(formModel.value);
   dialog.value = false;
+}
+
+function handleClickRow(event: Event, row: any) {
+  console.log(row.item);
+  router.push(`/attendee/${row.item.id}`);
 }
 </script>
