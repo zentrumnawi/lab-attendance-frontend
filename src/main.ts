@@ -12,6 +12,7 @@ import Admin from "@/components/Admin.vue";
 import Form from "@/components/AttendeeForm.vue";
 import Overview from "@/components/AttendeeOverview.vue";
 import DepartmentOverview from "@/components/DepartmentOverview.vue";
+import IndividualFinalResult from "@/components/IndividualFinalResult.vue";
 
 const vuetify = createVuetify({
   icons: {
@@ -43,6 +44,12 @@ const routes = [
     path: "/departments",
     name: "Departments",
     component: DepartmentOverview,
+  },
+  {
+    path: "/attendee/:id",
+    name: "IndividualFinalResult",
+    component: IndividualFinalResult,
+    props: true,
   },
 ];
 
