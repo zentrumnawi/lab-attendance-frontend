@@ -58,7 +58,7 @@
             disable-initial-sort
             class="elevation-1"
           >
-            <template #items="props">
+            <template #item="props">
               <td class="text-xs-left">{{ props.item.date }}</td>
               <td class="text-xs-left">{{ props.item.pid }}</td>
               <td class="text-xs-left">{{ props.item.start }}</td>
@@ -103,10 +103,12 @@
             class="elevation-1"
             hide-actions
           >
-            <template #items="courses">
-              <td class="text-xs-left">{{ courses.item.name }}</td>
-              <td class="text-xs-left">{{ courses.item.tag }}</td>
-              <td class="text-xs-left">{{ courses.item.semester }}</td>
+            <template #item="courses">
+              <td class="text-xs-left">{{ (courses.item as Course).name }}</td>
+              <td class="text-xs-left">{{ (courses.item as Course).tag }}</td>
+              <td class="text-xs-left">
+                {{ (courses.item as Course).semester }}
+              </td>
             </template>
           </v-data-table>
         </v-card>
@@ -120,10 +122,12 @@
             class="elevation-1"
             hide-actions
           >
-            <template #items="courses">
-              <td class="text-xs-left">{{ courses.item.name }}</td>
-              <td class="text-xs-left">{{ courses.item.tag }}</td>
-              <td class="text-xs-left">{{ courses.item.semester }}</td>
+            <template #item="courses">
+              <td class="text-xs-left">{{ (courses.item as Course).name }}</td>
+              <td class="text-xs-left">{{ (courses.item as Course).tag }}</td>
+              <td class="text-xs-left">
+                {{ (courses.item as Course).semester }}
+              </td>
             </template>
           </v-data-table>
         </v-card>
@@ -137,7 +141,7 @@
             class="elevation-1"
             hide-actions
           >
-            <template #items="faculties">
+            <template #item="faculties">
               <td class="text-xs-left">{{ faculties.item }}</td>
             </template>
           </v-data-table>
@@ -154,6 +158,34 @@ import { mapActions, mapState } from "pinia";
 import configuration from "../assets/courses_ws.json";
 import { useAppStore } from "@/stores/app";
 
+interface Course {
+  name: string;
+  tag: string;
+  semester: string | number;
+}
+
+interface Attendee {
+  id?: string;
+  pid?: string;
+  name?: string;
+  firstName?: string;
+  studentId?: string;
+  email?: string;
+  labPartner?: string;
+  start: Date | string | number;
+  end: Date | string | number;
+  courses: string[];
+  faculty?: string;
+  semester?: string | number;
+  comments?: string;
+  [key: string]: any;
+}
+
+interface HeaderField {
+  label: string;
+  value: string;
+}
+
 export default {
   config: configuration,
   data: function () {
@@ -163,36 +195,36 @@ export default {
       password: null,
       show_pw: false,
       requiredPassword: "HelloWorld",
-      attendeesTable: [],
+      attendeesTable: [] as Record<string, any>[],
       tbl_headers: [
         {
-          text: "Datum",
-          align: "left",
+          title: "Datum",
+          align: "start" as const,
           sortable: true,
-          value: "date",
+          key: "date",
         },
         {
-          text: "ID",
-          align: "left",
+          title: "ID",
+          align: "start" as const,
           sortable: true,
-          value: "pid",
+          key: "pid",
         },
-        { text: "Startzeit", value: "start" },
-        { text: "Endzeit", value: "end" },
-        { text: "Anwesend", value: "presence" },
-        { text: "Studiengang", value: "faculty" },
-        { text: "Semester", value: "semester" },
-        { text: "Lehrveranstaltungen", value: "courses" },
-        { text: "Kommentar", value: "comments" },
+        { title: "Startzeit", key: "start" },
+        { title: "Endzeit", key: "end" },
+        { title: "Anwesend", key: "presence" },
+        { title: "Studiengang", key: "faculty" },
+        { title: "Semester", key: "semester" },
+        { title: "Lehrveranstaltungen", key: "courses" },
+        { title: "Kommentar", key: "comments" },
       ],
       course_headers: [
-        { text: "Lehrveranstaltung", value: "name" },
-        { text: "Kürzel", value: "tag" },
-        { text: "Semester", value: "semester" },
+        { title: "Lehrveranstaltung", key: "name" },
+        { title: "Kürzel", key: "tag" },
+        { title: "Semester", key: "semester" },
       ],
-      faculty_headers: [{ text: "Studienfach", value: "name" }],
-      crs_headers: [],
-      csv_flds: [],
+      faculty_headers: [{ title: "Studienfach", key: "name" }],
+      crs_headers: [] as { label: string; value: string }[],
+      csv_flds: [] as { label: string; value: string }[],
     };
   },
   props: {
@@ -215,8 +247,8 @@ export default {
       if (this.password != this.requiredPassword) return;
       this.authenticated = true;
     },
-    select(course) {
-      this.faculties_act.push(course);
+    select(course: Course) {
+      (this.faculties_act as Course[]).push(course);
     },
     clearlist() {
       this.clearAttendees();
@@ -225,11 +257,17 @@ export default {
     dummydata() {
       this.populatedb();
     },
-    format(Attendee) {
-      Attendee.map((element) => ({ ...element, ...this.formatDates(element) }));
+    format(attendees: Attendee[]) {
+      return attendees.map((element: Attendee) => ({
+        ...element,
+        ...this.formatDates(element),
+      }));
     },
-    formatDates(element) {
-      const differenceMinutes = differenceInMinutes(element.end, element.start);
+    formatDates(element: Attendee) {
+      const start = new Date(element.start);
+      const end = new Date(element.end);
+
+      const differenceMinutes = differenceInMinutes(end, start);
       const differenceDate = addMinutes(new Date(0), differenceMinutes);
 
       return {
@@ -240,7 +278,7 @@ export default {
         courses: element.courses.join(", "),
       };
     },
-    buildheader(courses) {
+    buildheader(courses: Course[]): HeaderField[] {
       return courses.map((course) => ({
         label: course.tag,
         value: course.tag,
@@ -248,9 +286,10 @@ export default {
     },
   },
   watch: {
-    attendees: function (newValue) {
+    attendees: function (newValue: Attendee[]) {
       if (newValue === undefined) {
         this.attendeesTable = [];
+        return;
       }
       //this.attendeesTable = this.format(newValue) //Why doesn't this work?
       this.attendeesTable = newValue.map((element) => ({
@@ -264,10 +303,12 @@ export default {
     this.requiredPassword = import.meta.env.VITE_ADMIN_PASSWORD;
 
     //this.attendeesTable = this.format(this.attendees) //Why doesn't this work?
-    this.attendeesTable = this.attendees.map((element) => ({
-      ...element,
-      ...this.formatDates(element),
-    }));
+    this.attendeesTable = (this.attendees as Attendee[]).map(
+      (element: Attendee) => ({
+        ...element,
+        ...this.formatDates(element),
+      }),
+    );
 
     //build courseheaders
     this.crs_headers = [
@@ -279,8 +320,8 @@ export default {
 
     //build 'fields'-Array from header object for CSV-Parser
     this.csv_flds = this.tbl_headers.map((item) => ({
-      label: item.text,
-      value: item.value,
+      label: item.title as string,
+      value: item.key as string,
     }));
 
     //remove 'courses' from fields array
@@ -295,16 +336,17 @@ export default {
   computed: {
     ...mapState(useAppStore, ["attendees", "faculties_act"]),
     export() {
-      this.attendees.forEach((attendee) => {
-        this.crs_headers.forEach((course) => {
+      (this.attendees as Attendee[]).forEach((attendee: Attendee) => {
+        this.crs_headers.forEach((course: HeaderField) => {
           attendee[course.value] =
-            attendee.courses.findIndex((element) => element === course.value) >=
-            0
+            attendee.courses.findIndex(
+              (element: string) => element === course.value,
+            ) >= 0
               ? 1
               : 0;
         });
       });
-      return this.attendees.map((element) => ({
+      return (this.attendees as Attendee[]).map((element: Attendee) => ({
         ...element,
         ...this.formatDates(element),
       }));
@@ -316,7 +358,8 @@ export default {
         quote: this.quote,
         withBOM: true,
       };
-      const csv = Parser.parse(this.export, opts);
+      const parser = new Parser(opts);
+      const csv = parser.parse(this.export);
       return csv;
     },
     downloadURL() {

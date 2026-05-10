@@ -10,7 +10,7 @@ interface Attendee {
   labPartner: string;
 }
 
-interface Department {
+export interface Department {
   id: string;
   name: string;
 }

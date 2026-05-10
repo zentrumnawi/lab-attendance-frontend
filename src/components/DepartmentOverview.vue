@@ -109,8 +109,8 @@ const dialog = shallowRef(false);
 const isEditing = computed(() => !!formModel.value.id);
 
 const headers = [
-  { title: "Name", key: "name", align: "start" },
-  { title: "Action", key: "actions", align: "end", sortable: false },
+  { title: "Name", key: "name", align: "start" as const },
+  { title: "Action", key: "actions", align: "end" as const, sortable: false },
 ];
 
 function add() {

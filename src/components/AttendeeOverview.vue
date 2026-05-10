@@ -1,7 +1,7 @@
 <template>
   <v-sheet border rounded>
     <v-data-table
-      :headers="headers"
+      :headers="headers as any"
       :hide-default-footer="attendees.length < 11"
       :items="attendees"
     >
@@ -147,10 +147,10 @@ const headers: {
   align?: string;
   sortable?: boolean;
 }[] = [
-  { title: "Name", key: "name", align: "start" },
-  { title: "First Name", key: "firstName" },
-  { title: "Student ID", key: "studentId" },
-  { title: "", key: "actions", align: "end", sortable: false },
+  { title: "Name", key: "name", align: "start" as const },
+  { title: "First Name", key: "firstName", align: "start" as const },
+  { title: "Student ID", key: "studentId", align: "start" as const },
+  { title: "", key: "actions", align: "end" as const, sortable: false },
 ];
 
 function add() {
