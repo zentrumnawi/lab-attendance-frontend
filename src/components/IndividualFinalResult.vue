@@ -1,4 +1,11 @@
 <template>
+  <v-breadcrumbs
+    :items="[
+      { title: 'Students', href: '/students' },
+      { title: attendee?.matriculationNumber ?? 'someName' },
+    ]"
+    divider=">"
+  ></v-breadcrumbs>
   <v-expansion-panels v-model="expanded" multiple :elevation="5">
     <v-expansion-panel>
       <v-expansion-panel-title color="blue-grey-lighten-4"
