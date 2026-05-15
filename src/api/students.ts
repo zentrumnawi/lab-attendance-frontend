@@ -1,0 +1,32 @@
+import { httpJson } from "@/api/http";
+
+export interface StudentData {
+  name: string;
+  first_name: string;
+  id: string;
+  email: string;
+  lab_partner?: string;
+  [key: string]: any;
+}
+export interface StudentPerformance {
+  papers_completed: number;
+  exercises_completed: number;
+  attendance_count: number;
+  [key: string]: any;
+}
+
+export async function getStudentPerformance(studentId: string) {
+  return await httpJson<StudentPerformance>(
+    `/api/final-results/${encodeURIComponent(studentId)}/`,
+  );
+}
+
+export async function getStudentData(studentId: string) {
+  return await httpJson<StudentData>(
+    `/api/students/${encodeURIComponent(studentId)}/`,
+  );
+}
+
+export async function getStudents() {
+  return await httpJson<StudentData[]>(`/api/students/`);
+}
