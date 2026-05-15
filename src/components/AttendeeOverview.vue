@@ -122,10 +122,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef, toRef } from "vue";
+import { computed, onMounted, ref, shallowRef, toRef } from "vue";
 import { useAppStore } from "@/stores/app";
 import { useRouter } from "vue-router";
-
 const store = useAppStore();
 const router = useRouter();
 
@@ -135,6 +134,7 @@ function createNewRecord() {
     name: "",
     firstName: "",
     studentId: "",
+    matriculationNumber: "",
     email: "",
     labPartner: "",
   };
@@ -153,7 +153,7 @@ const headers: {
 }[] = [
   { title: "Name", key: "name", align: "start" },
   { title: "First Name", key: "firstName" },
-  { title: "Student ID", key: "studentId" },
+  { title: "Matriculation Number", key: "matriculationNumber" },
   { title: "", key: "actions", align: "end", sortable: false },
 ];
 
@@ -170,6 +170,7 @@ function edit(id: string): void {
     name: found.name,
     firstName: found.firstName,
     studentId: found.studentId,
+    matriculationNumber: found.matriculationNumber,
     email: found.email,
     labPartner: found.labPartner,
   };
@@ -190,4 +191,10 @@ function handleClickRow(event: Event, row: any) {
   console.log(row.item);
   router.push(`/attendee/${row.item.id}`);
 }
+
+onMounted(() => {
+  if (store.attendees.length === 0) {
+    void store.fetchStudents();
+  }
+});
 </script>
