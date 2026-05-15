@@ -82,13 +82,27 @@
         >Attendance and Performance</v-expansion-panel-title
       >
       <v-expansion-panel-text>
+        <v-alert
+          v-if="error"
+          type="error"
+          variant="tonal"
+          density="compact"
+          class="mb-4"
+        >
+          {{ error }}
+        </v-alert>
         <v-row>
           <v-col cols="4">
             <v-list-subheader>Number of submitted papers</v-list-subheader>
           </v-col>
 
           <v-col cols="8">
-            <v-text-field model-value="10" type="number"></v-text-field>
+            <v-text-field
+              :model-value="performance?.papers_completed ?? ''"
+              type="number"
+              :loading="loading"
+              readonly
+            ></v-text-field>
           </v-col>
         </v-row>
 
@@ -98,7 +112,12 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field model-value="10" type="number"></v-text-field>
+            <v-text-field
+              :model-value="performance?.exercises_completed ?? ''"
+              type="number"
+              :loading="loading"
+              readonly
+            ></v-text-field>
           </v-col>
         </v-row>
 
@@ -108,7 +127,12 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field model-value="10" type="number"></v-text-field>
+            <v-text-field
+              :model-value="performance?.attendance_count ?? ''"
+              type="number"
+              :loading="loading"
+              readonly
+            ></v-text-field>
           </v-col>
         </v-row>
       </v-expansion-panel-text>
@@ -131,8 +155,34 @@
     </v-expansion-panel>
   </v-expansion-panels>
 </template>
-<script setup>
-import { ref } from "vue";
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import { useStudentPerformanceStore } from "@/stores/studentPerformance";
+
+const props = defineProps<{
+  id: string;
+}>();
 
 const expanded = ref([0, 1, 2]);
+
+const performanceStore = useStudentPerformanceStore();
+const performance = computed(() => performanceStore.byStudentId[props.id]);
+const loading = computed(() => performanceStore.loadingByStudentId[props.id]);
+const error = computed(() => performanceStore.errorByStudentId[props.id]);
+
+async function load() {
+  if (performanceStore.byStudentId[props.id]) return;
+  await performanceStore.fetchPerformance(props.id);
+}
+
+onMounted(() => {
+  void load();
+});
+
+watch(
+  () => props.id,
+  () => {
+    void load();
+  },
+);
 </script>
