@@ -11,7 +11,7 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field model-value="John"></v-text-field>
+            <v-text-field :model-value="attendee?.firstName"></v-text-field>
           </v-col>
         </v-row>
 
@@ -21,7 +21,7 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field model-value="Doe"></v-text-field>
+            <v-text-field :model-value="attendee?.name"></v-text-field>
           </v-col>
         </v-row>
 
@@ -31,10 +31,7 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field
-              model-value="john.doe@example.com"
-              suffix="@gmail.com"
-            ></v-text-field>
+            <v-text-field :model-value="attendee?.email"></v-text-field>
           </v-col>
         </v-row>
 
@@ -44,7 +41,10 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field model-value="1234567890" type="number"></v-text-field>
+            <v-text-field
+              :model-value="attendee?.matriculationNumber"
+              type="number"
+            ></v-text-field>
           </v-col>
         </v-row>
         <v-row>
@@ -53,7 +53,7 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field model-value="Computer Science"></v-text-field>
+            <v-text-field :model-value="attendee?.department"></v-text-field>
           </v-col>
         </v-row>
         <v-row>
@@ -62,7 +62,7 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field model-value="A"></v-text-field>
+            <v-text-field :model-value="attendee?.group"></v-text-field>
           </v-col>
         </v-row>
         <v-row>
@@ -71,7 +71,7 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field model-value="John Doe"></v-text-field>
+            <v-text-field :model-value="attendee?.labPartner"></v-text-field>
           </v-col>
         </v-row>
       </v-expansion-panel-text>
@@ -158,6 +158,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
+import { useAppStore } from "@/stores/app";
 
 const props = defineProps<{
   id: string;
@@ -166,23 +167,24 @@ const props = defineProps<{
 const expanded = ref([0, 1, 2]);
 
 const performanceStore = useStudentPerformanceStore();
+const appStore = useAppStore();
+const attendee = computed(() => appStore.getAttendeeById(props.id));
 const performance = computed(() => performanceStore.byStudentId[props.id]);
 const loading = computed(() => performanceStore.loadingByStudentId[props.id]);
 const error = computed(() => performanceStore.errorByStudentId[props.id]);
 
-async function load() {
-  if (performanceStore.byStudentId[props.id]) return;
+async function loadPerformance() {
   await performanceStore.fetchPerformance(props.id);
 }
 
 onMounted(() => {
-  void load();
+  void loadPerformance();
 });
 
 watch(
   () => props.id,
   () => {
-    void load();
+    void loadPerformance();
   },
 );
 </script>

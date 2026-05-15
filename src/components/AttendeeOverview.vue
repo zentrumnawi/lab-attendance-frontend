@@ -188,13 +188,10 @@ function save() {
 }
 
 function handleClickRow(event: Event, row: any) {
-  console.log(row.item);
   router.push(`/attendee/${row.item.id}`);
 }
 
 onMounted(() => {
-  if (store.attendees.length === 0) {
-    void store.fetchStudents();
-  }
+  void store.fetchStudents();
 });
 </script>

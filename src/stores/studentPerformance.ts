@@ -14,6 +14,8 @@ export const useStudentPerformanceStore = defineStore("studentPerformance", {
       this.loadingByStudentId[studentId] = true;
       this.errorByStudentId[studentId] = null;
 
+      if (this.byStudentId[studentId]) return this.byStudentId[studentId];
+
       try {
         const perf = await getStudentPerformance(studentId);
         this.byStudentId[studentId] = perf;

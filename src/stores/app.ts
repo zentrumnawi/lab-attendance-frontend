@@ -1,4 +1,4 @@
-import { getStudents } from "@/api/students";
+import { getSingleStudentData, getStudents } from "@/api/students";
 import { defineStore } from "pinia";
 import { v4 as uuidv4 } from "uuid";
 
@@ -53,6 +53,9 @@ export const useAppStore = defineStore("app", {
     clearAttendees(): void {
       this.attendees = [];
     },
+    getAttendeeById(id: string): Attendee | undefined {
+      return this.attendees.find((attendee) => attendee.id === id);
+    },
     populatedb(): void {
       this.attendees.push({
         id: uuidv4(),
@@ -98,6 +101,8 @@ export const useAppStore = defineStore("app", {
       this.loadingStudents = true;
       this.errorStudents = null;
 
+      if (this.attendees.length > 0) return this.attendees;
+
       try {
         const students = await getStudents();
         const attendees = students.map((student) => ({
@@ -118,6 +123,20 @@ export const useAppStore = defineStore("app", {
       } finally {
         this.loadingStudents = false;
       }
+    },
+    async fetchSingleStudent(studentId: string): Promise<Attendee> {
+      const attendee = this.getAttendeeById(studentId);
+      if (attendee) return attendee;
+      const student = await getSingleStudentData(studentId);
+      return {
+        id: student.id,
+        name: student.name,
+        firstName: student.first_name,
+        studentId: student.id,
+        matriculationNumber: student.matriculation_number ?? "",
+        email: student.email,
+        labPartner: student.lab_partner || "",
+      };
     },
   },
   persist: true,

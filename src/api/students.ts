@@ -21,7 +21,7 @@ export async function getStudentPerformance(studentId: string) {
   );
 }
 
-export async function getStudentData(studentId: string) {
+export async function getSingleStudentData(studentId: string) {
   return await httpJson<StudentData>(
     `/api/students/${encodeURIComponent(studentId)}/`,
   );
