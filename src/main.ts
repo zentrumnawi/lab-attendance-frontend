@@ -5,19 +5,22 @@ import { createRouter, createWebHashHistory } from "vue-router";
 import "vuetify/dist/vuetify.min.css"; // Ensure you are using css-loader
 import "vuetify/styles";
 import { createVuetify } from "vuetify";
-import { md } from "vuetify/iconsets/md";
+import "@mdi/font/css/materialdesignicons.css";
+import { aliases, mdi } from "vuetify/iconsets/mdi";
 
 import App from "./App.vue";
 import Admin from "@/components/Admin.vue";
 import Form from "@/components/AttendeeForm.vue";
 import Overview from "@/components/AttendeeOverview.vue";
 import DepartmentOverview from "@/components/DepartmentOverview.vue";
+import IndividualFinalResult from "@/components/IndividualFinalResult.vue";
 
 const vuetify = createVuetify({
   icons: {
-    defaultSet: "md",
+    defaultSet: "mdi",
+    aliases,
     sets: {
-      md,
+      mdi,
     },
   },
 });
@@ -43,6 +46,12 @@ const routes = [
     path: "/departments",
     name: "Departments",
     component: DepartmentOverview,
+  },
+  {
+    path: "/attendee/:id",
+    name: "IndividualFinalResult",
+    component: IndividualFinalResult,
+    props: true,
   },
 ];
 

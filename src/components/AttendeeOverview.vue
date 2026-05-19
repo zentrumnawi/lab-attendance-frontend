@@ -4,6 +4,7 @@
       :headers="headers as any"
       :hide-default-footer="attendees.length < 11"
       :items="attendees"
+      @click:row="handleClickRow"
     >
       <template #top>
         <v-toolbar flat>
@@ -121,9 +122,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef, toRef } from "vue";
+import { computed, onMounted, ref, shallowRef, toRef } from "vue";
 import { useAppStore } from "@/stores/app";
+import { useRouter } from "vue-router";
 const store = useAppStore();
+const router = useRouter();
 
 function createNewRecord() {
   return {
@@ -131,6 +134,7 @@ function createNewRecord() {
     name: "",
     firstName: "",
     studentId: "",
+    matriculationNumber: "",
     email: "",
     labPartner: "",
   };
@@ -147,10 +151,10 @@ const headers: {
   align?: string;
   sortable?: boolean;
 }[] = [
-  { title: "Name", key: "name", align: "start" as const },
-  { title: "First Name", key: "firstName", align: "start" as const },
-  { title: "Student ID", key: "studentId", align: "start" as const },
-  { title: "", key: "actions", align: "end" as const, sortable: false },
+  { title: "Name", key: "name", align: "start" },
+  { title: "First Name", key: "firstName" },
+  { title: "Matriculation Number", key: "matriculationNumber" },
+  { title: "", key: "actions", align: "end", sortable: false },
 ];
 
 function add() {
@@ -166,6 +170,7 @@ function edit(id: string): void {
     name: found.name,
     firstName: found.firstName,
     studentId: found.studentId,
+    matriculationNumber: found.matriculationNumber,
     email: found.email,
     labPartner: found.labPartner,
   };
@@ -181,4 +186,12 @@ function save() {
   store.saveAttendee(formModel.value);
   dialog.value = false;
 }
+
+function handleClickRow(event: Event, row: any) {
+  router.push(`/attendee/${row.item.id}`);
+}
+
+onMounted(() => {
+  void store.fetchStudents();
+});
 </script>
