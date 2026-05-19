@@ -41,6 +41,7 @@ import { v4 as uuidv4 } from "uuid";
 const store = useAppStore();
 interface AttendeeForm {
   name: string;
+  firstName: string;
   studentId: string;
   email: string;
   labPartner: string;
@@ -77,6 +78,7 @@ const labPartner = useField<string>("labPartner");
 const submit = handleSubmit((values) => {
   store.saveAttendee({
     ...values,
+    firstName: values.firstName,
     id: uuidv4(),
   });
 });

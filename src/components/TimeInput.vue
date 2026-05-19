@@ -25,7 +25,7 @@
       no-title
       v-model="time"
       format="24hr"
-      @click:minute="$refs.menu.save(time)"
+      @click:minute="saveTime"
       :min="min"
       :max="max"
     ></v-time-picker>
@@ -35,10 +35,12 @@
 <script lang="ts">
 import { defineComponent, type PropType } from "vue";
 import { format } from "date-fns";
+import { VMenu } from "vuetify/components";
 
 export default defineComponent({
   name: "TimeInput",
   emits: ["update:modelValue"],
+  components: { VMenu },
   data: () => ({
     menu: false,
   }),
@@ -87,6 +89,11 @@ export default defineComponent({
         );
         this.$emit("update:modelValue", date);
       },
+    },
+  },
+  methods: {
+    saveTime() {
+      this.menu = false;
     },
   },
 });

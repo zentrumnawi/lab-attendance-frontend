@@ -12,7 +12,7 @@ interface Attendee {
   [key: string]: any;
 }
 
-interface Department {
+export interface Department {
   id: string;
   name: string;
 }

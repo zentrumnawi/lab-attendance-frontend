@@ -1,7 +1,7 @@
 <template>
   <v-sheet border rounded>
     <v-data-table
-      :headers="headers"
+      :headers="headers as any"
       :hide-default-footer="attendees.length < 11"
       :items="attendees"
       @click:row="handleClickRow"
