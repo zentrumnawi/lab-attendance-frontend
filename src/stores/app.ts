@@ -1,3 +1,4 @@
+import { getSingleStudentData, getStudents } from "@/api/students";
 import { defineStore } from "pinia";
 import { v4 as uuidv4 } from "uuid";
 
@@ -8,6 +9,7 @@ interface Attendee {
   studentId: string;
   email: string;
   labPartner: string;
+  [key: string]: any;
 }
 
 interface Department {
@@ -23,6 +25,9 @@ export const useAppStore = defineStore("app", {
     courses_math_act: [],
     faculties_act: [],
     semester_toggle: 0,
+    students: [] as Attendee[],
+    loadingStudents: false,
+    errorStudents: null as string | null,
   }),
 
   actions: {
@@ -47,6 +52,9 @@ export const useAppStore = defineStore("app", {
     },
     clearAttendees(): void {
       this.attendees = [];
+    },
+    getAttendeeById(id: string): Attendee | undefined {
+      return this.attendees.find((attendee) => attendee.id === id);
     },
     populatedb(): void {
       this.attendees.push({
@@ -88,6 +96,47 @@ export const useAppStore = defineStore("app", {
 
     clearDepartments(): void {
       this.departments = [];
+    },
+    async fetchStudents(): Promise<Attendee[]> {
+      this.loadingStudents = true;
+      this.errorStudents = null;
+
+      if (this.attendees.length > 0) return this.attendees;
+
+      try {
+        const students = await getStudents();
+        const attendees = students.map((student) => ({
+          id: student.id,
+          name: student.name,
+          firstName: student.first_name,
+          studentId: student.id,
+          matriculationNumber: student.matriculation_number ?? "",
+          email: student.email,
+          labPartner: student.lab_partner || "",
+        }));
+        this.attendees = attendees;
+        return attendees;
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        this.errorStudents = message;
+        throw e;
+      } finally {
+        this.loadingStudents = false;
+      }
+    },
+    async fetchSingleStudent(studentId: string): Promise<Attendee> {
+      const attendee = this.getAttendeeById(studentId);
+      if (attendee) return attendee;
+      const student = await getSingleStudentData(studentId);
+      return {
+        id: student.id,
+        name: student.name,
+        firstName: student.first_name,
+        studentId: student.id,
+        matriculationNumber: student.matriculation_number ?? "",
+        email: student.email,
+        labPartner: student.lab_partner || "",
+      };
     },
   },
   persist: true,
