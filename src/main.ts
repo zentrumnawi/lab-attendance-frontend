@@ -14,6 +14,9 @@ import Form from "@/components/AttendeeForm.vue";
 import Overview from "@/components/AttendeeOverview.vue";
 import DepartmentOverview from "@/components/DepartmentOverview.vue";
 import IndividualFinalResult from "@/components/IndividualFinalResult.vue";
+import Login from "@/components/Login.vue";
+import { setCsrfTokenProvider } from "@/api/http";
+import { useAuthStore } from "@/stores/auth";
 
 const vuetify = createVuetify({
   icons: {
@@ -26,6 +29,12 @@ const vuetify = createVuetify({
 });
 
 const routes = [
+  {
+    path: "/login",
+    name: "Login",
+    component: Login,
+    meta: { public: true },
+  },
   {
     path: "/admin",
     name: "Admin",
@@ -58,9 +67,32 @@ const routes = [
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
+setCsrfTokenProvider(() => useAuthStore(pinia).csrfToken);
+
 export const router = createRouter({
   history: createWebHashHistory(),
   routes,
+});
+
+// direct to login if not authenticated and not public
+router.beforeEach((to) => {
+  const auth = useAuthStore(pinia);
+
+  if (auth.isAuthenticated) {
+    if (to.name === "Login") {
+      return { path: "/" };
+    }
+    return true;
+  }
+
+  if (to.meta.public) {
+    return true;
+  }
+
+  return {
+    path: "/login",
+    query: { redirect: to.fullPath },
+  };
 });
 
 createApp(App).use(router).use(pinia).use(vuetify).mount("#app");
