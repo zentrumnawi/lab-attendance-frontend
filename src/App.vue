@@ -24,9 +24,15 @@
 
     <v-app-bar color="primary">
       <v-toolbar-title class="headline text-uppercase"
-        >Anwesenheitsformular</v-toolbar-title
+        >Praktikum AAC</v-toolbar-title
       >
       <v-spacer></v-spacer>
+      <v-btn
+        v-if="auth.isAuthenticated"
+        icon="logout"
+        title="Abmelden"
+        @click="logout"
+      />
       <v-img
         aspect-ratio="1.5"
         contain
@@ -43,7 +49,7 @@
     <v-footer app dark color="primary darken-1">
       <v-layout text-left ml-4>
         <v-col xs12>
-          &copy; 2019&nbsp;&nbsp;|&nbsp;&nbsp;
+          &copy; 2026&nbsp;&nbsp;|&nbsp;&nbsp;
           <router-link to="/admin">
             <img
               height="20px"
@@ -59,12 +65,25 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { useAuthStore } from "@/stores/auth";
+
 export default defineComponent({
   name: "App",
   data() {
     return {
       drawer: true,
     };
+  },
+  computed: {
+    auth() {
+      return useAuthStore();
+    },
+  },
+  methods: {
+    async logout() {
+      await this.auth.logout();
+      this.$router.push("/login");
+    },
   },
 });
 </script>
