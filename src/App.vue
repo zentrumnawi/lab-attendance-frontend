@@ -27,6 +27,14 @@
         >Praktikum AAC</v-toolbar-title
       >
       <v-spacer></v-spacer>
+      <div v-if="isAuthenticated" class="d-flex align-center ga-3 me-2">
+        <v-avatar color="purple-accent-2" size="36">
+          <v-icon icon="mdi-account-circle" />
+        </v-avatar>
+        <span class="text-body-1 font-weight-medium text-white">{{
+          username
+        }}</span>
+      </div>
       <v-btn
         v-if="isAuthenticated"
         icon="mdi-logout"
@@ -76,7 +84,7 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useAuthStore, ["isAuthenticated"]),
+    ...mapState(useAuthStore, ["isAuthenticated", "username"]),
   },
   methods: {
     async logout() {
