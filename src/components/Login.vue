@@ -59,7 +59,10 @@
 
         <v-card-actions class="justify-center pb-4">
           <v-btn
-            color="primary"
+            color="blue-darken-1"
+            size="x-large"
+            variant="flat"
+            block
             :disabled="auth.csrfLoading || !!auth.csrfError"
             :loading="auth.csrfLoading || auth.loginLoading"
             @click="submit"
