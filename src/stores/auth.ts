@@ -60,6 +60,9 @@ export const useAuthStore = defineStore("auth", {
       }
     },
   },
+  persist: {
+    pick: ["isAuthenticated", "username"],
+  },
 });
 
 function formatAuthError(e: unknown): string {
