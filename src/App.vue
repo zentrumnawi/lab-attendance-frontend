@@ -28,8 +28,8 @@
       >
       <v-spacer></v-spacer>
       <v-btn
-        v-if="auth.isAuthenticated"
-        icon="logout"
+        v-if="isAuthenticated"
+        icon="mdi-logout"
         title="Abmelden"
         @click="logout"
       />
@@ -66,6 +66,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import { mapState } from "pinia";
 
 export default defineComponent({
   name: "App",
@@ -75,13 +76,11 @@ export default defineComponent({
     };
   },
   computed: {
-    auth() {
-      return useAuthStore();
-    },
+    ...mapState(useAuthStore, ["isAuthenticated"]),
   },
   methods: {
     async logout() {
-      await this.auth.logout();
+      await useAuthStore().logout();
       this.$router.push("/login");
     },
   },
