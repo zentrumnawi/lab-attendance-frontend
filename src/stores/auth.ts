@@ -10,6 +10,8 @@ export const useAuthStore = defineStore("auth", {
     csrfLoading: false,
     loginLoading: false,
     csrfError: null as string | null,
+    isSuperuser: false,
+    groupName: null as string | null,
   }),
 
   actions: {
@@ -37,9 +39,11 @@ export const useAuthStore = defineStore("auth", {
       this.loginLoading = true;
 
       try {
-        await authApi.login(username, password);
+        const response = await authApi.login(username, password);
         this.username = username;
         this.isAuthenticated = true;
+        this.isSuperuser = response.is_superuser;
+        this.groupName = response.profile?.group?.name || null;
       } finally {
         // see Django's login method to see why this is necessary
         await this.ensureCsrfToken();
@@ -61,7 +65,7 @@ export const useAuthStore = defineStore("auth", {
     },
   },
   persist: {
-    pick: ["isAuthenticated", "username"],
+    pick: ["isAuthenticated", "username", "isSuperuser", "groupName"],
   },
 });
 

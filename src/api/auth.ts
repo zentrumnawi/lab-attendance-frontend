@@ -2,6 +2,15 @@ import { httpJson } from "./http";
 
 export type CsrfTokenResponse = { csrfToken: string };
 
+interface LoginResponse {
+  profile: {
+    group: {
+      name: string;
+    };
+  } | null;
+  is_superuser: boolean;
+}
+
 export function parseCsrfToken(data: CsrfTokenResponse): string {
   const token = data.csrfToken;
   if (token) {
@@ -17,7 +26,7 @@ export async function fetchCsrfToken(): Promise<string> {
 }
 
 export async function login(username: string, password: string) {
-  return await httpJson<void>("/api/auth/login/", {
+  return await httpJson<LoginResponse>("/api/auth/login/", {
     method: "POST",
     body: { username, password },
   });
