@@ -28,12 +28,18 @@
       >
       <v-spacer></v-spacer>
       <div v-if="isAuthenticated" class="d-flex align-center ga-3 me-2">
-        <v-avatar color="purple-accent-2" size="36">
-          <v-icon icon="mdi-account-circle" />
-        </v-avatar>
-        <span class="text-body-1 font-weight-medium text-white">{{
-          username
-        }}</span>
+        <v-menu min-width="200px">
+          <template #activator="{ props }">
+            <v-btn icon v-bind="props">
+              <v-avatar color="purple-accent-2" size="36">
+                <v-icon icon="mdi-account-circle" /> </v-avatar></v-btn
+          ></template>
+          <v-card>
+            <h5 class="my-0">{{ username }}</h5>
+            <v-divider class="my-3"></v-divider>
+            <div>Scope: {{ groupName ? "Group " + groupName : "Admin" }}</div>
+          </v-card>
+        </v-menu>
       </div>
       <v-btn
         v-if="isAuthenticated"
@@ -84,7 +90,7 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useAuthStore, ["isAuthenticated", "username"]),
+    ...mapState(useAuthStore, ["isAuthenticated", "username", "groupName"]),
   },
   methods: {
     async logout() {
