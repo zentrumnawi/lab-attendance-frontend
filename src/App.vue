@@ -34,10 +34,24 @@
               <v-avatar color="purple-accent-2" size="36">
                 <v-icon icon="mdi-account-circle" /> </v-avatar></v-btn
           ></template>
-          <v-card>
-            <h5 class="my-0">{{ username }}</h5>
-            <v-divider class="my-3"></v-divider>
-            <div>Scope: {{ groupName ? "Group " + groupName : "Admin" }}</div>
+          <v-card rounded="lg" elevation="6">
+            <v-card-text class="pt-0 pb-4 px-4">
+              <div class="text-h6 font-weight-medium mt-4">
+                {{ username }}
+              </div>
+              <v-chip
+                class="mt-2"
+                size="small"
+                variant="tonal"
+                :color="groupName ? 'primary' : 'deep-purple'"
+                :prepend-icon="
+                  groupName ? 'mdi-account-group' : 'mdi-shield-account'
+                "
+                label
+              >
+                {{ groupName ? "Group " + groupName : "Admin" }}
+              </v-chip>
+            </v-card-text>
           </v-card>
         </v-menu>
       </div>
