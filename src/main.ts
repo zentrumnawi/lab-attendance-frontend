@@ -14,6 +14,7 @@ import Form from "@/components/AttendeeForm.vue";
 import Overview from "@/components/AttendeeOverview.vue";
 import DepartmentOverview from "@/components/DepartmentOverview.vue";
 import IndividualFinalResult from "@/components/IndividualFinalResult.vue";
+import Attendance from "@/components/Attendance.vue";
 
 const vuetify = createVuetify({
   icons: {
@@ -52,6 +53,11 @@ const routes = [
     name: "IndividualFinalResult",
     component: IndividualFinalResult,
     props: true,
+  },
+  {
+    path: "/attendance",
+    name: "Attendance",
+    component: Attendance,
   },
 ];
 

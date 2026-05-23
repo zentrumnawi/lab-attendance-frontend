@@ -8,7 +8,7 @@
       width="250"
     >
       <v-list base-color="white" active-color="white" nav>
-        <v-list-item title="Attendance" link />
+        <v-list-item title="Attendance" to="/attendance" link />
 
         <v-list-item title="Departments" to="/departments" link />
 
