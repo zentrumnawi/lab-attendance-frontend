@@ -21,8 +21,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-
+import { onMounted, ref } from "vue";
+import { useAttendanceStore } from "@/stores/attendance";
+const AttendanceStore = useAttendanceStore();
 const value = ref("");
 const events = ref<
   { name: string; start: Date; end: Date; color: string; timed: boolean }[]
@@ -43,10 +44,25 @@ function getEvents() {
     });
   }
 
+  for (let labDate of AttendanceStore.labDates) {
+    evts.push({
+      name: "Labor " + labDate.praktikum_day + " " + labDate.group,
+      start: new Date(labDate.date),
+      end: new Date(labDate.date),
+      color: "pink-accent-2",
+      timed: false,
+    });
+  }
+
   events.value = evts;
 }
 
 function getEventColor(event: any) {
   return event.color;
 }
+
+onMounted(() => {
+  void AttendanceStore.fetchLabDates();
+  console.log("labDates", AttendanceStore.labDates);
+});
 </script>
