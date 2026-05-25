@@ -15,7 +15,20 @@
         start="2026-08-01"
         :weekdays="[1, 2, 3, 4, 5]"
         @change="getEvents"
-      ></v-calendar>
+      >
+        <template #day-label="{ date }">
+          <div class="day-label">
+            <div class="day-number">{{ new Date(date).getDate() }}</div>
+            <v-btn
+              size="x-small"
+              class="day-button"
+              @click.stop="handleButtonClick(date)"
+            >
+              +
+            </v-btn>
+          </div>
+        </template>
+      </v-calendar>
     </v-sheet>
   </div>
 </template>
@@ -61,8 +74,35 @@ function getEventColor(event: any) {
   return event.color;
 }
 
+function handleButtonClick(date: string) {
+  console.log("date", date);
+}
+
 onMounted(() => {
-  void AttendanceStore.fetchLabDates();
+  void AttendanceStore.fetchLabDates().then(() => {
+    getEvents();
+  });
   console.log("labDates", AttendanceStore.labDates);
 });
 </script>
+
+<style scoped>
+.day-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  position: relative;
+}
+
+.day-number {
+  font-weight: bold;
+}
+.day-button {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: lightgreen;
+}
+</style>
