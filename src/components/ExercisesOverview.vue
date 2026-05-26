@@ -54,7 +54,7 @@
             icon="mdi-delete"
             color="medium-emphasis red"
             size="small"
-            @click="remove(item.id)"
+            @click="confirmRemove(item.id)"
           ></v-icon>
         </div>
       </template>
@@ -71,11 +71,17 @@
       :title="`${isEditing ? 'Edit' : 'Add'} exercises`"
     >
       <template #text>
-        <v-row>
-          <v-col cols="12">
-            <v-text-field v-model="formModel.name" label="Name"></v-text-field>
-          </v-col>
-        </v-row>
+        <v-form ref="form">
+          <v-row>
+            <v-col cols="12">
+              <v-text-field
+                v-model="formModel.name"
+                label="Name"
+                :rules="nameRules"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+        </v-form>
       </template>
 
       <v-divider></v-divider>
@@ -89,12 +95,35 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <v-dialog v-model="deleteDialog" max-width="400">
+    <v-card>
+      <v-card-title class="text-h6"> Delete Exercise </v-card-title>
+
+      <v-card-text>
+        Are you sure you want to delete this exercise?
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer />
+
+        <v-btn text="Cancel" variant="text" @click="deleteDialog = false" />
+
+        <v-btn color="red" text="Delete" @click="removeConfirmed" />
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, shallowRef } from "vue";
 import { useAppStore, type Excercise } from "@/stores/app";
 const store = useAppStore();
+const deleteDialog = ref(false);
+const selectedExerciseId = ref<string | null>(null);
+
+const form = ref();
+
+const nameRules = [(v: string) => !!v || "Name is required"];
 
 function createNewRecord(): Excercise {
   return {
@@ -130,11 +159,24 @@ function edit(id: string): void {
   dialog.value = true;
 }
 
-function remove(id: string): void {
-  store.removeExercise(id);
+function confirmRemove(id: string): void {
+  selectedExerciseId.value = id;
+  deleteDialog.value = true;
 }
 
-function save() {
+function removeConfirmed(): void {
+  if (!selectedExerciseId.value) return;
+
+  store.removeExercise(selectedExerciseId.value);
+
+  deleteDialog.value = false;
+  selectedExerciseId.value = null;
+}
+
+async function save() {
+  const { valid } = await form.value.validate();
+
+  if (!valid) return;
   store.saveExcercise(formModel.value);
   dialog.value = false;
 }
