@@ -1,0 +1,101 @@
+<template>
+  <div>
+    <v-breadcrumbs
+      :items="[
+        { title: 'Attendance', to: '/attendance' },
+        { title: props.date },
+      ]"
+      divider=">"
+    ></v-breadcrumbs>
+
+    <v-sheet border rounded>
+      <v-data-table
+        :headers="headers"
+        :items="rows"
+        :hide-default-footer="rows.length < 11"
+        item-value="id"
+      >
+        <template #top>
+          <v-toolbar flat>
+            <v-toolbar-title>
+              <v-icon
+                color="medium-emphasis"
+                icon="mdi-clipboard-check-outline"
+                size="x-small"
+                start
+              ></v-icon>
+              Attendance — {{ props.date }}
+            </v-toolbar-title>
+          </v-toolbar>
+        </template>
+
+        <template #[`item.name`]="{ value }">
+          <span class="font-weight-medium">{{ value }}</span>
+        </template>
+
+        <template #[`item.present`]="{ item }">
+          <v-checkbox-btn
+            v-model="item.present"
+            :label="item.present ? 'Present' : 'Absent'"
+            hide-details
+            density="compact"
+            color="primary"
+          />
+        </template>
+
+        <template #no-data>
+          <div><p>No students found</p></div>
+        </template>
+      </v-data-table>
+    </v-sheet>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import { useAppStore } from "@/stores/app";
+
+const props = defineProps<{
+  date: string;
+}>();
+
+interface SessionRow {
+  id: string;
+  name: string;
+  present: boolean;
+}
+
+const store = useAppStore();
+const rows = ref<SessionRow[]>([]);
+
+const headers: {
+  title: string;
+  key: string;
+  align?: "start" | "end" | "center";
+  sortable?: boolean;
+  width?: string;
+}[] = [
+  { title: "Student", key: "name", align: "start" },
+  {
+    title: "Attendance",
+    key: "present",
+    align: "start",
+    sortable: false,
+    width: "180",
+  },
+];
+
+function displayName(attendee: { firstName: string; name: string }): string {
+  return [attendee.firstName, attendee.name].filter(Boolean).join(" ").trim();
+}
+
+onMounted(() => {
+  void store.fetchStudents().then(() => {
+    rows.value = store.attendees.map((student) => ({
+      id: student.id,
+      name: displayName(student),
+      present: true,
+    }));
+  });
+});
+</script>

@@ -15,6 +15,7 @@ import Overview from "@/components/AttendeeOverview.vue";
 import DepartmentOverview from "@/components/DepartmentOverview.vue";
 import IndividualFinalResult from "@/components/IndividualFinalResult.vue";
 import Attendance from "@/components/Attendance.vue";
+import SingleSession from "@/components/SingleSession.vue";
 
 const vuetify = createVuetify({
   icons: {
@@ -58,6 +59,12 @@ const routes = [
     path: "/attendance",
     name: "Attendance",
     component: Attendance,
+  },
+  {
+    path: "/attendance/:date",
+    name: "SingleSession",
+    component: SingleSession,
+    props: true,
   },
 ];
 

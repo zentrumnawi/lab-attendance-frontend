@@ -35,7 +35,10 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import { useAttendanceStore } from "@/stores/attendance";
+
+const router = useRouter();
 const AttendanceStore = useAttendanceStore();
 const value = ref("");
 const events = ref<
@@ -74,15 +77,17 @@ function getEventColor(event: any) {
   return event.color;
 }
 
-function handleButtonClick(date: string) {
-  console.log("date", date);
+function handleButtonClick(date: string | Date | number) {
+  router.push({
+    name: "SingleSession",
+    params: { date: date.toString() },
+  });
 }
 
 onMounted(() => {
   void AttendanceStore.fetchLabDates().then(() => {
     getEvents();
   });
-  console.log("labDates", AttendanceStore.labDates);
 });
 </script>
 
