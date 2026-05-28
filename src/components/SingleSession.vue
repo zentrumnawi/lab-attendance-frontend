@@ -54,6 +54,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useAppStore } from "@/stores/app";
+import { useAttendanceStore } from "@/stores/attendance";
 
 const props = defineProps<{
   date: string;
@@ -64,6 +65,8 @@ interface SessionRow {
   name: string;
   present: boolean;
 }
+
+const attendanceStore = useAttendanceStore();
 
 const store = useAppStore();
 const rows = ref<SessionRow[]>([]);
@@ -89,13 +92,22 @@ function displayName(attendee: { firstName: string; name: string }): string {
   return [attendee.firstName, attendee.name].filter(Boolean).join(" ").trim();
 }
 
-onMounted(() => {
-  void store.fetchStudents().then(() => {
+onMounted(async () => {
+  await store.fetchStudents();
+  // try to fetch attendance record for this date, if not found, create a new one
+  const labSession = await attendanceStore.fetchSingleLabSession(props.date);
+  if (!labSession) {
     rows.value = store.attendees.map((student) => ({
       id: student.id,
       name: displayName(student),
       present: true,
     }));
-  });
+  } else {
+    rows.value = labSession.map((attendee) => ({
+      id: attendee.student,
+      name: displayName(store.getAttendeeById(attendee.student)!),
+      present: attendee.is_present,
+    }));
+  }
 });
 </script>

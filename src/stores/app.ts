@@ -30,6 +30,14 @@ export const useAppStore = defineStore("app", {
     errorStudents: null as string | null,
   }),
 
+  getters: {
+    attendeeById(state): Map<string, Attendee> {
+      return new Map(
+        state.attendees.map((attendee) => [attendee.id, attendee]),
+      );
+    },
+  },
+
   actions: {
     saveAttendee(formData: Omit<Attendee, "id"> & { id?: string }) {
       if (formData.id) {
@@ -54,7 +62,7 @@ export const useAppStore = defineStore("app", {
       this.attendees = [];
     },
     getAttendeeById(id: string): Attendee | undefined {
-      return this.attendees.find((attendee) => attendee.id === id);
+      return this.attendeeById.get(id);
     },
     populatedb(): void {
       this.attendees.push({
