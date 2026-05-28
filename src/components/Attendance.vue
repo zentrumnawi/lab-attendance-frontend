@@ -15,6 +15,7 @@
         start="2026-08-01"
         :weekdays="[1, 2, 3, 4, 5]"
         @change="getEvents"
+        @click:event="handleEventClick"
       >
         <template #day-label="{ date }">
           <div class="day-label">
@@ -81,6 +82,14 @@ function handleButtonClick(date: string | Date | number) {
   router.push({
     name: "SingleSession",
     params: { date: date.toString() },
+  });
+}
+
+function handleEventClick(nativeEvent: any, { event }: any) {
+  console.log(event);
+  router.push({
+    name: "SingleSession",
+    params: { date: event.start.toLocaleDateString("en-CA") },
   });
 }
 
