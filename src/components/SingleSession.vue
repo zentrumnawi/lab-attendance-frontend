@@ -43,6 +43,18 @@
           />
         </template>
 
+        <template #[`header.present`]>
+          <div class="d-flex align-center ga-2">
+            <v-checkbox-btn
+              :model-value="allPresent"
+              hide-details
+              density="compact"
+              color="primary"
+              @update:model-value="togglePresent"
+            />
+          </div>
+        </template>
+
         <template #no-data>
           <div><p>No students found</p></div>
         </template>
@@ -52,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useAppStore } from "@/stores/app";
 import { useAttendanceStore } from "@/stores/attendance";
 
@@ -70,6 +82,10 @@ const attendanceStore = useAttendanceStore();
 
 const store = useAppStore();
 const rows = ref<SessionRow[]>([]);
+
+const allPresent = computed(
+  () => rows.value.length > 0 && rows.value.every((row) => row.present),
+);
 
 const headers: {
   title: string;
@@ -92,6 +108,13 @@ function displayName(attendee: { firstName: string; name: string }): string {
   return [attendee.firstName, attendee.name].filter(Boolean).join(" ").trim();
 }
 
+function togglePresent(value: boolean | null) {
+  const present = value ?? !allPresent.value;
+  rows.value.forEach((row) => {
+    row.present = present;
+  });
+}
+
 onMounted(async () => {
   await store.fetchStudents();
   // try to fetch attendance record for this date, if not found, create a new one
@@ -100,7 +123,7 @@ onMounted(async () => {
     rows.value = store.attendees.map((student) => ({
       id: student.id,
       name: displayName(student),
-      present: true,
+      present: false,
     }));
   } else {
     rows.value = labSession.map((attendee) => ({
