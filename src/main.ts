@@ -13,6 +13,7 @@ import Admin from "@/components/Admin.vue";
 import Form from "@/components/AttendeeForm.vue";
 import Overview from "@/components/AttendeeOverview.vue";
 import ExercisesOverview from "@/components/ExercisesOverview.vue";
+import ExperimentsOverview from "@/components/ExperimentsOverview.vue";
 import DepartmentOverview from "@/components/DepartmentOverview.vue";
 import IndividualFinalResult from "@/components/IndividualFinalResult.vue";
 
@@ -52,6 +53,11 @@ const routes = [
     path: "/exercises",
     name: "Exercises",
     component: ExercisesOverview,
+  },
+  {
+    path: "/experiments",
+    name: "Experiments",
+    component: ExperimentsOverview,
   },
   {
     path: "/attendee/:id",

@@ -22,11 +22,17 @@ export interface Exercise {
   name: string;
 }
 
+export interface Experiment {
+  id: string;
+  name: string;
+}
+
 export const useAppStore = defineStore("app", {
   state: () => ({
     attendees: [] as Attendee[],
     departments: [] as Department[],
     exercises: [] as Exercise[],
+    experiments: [] as Experiment[],
     courses_phy_act: [],
     courses_math_act: [],
     faculties_act: [],
@@ -90,6 +96,20 @@ export const useAppStore = defineStore("app", {
       }
     },
 
+    removeDepartment(id: string): void {
+      const index = this.departments.findIndex(
+        (department) => department.id === id,
+      );
+
+      if (index !== -1) {
+        this.departments.splice(index, 1);
+      }
+    },
+
+    clearDepartments(): void {
+      this.departments = [];
+    },
+
     saveExcercise(formData: Omit<Exercise, "id"> & { id?: string }): void {
       if (formData.id) {
         const index = this.exercises.findIndex(
@@ -121,19 +141,37 @@ export const useAppStore = defineStore("app", {
       this.exercises = [];
     },
 
-    removeDepartment(id: string): void {
-      const index = this.departments.findIndex(
-        (department) => department.id === id,
-      );
+    saveExperiment(formData: Omit<Experiment, "id"> & { id?: string }): void {
+      if (formData.id) {
+        const index = this.experiments.findIndex(
+          (experiment) => experiment.id === formData.id,
+        );
 
-      if (index !== -1) {
-        this.departments.splice(index, 1);
+        if (index !== -1) {
+          this.experiments[index] = { ...formData, id: formData.id! };
+        }
+      } else {
+        this.experiments.push({
+          id: uuidv4(),
+          name: formData.name,
+        });
       }
     },
 
-    clearDepartments(): void {
-      this.departments = [];
+    removeExperiments(id: string): void {
+      const index = this.experiments.findIndex(
+        (experiment) => experiment.id === id,
+      );
+
+      if (index !== -1) {
+        this.experiments.splice(index, 1);
+      }
     },
+
+    clearExperiment(): void {
+      this.experiments = [];
+    },
+
     async fetchStudents(): Promise<Attendee[]> {
       this.loadingStudents = true;
       this.errorStudents = null;
