@@ -9,6 +9,16 @@
     ></v-breadcrumbs>
 
     <v-sheet border rounded>
+      <v-alert
+        v-if="saveMessage"
+        :type="saveError ? 'error' : 'success'"
+        class="ma-4"
+        closable
+        @click:close="saveMessage = null"
+      >
+        {{ saveMessage }}
+      </v-alert>
+
       <v-data-table
         :headers="headers"
         :items="rows"
@@ -26,6 +36,25 @@
               ></v-icon>
               Attendance — {{ props.date }}
             </v-toolbar-title>
+            <v-spacer />
+            <v-text-field
+              v-model.number="praktikumDay"
+              class="mr-4"
+              density="compact"
+              hide-details
+              label="Praktikum day"
+              style="max-width: 140px"
+              type="number"
+              min="1"
+            />
+            <v-btn
+              color="primary"
+              :disabled="saving || rows.length === 0 || !canSave"
+              :loading="saving"
+              @click="saveAttendance"
+            >
+              Save
+            </v-btn>
           </v-toolbar>
         </template>
 
@@ -76,12 +105,19 @@ interface SessionRow {
   id: string;
   name: string;
   present: boolean;
+  comment?: string;
 }
 
 const attendanceStore = useAttendanceStore();
 
 const store = useAppStore();
 const rows = ref<SessionRow[]>([]);
+const praktikumDay = ref<number | null>(null);
+const saving = ref(false);
+const saveMessage = ref<string | null>(null);
+const saveError = ref(false);
+
+const canSave = computed(() => praktikumDay.value !== null);
 
 const allPresent = computed(
   () => rows.value.length > 0 && rows.value.every((row) => row.present),
@@ -115,8 +151,36 @@ function togglePresent(value: boolean | null) {
   });
 }
 
+async function saveAttendance() {
+  const day = praktikumDay.value;
+  if (day === null || day <= 0) return;
+
+  saving.value = true;
+  saveMessage.value = null;
+  saveError.value = false;
+
+  try {
+    await attendanceStore.saveLabSession(
+      props.date,
+      day,
+      rows.value.map((row) => ({
+        student_id: row.id,
+        is_present: row.present,
+        ...(row.comment ? { comment: row.comment } : {}),
+      })),
+    );
+    saveMessage.value = "Attendance saved.";
+  } catch {
+    saveError.value = true;
+    saveMessage.value = "Failed to save attendance.";
+  } finally {
+    saving.value = false;
+  }
+}
+
 onMounted(async () => {
   await store.fetchStudents();
+
   // try to fetch attendance record for this date, if not found, create a new one
   const labSession = await attendanceStore.fetchSingleLabSession(props.date);
   if (!labSession) {
@@ -125,12 +189,19 @@ onMounted(async () => {
       name: displayName(student),
       present: false,
     }));
+    praktikumDay.value = null;
   } else {
     rows.value = labSession.map((attendee) => ({
       id: attendee.student,
       name: displayName(store.getAttendeeById(attendee.student)!),
       present: attendee.is_present,
+      ...(attendee.comment ? { comment: attendee.comment } : {}),
     }));
+    console.log("lab date", attendanceStore.getLabDate(props.date));
+    // get number of praktikum day from state
+    praktikumDay.value =
+      attendanceStore.getLabDate(props.date)?.praktikum_day ?? null;
+    console.log(praktikumDay.value);
   }
 });
 </script>
