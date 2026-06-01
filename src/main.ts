@@ -120,4 +120,20 @@ router.beforeEach((to) => {
   };
 });
 
-createApp(App).use(router).use(pinia).use(vuetify).mount("#app");
+async function bootstrap() {
+  const app = createApp(App);
+  app.use(pinia);
+
+  const auth = useAuthStore(pinia);
+  if (auth.isAuthenticated) {
+    try {
+      await auth.ensureCsrfToken();
+    } catch {
+      console.error("Failed to fetch CSRF token");
+    }
+  }
+
+  app.use(router).use(vuetify).mount("#app");
+}
+
+bootstrap();
