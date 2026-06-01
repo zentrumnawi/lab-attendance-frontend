@@ -1,4 +1,10 @@
-import { getLabDates, LabDate, getLabSessionByDate } from "@/api/attendance";
+import {
+  BulkAttendanceRecord,
+  getLabDates,
+  getLabSessionByDate,
+  LabDate,
+  saveBulkAttendance,
+} from "@/api/attendance";
 import { defineStore } from "pinia";
 
 export const useAttendanceStore = defineStore("attendance", {
@@ -31,6 +37,20 @@ export const useAttendanceStore = defineStore("attendance", {
       if (!labDate) return null;
       const labSession = await getLabSessionByDate(date);
       return labSession;
+    },
+    getLabDate(date: string): LabDate | undefined {
+      return this.labDates.find((labDate) => labDate.date === date);
+    },
+    async saveLabSession(
+      date: string,
+      praktikumDay: number,
+      records: BulkAttendanceRecord[],
+    ) {
+      await saveBulkAttendance({
+        date,
+        praktikum_day: praktikumDay,
+        records,
+      });
     },
   },
 });
