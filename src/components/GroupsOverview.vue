@@ -2,8 +2,8 @@
   <v-sheet border rounded>
     <v-data-table
       :headers="headers"
-      :hide-default-footer="exercises.length < 6"
-      :items="exercises"
+      :hide-default-footer="(groups?.length ?? 0) < 6"
+      :items="groups"
     >
       <template #top>
         <v-toolbar flat>
@@ -14,14 +14,14 @@
               size="x-small"
               start
             ></v-icon>
-            Exercises
+            Groups
           </v-toolbar-title>
 
           <v-btn
             class="me-2"
             prepend-icon="mdi-plus"
             rounded="lg"
-            text="Add Exercise"
+            text="Add Group"
             border
             @click="add"
           ></v-btn>
@@ -60,15 +60,15 @@
       </template>
 
       <template #no-data>
-        <div><p>No experiments found</p></div>
+        <div><p>No groups found</p></div>
       </template>
     </v-data-table>
   </v-sheet>
 
   <v-dialog v-model="dialog" max-width="600">
     <v-card
-      :subtitle="`${isEditing ? 'Update' : 'Create'} exercises`"
-      :title="`${isEditing ? 'Edit' : 'Add'} exercises`"
+      :subtitle="`${isEditing ? 'Update' : 'Create'} groups`"
+      :title="`${isEditing ? 'Edit' : 'Add'} groups`"
     >
       <template #text>
         <v-form ref="form">
@@ -78,6 +78,11 @@
                 v-model="formModel.name"
                 label="Name"
                 :rules="nameRules"
+              ></v-text-field>
+              <v-text-field
+                v-model="formModel.description"
+                label="Description"
+                :rules="descriptionRules"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -97,11 +102,9 @@
   </v-dialog>
   <v-dialog v-model="deleteDialog" max-width="400">
     <v-card>
-      <v-card-title class="text-h6"> Delete Exercise </v-card-title>
+      <v-card-title class="text-h6"> Delete Group </v-card-title>
 
-      <v-card-text>
-        Are you sure you want to delete this exercise?
-      </v-card-text>
+      <v-card-text> Are you sure you want to delete this group? </v-card-text>
 
       <v-card-actions>
         <v-spacer />
@@ -119,26 +122,29 @@ import { computed, ref, shallowRef } from "vue";
 import { useAppStore, type Excercise } from "@/stores/app";
 const store = useAppStore();
 const deleteDialog = ref(false);
-const selectedExerciseId = ref<string | null>(null);
+const selectedGroupId = ref<string | null>(null);
 
 const form = ref();
 
 const nameRules = [(v: string) => !!v || "Name is required"];
+const descriptionRules = [(v: string) => !!v || "Description is required"];
 
-function createNewRecord(): Excercise {
+function createNewRecord(): Group {
   return {
     id: "",
     name: "",
+    description: "",
   };
 }
 
-const exercises = computed(() => store.exercises);
+const groups = computed(() => store.groups);
 const formModel = ref(createNewRecord());
 const dialog = shallowRef(false);
 const isEditing = computed(() => !!formModel.value.id);
 
 const headers = [
   { title: "Name", key: "name", align: "start" as const },
+  { title: "Description", key: "description", align: "start" as const },
   { title: "Action", key: "actions", align: "end" as const, sortable: false },
 ];
 
@@ -148,36 +154,37 @@ function add() {
 }
 
 function edit(id: string): void {
-  const found = store.exercises.find((exercises) => exercises.id === id);
+  const found = store.groups.find((groups) => groups.id === id);
   if (!found) return;
 
   formModel.value = {
     id: found.id,
     name: found.name,
+    description: found.description,
   };
 
   dialog.value = true;
 }
 
 function confirmRemove(id: string): void {
-  selectedExerciseId.value = id;
+  selectedGroupId.value = id;
   deleteDialog.value = true;
 }
 
 function removeConfirmed(): void {
-  if (!selectedExerciseId.value) return;
+  if (!selectedGroupId.value) return;
 
-  store.removeExercise(selectedExerciseId.value);
+  store.removeGroup(selectedGroupId.value);
 
   deleteDialog.value = false;
-  selectedExerciseId.value = null;
+  selectedGroupId.value = null;
 }
 
 async function save() {
   const { valid } = await form.value.validate();
 
   if (!valid) return;
-  store.saveExcercise(formModel.value);
+  store.saveGroup(formModel.value);
   dialog.value = false;
 }
 </script>
