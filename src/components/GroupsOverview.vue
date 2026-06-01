@@ -2,8 +2,8 @@
   <v-sheet border rounded>
     <v-data-table
       :headers="headers"
-      :hide-default-footer="(experiments?.length ?? 0) < 6"
-      :items="experiments"
+      :hide-default-footer="(groups?.length ?? 0) < 6"
+      :items="groups"
     >
       <template #top>
         <v-toolbar flat>
@@ -14,21 +14,21 @@
               size="x-small"
               start
             ></v-icon>
-            Experiments
+            Groups
           </v-toolbar-title>
 
           <v-btn
             class="me-2"
             prepend-icon="mdi-plus"
             rounded="lg"
-            text="Add Experiments"
+            text="Add Group"
             border
             @click="add"
           ></v-btn>
         </v-toolbar>
       </template>
 
-      <template #[`item.title`]="{ value }">
+      <template #[`item.name`]="{ value }">
         <v-chip
           :text="value"
           border="thin opacity-25"
@@ -60,24 +60,24 @@
       </template>
 
       <template #no-data>
-        <div><p>No experiments found</p></div>
+        <div><p>No groups found</p></div>
       </template>
     </v-data-table>
   </v-sheet>
 
   <v-dialog v-model="dialog" max-width="600">
     <v-card
-      :subtitle="`${isEditing ? 'Update' : 'Create'} experiments`"
-      :title="`${isEditing ? 'Edit' : 'Add'} experiments`"
+      :subtitle="`${isEditing ? 'Update' : 'Create'} groups`"
+      :title="`${isEditing ? 'Edit' : 'Add'} groups`"
     >
       <template #text>
         <v-form ref="form">
           <v-row>
             <v-col cols="12">
               <v-text-field
-                v-model="formModel.title"
-                label="Title"
-                :rules="titleRules"
+                v-model="formModel.name"
+                label="Name"
+                :rules="nameRules"
               ></v-text-field>
               <v-text-field
                 v-model="formModel.description"
@@ -102,11 +102,9 @@
   </v-dialog>
   <v-dialog v-model="deleteDialog" max-width="400">
     <v-card>
-      <v-card-title class="text-h6"> Delete experiments </v-card-title>
+      <v-card-title class="text-h6"> Delete Group </v-card-title>
 
-      <v-card-text>
-        Are you sure you want to delete this experiments?
-      </v-card-text>
+      <v-card-text> Are you sure you want to delete this group? </v-card-text>
 
       <v-card-actions>
         <v-spacer />
@@ -121,32 +119,31 @@
 
 <script setup lang="ts">
 import { computed, ref, shallowRef } from "vue";
-import { useAppStore, type Experiment } from "@/stores/app";
+import { useAppStore, type Excercise } from "@/stores/app";
 const store = useAppStore();
 const deleteDialog = ref(false);
-const selectedExperimentId = ref<string | null>(null);
+const selectedGroupId = ref<string | null>(null);
 
 const form = ref();
 
-const titleRules = [(v: string) => !!v || "Title is required"];
-
+const nameRules = [(v: string) => !!v || "Name is required"];
 const descriptionRules = [(v: string) => !!v || "Description is required"];
 
-function createNewRecord(): Experiment {
+function createNewRecord(): Group {
   return {
     id: "",
-    title: "",
+    name: "",
     description: "",
   };
 }
 
-const experiments = computed(() => store.experiments);
+const groups = computed(() => store.groups);
 const formModel = ref(createNewRecord());
 const dialog = shallowRef(false);
 const isEditing = computed(() => !!formModel.value.id);
 
 const headers = [
-  { title: "Title", key: "title", align: "start" as const },
+  { title: "Name", key: "name", align: "start" as const },
   { title: "Description", key: "description", align: "start" as const },
   { title: "Action", key: "actions", align: "end" as const, sortable: false },
 ];
@@ -157,12 +154,12 @@ function add() {
 }
 
 function edit(id: string): void {
-  const found = store.experiments.find((experiments) => experiments.id === id);
+  const found = store.groups.find((groups) => groups.id === id);
   if (!found) return;
 
   formModel.value = {
     id: found.id,
-    title: found.title,
+    name: found.name,
     description: found.description,
   };
 
@@ -170,24 +167,24 @@ function edit(id: string): void {
 }
 
 function confirmRemove(id: string): void {
-  selectedExperimentId.value = id;
+  selectedGroupId.value = id;
   deleteDialog.value = true;
 }
 
 function removeConfirmed(): void {
-  if (!selectedExperimentId.value) return;
+  if (!selectedGroupId.value) return;
 
-  store.removeExperiments(selectedExperimentId.value);
+  store.removeGroup(selectedGroupId.value);
 
   deleteDialog.value = false;
-  selectedExperimentId.value = null;
+  selectedGroupId.value = null;
 }
 
 async function save() {
   const { valid } = await form.value.validate();
 
   if (!valid) return;
-  store.saveExperiment(formModel.value);
+  store.saveGroup(formModel.value);
   dialog.value = false;
 }
 </script>
