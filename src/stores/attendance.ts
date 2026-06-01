@@ -46,6 +46,11 @@ export const useAttendanceStore = defineStore("attendance", {
       praktikumDay: number,
       records: BulkAttendanceRecord[],
     ) {
+      this.labDates.push({
+        date,
+        praktikum_day: praktikumDay,
+        group: this.labDates[0].group ?? "",
+      });
       await saveBulkAttendance({
         date,
         praktikum_day: praktikumDay,
