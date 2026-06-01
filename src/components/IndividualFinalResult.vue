@@ -1,7 +1,7 @@
 <template>
   <v-breadcrumbs
     :items="[
-      { title: 'Students', href: '/students' },
+      { title: 'Students', to: '/' },
       { title: attendee?.matriculationNumber ?? 'someName' },
     ]"
     divider=">"
