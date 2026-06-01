@@ -17,10 +17,16 @@ export interface Department {
   name: string;
 }
 
+export interface Exercise {
+  id: string;
+  name: string;
+}
+
 export const useAppStore = defineStore("app", {
   state: () => ({
     attendees: [] as Attendee[],
     departments: [] as Department[],
+    exercises: [] as Exercise[],
     courses_phy_act: [],
     courses_math_act: [],
     faculties_act: [],
@@ -82,6 +88,37 @@ export const useAppStore = defineStore("app", {
           name: formData.name,
         });
       }
+    },
+
+    saveExcercise(formData: Omit<Exercise, "id"> & { id?: string }): void {
+      if (formData.id) {
+        const index = this.exercises.findIndex(
+          (exercise) => exercise.id === formData.id,
+        );
+
+        if (index !== -1) {
+          this.exercises[index] = { ...formData, id: formData.id! };
+        }
+      } else {
+        this.exercises.push({
+          id: uuidv4(),
+          name: formData.name,
+        });
+      }
+    },
+
+    removeExercise(id: string): void {
+      const index = this.exercises.findIndex(
+        (excercise) => excercise.id === id,
+      );
+
+      if (index !== -1) {
+        this.exercises.splice(index, 1);
+      }
+    },
+
+    clearExcercises(): void {
+      this.exercises = [];
     },
 
     removeDepartment(id: string): void {

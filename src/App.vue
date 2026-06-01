@@ -12,7 +12,7 @@
 
         <v-list-item title="Departments" to="/departments" link />
 
-        <v-list-item title="Exercises" link />
+        <v-list-item title="Exercises" to="/exercises" link />
 
         <v-list-item title="Experiments" link />
         <v-list-item title="Final results" link />
