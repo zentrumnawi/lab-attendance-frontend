@@ -21,6 +21,7 @@ export interface BulkAttendanceRecord {
 export interface BulkAttendancePayload {
   date: string;
   praktikum_day: number;
+  group: string;
   records: BulkAttendanceRecord[];
 }
 
@@ -33,7 +34,7 @@ export async function getLabDates() {
 // full roll call for a given date
 export async function getLabSessionByDate(date: string) {
   return await httpJson<IndividualAttendanceRecord[]>(
-    `/api/attendance-records/?date=${date}/`,
+    `/api/attendance-records/?date=${date}`,
   );
 }
 
