@@ -54,6 +54,7 @@ export const useAttendanceStore = defineStore("attendance", {
       await saveBulkAttendance({
         date,
         praktikum_day: praktikumDay,
+        group: this.labDates[0].group ?? "",
         records,
       });
     },
