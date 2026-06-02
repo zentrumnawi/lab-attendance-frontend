@@ -21,6 +21,7 @@
           <div class="day-label">
             <div class="day-number">{{ new Date(date).getDate() }}</div>
             <v-btn
+              v-if="!AuthStore.isSuperuser && !hasEventOn(date)"
               size="x-small"
               class="day-button"
               @click.stop="handleButtonClick(date)"
@@ -38,15 +39,28 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAttendanceStore } from "@/stores/attendance";
+import { useAuthStore } from "@/stores/auth";
 
 const router = useRouter();
 const AttendanceStore = useAttendanceStore();
+const AuthStore = useAuthStore();
 const value = ref("");
 const events = ref<
   { name: string; start: Date; end: Date; color: string; timed: boolean }[]
 >([]);
 
 const SEMINAR_DAYS = ["2026-08-03", "2026-08-10", "2026-08-17", "2026-08-24"];
+
+function hasEventOn(day: string | Date | number): boolean {
+  console.log("day", day);
+  let labDate = AttendanceStore.labDates.find(
+    (labDate) => labDate.date === day.toString(),
+  );
+  if (labDate) {
+    return true;
+  }
+  return false;
+}
 
 function getEvents() {
   const evts = [];
@@ -63,7 +77,7 @@ function getEvents() {
 
   for (let labDate of AttendanceStore.labDates) {
     evts.push({
-      name: "Labor " + labDate.praktikum_day + " " + labDate.group,
+      name: "Labortag " + labDate.praktikum_day + " " + labDate.group,
       start: new Date(labDate.date),
       end: new Date(labDate.date),
       color: "pink-accent-2",
