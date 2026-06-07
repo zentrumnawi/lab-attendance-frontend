@@ -95,6 +95,27 @@
           </div>
         </template>
 
+        <template #[`item.comment`]="{ item }">
+          <div v-if="item.comment">
+            <v-icon
+              color="medium-emphasis"
+              icon="mdi-comment-text-outline"
+              size="small"
+            ></v-icon>
+          </div>
+        </template>
+
+        <template #[`item.actions`]="{ item }">
+          <div>
+            <v-icon
+              color="medium-emphasis"
+              icon="mdi-dots-vertical"
+              size="small"
+              @click="addComment(item.id)"
+            ></v-icon>
+          </div>
+        </template>
+
         <template #no-data>
           <div><p>No students found</p></div>
         </template>
@@ -121,6 +142,26 @@
             :loading="deleting"
             @click="deleteSession"
           />
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="commentDialog" max-width="500">
+      <v-card>
+        <v-card-title class="text-h6">Comment</v-card-title>
+        <v-card-text>
+          <v-textarea
+            v-model="commentText"
+            auto-grow
+            hide-details
+            label="Comment"
+            rows="3"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn text="Cancel" variant="text" @click="commentDialog = false" />
+          <v-btn color="primary" text="Save" @click="saveComment" />
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -153,6 +194,9 @@ const praktikumDay = ref<number | null>(null);
 const saving = ref(false);
 const deleting = ref(false);
 const deleteDialog = ref(false);
+const commentDialog = ref(false);
+const commentRowId = ref<string | null>(null);
+const commentText = ref("");
 const saveMessage = ref<string | null>(null);
 const saveError = ref(false);
 const existingSession = ref(false);
@@ -170,14 +214,16 @@ const headers: {
   sortable?: boolean;
   width?: string;
 }[] = [
-  { title: "Student", key: "name", align: "start" },
+  { title: "Student", key: "name", align: "start", width: "80%" },
+  { title: "", key: "comment", align: "end", sortable: false },
   {
     title: "Attendance",
     key: "present",
-    align: "start",
+    align: "end",
     sortable: false,
     width: "180",
   },
+  { title: "", key: "actions", align: "end", sortable: false },
 ];
 
 function displayName(attendee: { firstName: string; name: string }): string {
@@ -189,6 +235,22 @@ function togglePresent(value: boolean | null) {
   rows.value.forEach((row) => {
     row.present = present;
   });
+}
+
+function addComment(id: string) {
+  const row = rows.value.find((r) => r.id === id);
+  commentRowId.value = id;
+  commentText.value = row?.comment ?? "";
+  commentDialog.value = true;
+}
+
+function saveComment() {
+  const row = rows.value.find((r) => r.id === commentRowId.value);
+  if (row) {
+    const trimmed = commentText.value.trim();
+    row.comment = trimmed || undefined;
+  }
+  commentDialog.value = false;
 }
 
 async function deleteSession() {
