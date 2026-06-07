@@ -48,8 +48,19 @@
               min="1"
             />
             <v-btn
+              v-if="existingSession"
+              class="mr-2"
+              color="error"
+              :disabled="saving || deleting"
+              :loading="deleting"
+              variant="outlined"
+              @click="deleteDialog = true"
+            >
+              Delete
+            </v-btn>
+            <v-btn
               color="primary"
-              :disabled="saving || rows.length === 0 || !canSave"
+              :disabled="saving || deleting || rows.length === 0 || !canSave"
               :loading="saving"
               @click="saveAttendance"
             >
@@ -89,11 +100,36 @@
         </template>
       </v-data-table>
     </v-sheet>
+
+    <v-dialog v-model="deleteDialog" max-width="400">
+      <v-card>
+        <v-card-title class="text-h6">Delete session</v-card-title>
+        <v-card-text>
+          Delete the roll call for {{ props.date }}? This cannot be undone.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            text="Cancel"
+            variant="text"
+            :disabled="deleting"
+            @click="deleteDialog = false"
+          />
+          <v-btn
+            color="error"
+            text="Delete"
+            :loading="deleting"
+            @click="deleteSession"
+          />
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { useAttendanceStore } from "@/stores/attendance";
 
@@ -108,14 +144,18 @@ interface SessionRow {
   comment?: string;
 }
 
+const router = useRouter();
 const attendanceStore = useAttendanceStore();
 
 const store = useAppStore();
 const rows = ref<SessionRow[]>([]);
 const praktikumDay = ref<number | null>(null);
 const saving = ref(false);
+const deleting = ref(false);
+const deleteDialog = ref(false);
 const saveMessage = ref<string | null>(null);
 const saveError = ref(false);
+const existingSession = ref(false);
 
 const canSave = computed(() => praktikumDay.value !== null);
 
@@ -151,6 +191,27 @@ function togglePresent(value: boolean | null) {
   });
 }
 
+async function deleteSession() {
+  deleting.value = true;
+  saveMessage.value = null;
+  saveError.value = false;
+
+  try {
+    await attendanceStore.deleteLabSession(
+      props.date,
+      attendanceStore.getLabDate(props.date)?.group ?? "",
+    );
+    deleteDialog.value = false;
+    await router.push("/attendance");
+  } catch {
+    deleteDialog.value = false;
+    saveError.value = true;
+    saveMessage.value = "Failed to delete session.";
+  } finally {
+    deleting.value = false;
+  }
+}
+
 async function saveAttendance() {
   const day = praktikumDay.value;
   if (day === null || day <= 0) return;
@@ -183,6 +244,7 @@ onMounted(async () => {
 
   // try to fetch attendance record for this date, if not found, create a new one
   const labSession = await attendanceStore.fetchSingleLabSession(props.date);
+  existingSession.value = labSession !== null;
   if (!labSession) {
     rows.value = store.attendees.map((student) => ({
       id: student.id,
