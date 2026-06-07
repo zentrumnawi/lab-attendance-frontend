@@ -1,5 +1,6 @@
 import {
   BulkAttendanceRecord,
+  deleteLabSessionByDate,
   getLabDates,
   getLabSessionByDate,
   LabDate,
@@ -57,6 +58,10 @@ export const useAttendanceStore = defineStore("attendance", {
         group: this.labDates[0].group ?? "",
         records,
       });
+    },
+    async deleteLabSession(date: string, group: string) {
+      await deleteLabSessionByDate(date, group);
+      this.labDates = this.labDates.filter((labDate) => labDate.date !== date);
     },
   },
 });

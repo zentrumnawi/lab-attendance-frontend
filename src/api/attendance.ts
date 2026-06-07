@@ -44,3 +44,12 @@ export async function saveBulkAttendance(payload: BulkAttendancePayload) {
     body: payload,
   });
 }
+
+export async function deleteLabSessionByDate(date: string, group: string) {
+  return await httpJson<void>(
+    `/api/attendance-records/delete/?date=${date}&group=${group}`,
+    {
+      method: "DELETE",
+    },
+  );
+}
