@@ -219,7 +219,8 @@ const headers: {
   sortable?: boolean;
   width?: string;
 }[] = [
-  { title: "Student", key: "name", align: "start", width: "80%" },
+  { title: "Name", key: "name", align: "start", width: "40%" },
+  { title: "First Name", key: "firstName", align: "start", width: "40%" },
   { title: "", key: "comment", align: "end", sortable: false },
   {
     title: "Attendance",
@@ -230,10 +231,6 @@ const headers: {
   },
   { title: "", key: "actions", align: "end", sortable: false },
 ];
-
-function displayName(attendee: { firstName: string; name: string }): string {
-  return [attendee.firstName, attendee.name].filter(Boolean).join(" ").trim();
-}
 
 function togglePresent(value: boolean | null) {
   const present = value ?? !allPresent.value;
@@ -315,14 +312,16 @@ onMounted(async () => {
   if (!labSession) {
     rows.value = store.attendees.map((student) => ({
       id: student.id,
-      name: displayName(student),
+      name: student.name,
+      firstName: student.firstName,
       present: false,
     }));
     praktikumDay.value = null;
   } else {
     rows.value = labSession.map((attendee) => ({
       id: attendee.student,
-      name: displayName(store.getAttendeeById(attendee.student)!),
+      name: store.getAttendeeById(attendee.student)!.name,
+      firstName: store.getAttendeeById(attendee.student)!.firstName,
       present: attendee.is_present,
       ...(attendee.comment ? { comment: attendee.comment } : {}),
     }));

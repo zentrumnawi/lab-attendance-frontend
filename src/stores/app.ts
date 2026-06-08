@@ -190,7 +190,7 @@ export const useAppStore = defineStore("app", {
         const students = await getStudents();
         const attendees = students.map((student) => ({
           id: student.id,
-          name: student.name,
+          name: student.last_name,
           firstName: student.first_name,
           studentId: student.id,
           matriculationNumber: student.matriculation_number ?? "",
@@ -213,7 +213,7 @@ export const useAppStore = defineStore("app", {
       const student = await getSingleStudentData(studentId);
       return {
         id: student.id,
-        name: student.name,
+        name: student.last_name,
         firstName: student.first_name,
         studentId: student.id,
         matriculationNumber: student.matriculation_number ?? "",
