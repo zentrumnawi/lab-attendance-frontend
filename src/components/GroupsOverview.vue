@@ -119,8 +119,8 @@
 
 <script setup lang="ts">
 import { computed, ref, shallowRef } from "vue";
-import { useAppStore, type Excercise } from "@/stores/app";
-const store = useAppStore();
+import { useGroupStore, type Excercise } from "@/stores/groupStore";
+const store = useGroupStore();
 const deleteDialog = ref(false);
 const selectedGroupId = ref<string | null>(null);
 

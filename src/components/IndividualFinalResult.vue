@@ -165,7 +165,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
-import { useAppStore } from "@/stores/app";
+import { useAttendeeStore } from "@/stores/attendeeStore";
 
 const props = defineProps<{
   id: string;
@@ -174,7 +174,7 @@ const props = defineProps<{
 const expanded = ref([0, 1, 2]);
 
 const performanceStore = useStudentPerformanceStore();
-const appStore = useAppStore();
+const appStore = useAttendeeStore();
 const attendee = computed(() => appStore.getAttendeeById(props.id));
 const performance = computed(() => performanceStore.byStudentId[props.id]);
 const loading = computed(() => performanceStore.loadingByStudentId[props.id]);
