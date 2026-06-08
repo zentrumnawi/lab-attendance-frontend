@@ -76,7 +76,6 @@
         <template #[`item.present`]="{ item }">
           <v-checkbox-btn
             v-model="item.present"
-            :label="item.present ? 'Present' : 'Absent'"
             hide-details
             density="compact"
             color="primary"
@@ -92,6 +91,7 @@
               color="primary"
               @update:model-value="togglePresent"
             />
+            <span>present</span>
           </div>
         </template>
 
