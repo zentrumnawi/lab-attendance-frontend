@@ -97,11 +97,16 @@
 
         <template #[`item.comment`]="{ item }">
           <div v-if="item.comment">
-            <v-icon
-              color="medium-emphasis"
-              icon="mdi-comment-text-outline"
-              size="small"
-            ></v-icon>
+            <v-tooltip :text="item.comment">
+              <template #activator="{ props: tooltipProps }">
+                <v-icon
+                  v-bind="tooltipProps"
+                  color="medium-emphasis"
+                  icon="mdi-comment-text-outline"
+                  size="small"
+                ></v-icon>
+              </template>
+            </v-tooltip>
           </div>
         </template>
 

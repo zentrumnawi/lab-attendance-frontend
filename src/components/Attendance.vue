@@ -77,7 +77,7 @@ function getEvents() {
 
   for (let labDate of AttendanceStore.labDates) {
     evts.push({
-      name: "Labortag " + labDate.praktikum_day + " " + labDate.group,
+      name: "Labortag " + labDate.praktikum_day + " (" + labDate.group + ")",
       start: new Date(labDate.date),
       end: new Date(labDate.date),
       color: "pink-accent-2",
