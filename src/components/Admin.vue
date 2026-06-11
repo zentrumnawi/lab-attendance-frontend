@@ -156,7 +156,7 @@ import { Parser } from "@json2csv/plainjs";
 import { format, addMinutes, differenceInMinutes } from "date-fns";
 import { mapActions, mapState } from "pinia";
 import configuration from "../assets/courses_ws.json";
-import { useAppStore } from "@/stores/app";
+import { useAttendeeStore } from "@/stores/attendeeStore";
 
 interface Course {
   name: string;
@@ -242,7 +242,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useAppStore, ["clearAttendees", "populatedb"]),
+    ...mapActions(useAttendeeStore, ["clearAttendees", "populatedb"]),
     authenticate() {
       if (this.password != this.requiredPassword) return;
       this.authenticated = true;
@@ -334,7 +334,7 @@ export default {
     this.csv_flds = [...this.csv_flds, ...this.crs_headers];
   },
   computed: {
-    ...mapState(useAppStore, ["attendees", "faculties_act"]),
+    ...mapState(useAttendeeStore, ["attendees", "faculties_act"]),
     export() {
       (this.attendees as Attendee[]).forEach((attendee: Attendee) => {
         this.crs_headers.forEach((course: HeaderField) => {

@@ -93,8 +93,8 @@
 
 <script setup lang="ts">
 import { computed, ref, shallowRef } from "vue";
-import { useAppStore, type Department } from "@/stores/app";
-const store = useAppStore();
+import { useDepartmentStore, type Department } from "@/stores/departmentStore";
+const store = useDepartmentStore();
 
 function createNewRecord(): Department {
   return {
