@@ -116,8 +116,8 @@
 
 <script setup lang="ts">
 import { computed, ref, shallowRef } from "vue";
-import { useAppStore, type Excercise } from "@/stores/app";
-const store = useAppStore();
+import { useExerciseStore, type Exercise } from "@/stores/exerciseStore";
+const store = useExerciseStore();
 const deleteDialog = ref(false);
 const selectedExerciseId = ref<string | null>(null);
 
@@ -125,7 +125,7 @@ const form = ref();
 
 const nameRules = [(v: string) => !!v || "Name is required"];
 
-function createNewRecord(): Excercise {
+function createNewRecord(): Exercise {
   return {
     id: "",
     name: "",
@@ -177,7 +177,7 @@ async function save() {
   const { valid } = await form.value.validate();
 
   if (!valid) return;
-  store.saveExcercise(formModel.value);
+  store.saveExercise(formModel.value);
   dialog.value = false;
 }
 </script>

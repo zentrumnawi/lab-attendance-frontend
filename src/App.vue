@@ -16,8 +16,8 @@
 
         <v-list-item title="Experiments" to="/experiments" link />
         <v-list-item title="Final results" link />
-        <v-list-item title="Groups" link />
         <v-list-item title="Paper Submission" to="/protocols" link />
+        <v-list-item title="Groups" to="/groups" link />
         <v-list-item title="Papers" link />
       </v-list>
     </v-navigation-drawer>
