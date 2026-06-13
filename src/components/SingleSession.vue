@@ -176,7 +176,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useAppStore } from "@/stores/app";
+import { useAttendeeStore } from "@/stores/attendeeStore";
 import { useAttendanceStore } from "@/stores/attendance";
 
 const props = defineProps<{
@@ -193,7 +193,7 @@ interface SessionRow {
 const router = useRouter();
 const attendanceStore = useAttendanceStore();
 
-const store = useAppStore();
+const store = useAttendeeStore();
 const rows = ref<SessionRow[]>([]);
 const praktikumDay = ref<number | null>(null);
 const saving = ref(false);
