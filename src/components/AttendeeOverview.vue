@@ -123,9 +123,9 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, shallowRef, toRef } from "vue";
-import { useAppStore } from "@/stores/app";
+import { useAttendeeStore } from "@/stores/attendeeStore";
 import { useRouter } from "vue-router";
-const store = useAppStore();
+const store = useAttendeeStore();
 const router = useRouter();
 
 function createNewRecord() {

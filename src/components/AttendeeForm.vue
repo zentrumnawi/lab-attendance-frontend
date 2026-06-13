@@ -35,10 +35,10 @@
 
 <script setup lang="ts">
 import { useField, useForm } from "vee-validate";
-import { useAppStore } from "@/stores/app";
+import { useAttendeeStore } from "@/stores/attendeeStore";
 import { v4 as uuidv4 } from "uuid";
 
-const store = useAppStore();
+const store = useAttendeeStore();
 interface AttendeeForm {
   name: string;
   firstName: string;

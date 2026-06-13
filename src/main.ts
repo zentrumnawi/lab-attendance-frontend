@@ -15,6 +15,7 @@ import Overview from "@/components/AttendeeOverview.vue";
 import ExercisesOverview from "@/components/ExercisesOverview.vue";
 import ExperimentsOverview from "@/components/ExperimentsOverview.vue";
 import DepartmentOverview from "@/components/DepartmentOverview.vue";
+import GroupsOverview from "@/components/GroupsOverview.vue";
 import IndividualFinalResult from "@/components/IndividualFinalResult.vue";
 import Attendance from "@/components/Attendance.vue";
 import SingleSession from "@/components/SingleSession.vue";
@@ -69,6 +70,11 @@ const routes = [
     path: "/experiments",
     name: "Experiments",
     component: ExperimentsOverview,
+  },
+  {
+    path: "/groups",
+    name: "Groups",
+    component: GroupsOverview,
   },
   {
     path: "/attendee/:id",

@@ -121,8 +121,8 @@
 
 <script setup lang="ts">
 import { computed, ref, shallowRef } from "vue";
-import { useAppStore, type Experiment } from "@/stores/app";
-const store = useAppStore();
+import { useExperimentStore, type Experiment } from "@/stores/experimentStore";
+const store = useExperimentStore();
 const deleteDialog = ref(false);
 const selectedExperimentId = ref<string | null>(null);
 
