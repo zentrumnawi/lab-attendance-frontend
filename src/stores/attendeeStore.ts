@@ -10,6 +10,14 @@ export const useAttendeeStore = defineStore("attendees", {
     errorStudents: null as string | null,
   }),
 
+  getters: {
+    attendeeById(state): Map<string, Attendee> {
+      return new Map(
+        state.attendees.map((attendee) => [attendee.id, attendee]),
+      );
+    },
+  },
+
   actions: {
     saveAttendee(formData: Omit<Attendee, "id"> & { id?: string }) {
       if (formData.id) {
@@ -39,7 +47,7 @@ export const useAttendeeStore = defineStore("attendees", {
     },
 
     getAttendeeById(id: string): Attendee | undefined {
-      return this.attendees.find((attendee) => attendee.id === id);
+      return this.attendeeById.get(id);
     },
 
     populatedb() {
@@ -66,7 +74,7 @@ export const useAttendeeStore = defineStore("attendees", {
 
         const attendees = students.map((student) => ({
           id: student.id,
-          name: student.name,
+          name: student.last_name,
           firstName: student.first_name,
           studentId: student.id,
           matriculationNumber: student.matriculation_number ?? "",
@@ -96,7 +104,7 @@ export const useAttendeeStore = defineStore("attendees", {
 
       return {
         id: student.id,
-        name: student.name,
+        name: student.last_name,
         firstName: student.first_name,
         studentId: student.id,
         matriculationNumber: student.matriculation_number ?? "",
