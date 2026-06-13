@@ -4,10 +4,23 @@
       :headers="headers"
       :items="rows"
       expand-strategy="single"
-      item-value="matriculationNumber"
-      hide-default-footer
+      item-value="id"
+      :hide-default-footer="rows.length < 11"
       show-expand
     >
+      <template #[`item.status`]="{ value }">
+        <v-tooltip :text="value">
+          <template #activator="{ props: tooltipProps }">
+            <v-icon
+              v-bind="tooltipProps"
+              :icon="statusIcon(value)"
+              :color="statusColor(value)"
+              size="small"
+            />
+          </template>
+        </v-tooltip>
+      </template>
+
       <template #expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length">
@@ -24,12 +37,18 @@
 </template>
 
 <script setup lang="ts">
+import { useProtocolStore } from "@/stores/protocols";
+import { computed, onMounted } from "vue";
+import { useAttendeeStore } from "@/stores/attendeeStore";
+
+type ProtocolStatus = "Akzeptiert" | "Eingereicht" | "Nicht eingereicht";
+
 interface ProtocolRow {
   name: string;
   firstName: string;
   matriculationNumber: string;
   labPartner: string;
-  status: string;
+  status: ProtocolStatus;
 }
 
 const headers: {
@@ -47,23 +66,57 @@ const headers: {
     width: "20%",
   },
   { title: "Lab Partner", key: "labPartner", align: "start", width: "20%" },
-  { title: "Status", key: "status", align: "start", width: "20%" },
+  { title: "Status", key: "status", align: "center", width: "20%" },
 ];
 
-const rows: ProtocolRow[] = [
-  {
-    name: "Doe",
-    firstName: "John",
-    matriculationNumber: "1234567890",
-    labPartner: "Jane Doe",
-    status: "pending",
-  },
-  {
-    name: "Doe",
-    firstName: "Jane",
-    matriculationNumber: "1234565890",
-    labPartner: "John Doe",
-    status: "accepted",
-  },
-];
+function statusIcon(status: ProtocolStatus): string {
+  switch (status) {
+    case "Akzeptiert":
+      return "mdi-check-circle";
+    case "Eingereicht":
+      return "mdi-clock-outline";
+    case "Nicht eingereicht":
+      return "mdi-close-circle-outline";
+  }
+}
+
+function statusColor(status: ProtocolStatus): string {
+  switch (status) {
+    case "Akzeptiert":
+      return "success";
+    case "Eingereicht":
+      return "warning";
+    case "Nicht eingereicht":
+      return "error";
+  }
+}
+
+const store = useProtocolStore();
+const attendeeStore = useAttendeeStore();
+
+// const rows = ref<ProtocolRow[]>([]);
+
+onMounted(async () => {
+  await Promise.all([attendeeStore.fetchStudents(), store.fetchProtocols(1)]);
+  console.log(store.protocols);
+});
+
+const rows = computed<ProtocolRow[]>(() =>
+  attendeeStore.attendees.map((attendee) => {
+    const protocol = store.protocalByStudentId.get(attendee.id);
+    console.log(attendee.firstName, attendee.id, attendee.name);
+    return {
+      id: attendee.id,
+      name: attendee.name ?? null,
+      firstName: attendee.firstName ?? null,
+      matriculationNumber: attendee.matriculationNumber ?? null,
+      labPartner: attendee.labPartner ?? null,
+      status: protocol?.accepted
+        ? "Akzeptiert"
+        : protocol?.submitted
+          ? "Eingereicht"
+          : "Nicht eingereicht",
+    };
+  }),
+);
 </script>
