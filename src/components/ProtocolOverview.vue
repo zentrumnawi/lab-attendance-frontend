@@ -30,7 +30,7 @@
               </div>
               <div v-if="item.status === 'Eingereicht'">
                 <v-btn
-                  text="Abgabe bearbeiten"
+                  text="Abgabe akzeptieren"
                   @click="openEditedSubmissionDialog(item)"
                 />
               </div>
@@ -42,7 +42,10 @@
                   >Akzeptiert am
                   {{ formatSubmissionDate(item.accepted_date) }}</span
                 >
-                <v-btn text="Zurückziehen" />
+                <v-btn
+                  text="Zurückziehen"
+                  @click="openWithdrawSubmissionDialog(item)"
+                />
               </div>
             </v-sheet>
           </td>
@@ -163,6 +166,79 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="withdrawSubmissionDialog" max-width="560">
+    <v-card title="Abgabe zurückziehen">
+      <template #text>
+        <p v-if="selectedEditStudent" class="text-body-1 mb-4">
+          {{ selectedEditStudent.firstName }} {{ selectedEditStudent.name }}
+        </p>
+
+        <v-list density="compact" class="bg-surface-light rounded mb-4">
+          <v-list-item>
+            <v-list-item-title>Einreichungsdatum</v-list-item-title>
+            <v-list-item-subtitle>
+              {{ formatSubmissionDate(selectedEditStudent?.submission_date) }}
+            </v-list-item-subtitle>
+          </v-list-item>
+
+          <v-list-item>
+            <v-list-item-title>Erforderliche Korrekturen</v-list-item-title>
+            <v-list-item-subtitle>
+              <v-textarea
+                :model-value="selectedEditStudent?.necessary_corrections ?? ''"
+                auto-grow
+                class="mt-2"
+                hide-details
+                label="Erforderliche Korrekturen"
+                rows="3"
+              />
+            </v-list-item-subtitle>
+          </v-list-item>
+          <v-list-item>
+            <v-list-item-title>Akzeptiert am</v-list-item-title>
+            <v-list-item-subtitle>
+              {{
+                formatSubmissionDate(
+                  selectedEditStudent?.accepted_date ?? null,
+                ) ?? "—"
+              }}
+            </v-list-item-subtitle>
+          </v-list-item>
+        </v-list>
+
+        <v-checkbox
+          v-model="withdrawSubmission"
+          hide-details
+          label="Abgabe zurückziehen"
+        />
+        <span class="text-body-2"
+          >Diese Aktion wird den Status der Abgabe auf "eingereicht"
+          zurücksetzen.</span
+        >
+      </template>
+
+      <v-divider />
+
+      <v-card-actions class="bg-surface-light">
+        <v-btn
+          text="Abbrechen"
+          variant="plain"
+          :disabled="savingEditSubmission"
+          @click="withdrawSubmissionDialog = false"
+        />
+
+        <v-spacer />
+
+        <v-btn
+          text="Speichern"
+          :disabled="!withdrawSubmission"
+          :loading="savingEditSubmission"
+          @click="saveWithdrawSubmission"
+        />
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -240,6 +316,8 @@ const correctionsText = ref("");
 const acceptSubmission = ref(false);
 const savingSubmission = ref(false);
 const savingEditSubmission = ref(false);
+const withdrawSubmissionDialog = shallowRef(false);
+const withdrawSubmission = ref(false);
 
 const canSaveSubmission = computed(
   () =>
@@ -259,6 +337,12 @@ function openEditedSubmissionDialog(item: ProtocolRow) {
   selectedEditStudent.value = item;
   acceptSubmission.value = false;
   editSubmissionDialog.value = true;
+}
+
+function openWithdrawSubmissionDialog(item: ProtocolRow) {
+  selectedEditStudent.value = item;
+  withdrawSubmission.value = false;
+  withdrawSubmissionDialog.value = true;
 }
 
 function formatSubmissionDate(value: Date | string | null | undefined): string {
@@ -334,6 +418,29 @@ async function saveEditedSubmission() {
     editSubmissionDialog.value = false;
   } finally {
     savingEditSubmission.value = false;
+  }
+}
+
+async function saveWithdrawSubmission() {
+  if (!selectedEditStudent.value || !withdrawSubmission.value) return;
+
+  try {
+    await store.submitProtocol({
+      lab_day: labDay.value,
+      records: [
+        {
+          student_id: selectedEditStudent.value.id,
+          submitted: true,
+          submission_date: selectedEditStudent.value.submission_date,
+          necessary_corrections:
+            selectedEditStudent.value.necessary_corrections,
+          accepted: false,
+          accepted_date: null,
+        },
+      ],
+    });
+  } finally {
+    withdrawSubmissionDialog.value = false;
   }
 }
 
