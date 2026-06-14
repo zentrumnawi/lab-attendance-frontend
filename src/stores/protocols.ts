@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
-import type { ProtocolData } from "@/api/protocols";
-import { getProtocols } from "@/api/protocols";
+import type { ProtocolData, SubmitPaperPayload } from "@/api/protocols";
+import { getProtocols, submitPaperSubmission } from "@/api/protocols";
 
 export const useProtocolStore = defineStore("protocols", {
   state: () => ({
@@ -17,6 +17,20 @@ export const useProtocolStore = defineStore("protocols", {
     async fetchProtocols(labDay: number) {
       const protocols = await getProtocols(labDay);
       this.protocols = protocols;
+    },
+    async submitProtocol(payload: SubmitPaperPayload) {
+      const protocol = await submitPaperSubmission(payload);
+      const index = this.protocols.findIndex(
+        (entry) => entry.student.id === protocol.student.id,
+      );
+
+      if (index !== -1) {
+        this.protocols[index] = protocol;
+      } else {
+        this.protocols.push(protocol);
+      }
+
+      return protocol;
     },
     removeProtocol(id: string) {
       const index = this.protocols.findIndex((p) => p.id === id);
