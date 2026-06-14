@@ -28,6 +28,22 @@
               <div v-if="item.status === 'Nicht eingereicht'">
                 <v-btn text="Abgabe" @click="openSubmissionDialog(item)" />
               </div>
+              <div v-if="item.status === 'Eingereicht'">
+                <v-btn
+                  text="Abgabe bearbeiten"
+                  @click="openEditedSubmissionDialog(item)"
+                />
+              </div>
+              <div
+                class="d-flex justify-space-between"
+                v-if="item.status === 'Akzeptiert'"
+              >
+                <span
+                  >Akzeptiert am
+                  {{ formatSubmissionDate(item.accepted_date) }}</span
+                >
+                <v-btn text="Zurückziehen" />
+              </div>
             </v-sheet>
           </td>
         </tr>
@@ -88,12 +104,72 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="editSubmissionDialog" max-width="560">
+    <v-card title="Abgabe bearbeiten">
+      <template #text>
+        <p v-if="selectedEditStudent" class="text-body-1 mb-4">
+          {{ selectedEditStudent.firstName }} {{ selectedEditStudent.name }}
+        </p>
+
+        <v-list density="compact" class="bg-surface-light rounded mb-4">
+          <v-list-item>
+            <v-list-item-title>Einreichungsdatum</v-list-item-title>
+            <v-list-item-subtitle>
+              {{ formatSubmissionDate(selectedEditStudent?.submission_date) }}
+            </v-list-item-subtitle>
+          </v-list-item>
+
+          <v-list-item>
+            <v-list-item-title>Erforderliche Korrekturen</v-list-item-title>
+            <v-list-item-subtitle>
+              <v-textarea
+                :model-value="selectedEditStudent?.necessary_corrections ?? ''"
+                auto-grow
+                class="mt-2"
+                hide-details
+                label="Erforderliche Korrekturen"
+                rows="3"
+              />
+            </v-list-item-subtitle>
+          </v-list-item>
+        </v-list>
+
+        <v-checkbox
+          v-model="acceptSubmission"
+          hide-details
+          label="Abgabe akzeptieren"
+        />
+      </template>
+
+      <v-divider />
+
+      <v-card-actions class="bg-surface-light">
+        <v-btn
+          text="Abbrechen"
+          variant="plain"
+          :disabled="savingEditSubmission"
+          @click="editSubmissionDialog = false"
+        />
+
+        <v-spacer />
+
+        <v-btn
+          text="Speichern"
+          :disabled="!acceptSubmission"
+          :loading="savingEditSubmission"
+          @click="saveEditedSubmission"
+        />
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
 import { useProtocolStore } from "@/stores/protocols";
 import { computed, onMounted, ref, shallowRef } from "vue";
 import { useAttendeeStore } from "@/stores/attendeeStore";
+import { format } from "date-fns";
 
 type ProtocolStatus = "Akzeptiert" | "Eingereicht" | "Nicht eingereicht";
 
@@ -104,6 +180,11 @@ interface ProtocolRow {
   matriculationNumber: string;
   labPartner: string;
   status: ProtocolStatus;
+  accepted_date: Date | null;
+  accepted: boolean;
+  necessary_corrections: string | null;
+  submission_date: Date | null;
+  submitted: boolean;
 }
 
 const headers: {
@@ -150,11 +231,15 @@ const store = useProtocolStore();
 const attendeeStore = useAttendeeStore();
 const labDay = ref(1);
 const submissionDialog = shallowRef(false);
+const editSubmissionDialog = shallowRef(false);
 const selectedStudent = ref<ProtocolRow | null>(null);
+const selectedEditStudent = ref<ProtocolRow | null>(null);
 const acceptImmediately = ref(false);
 const requireCorrections = ref(false);
 const correctionsText = ref("");
+const acceptSubmission = ref(false);
 const savingSubmission = ref(false);
+const savingEditSubmission = ref(false);
 
 const canSaveSubmission = computed(
   () =>
@@ -168,6 +253,21 @@ function openSubmissionDialog(item: ProtocolRow) {
   requireCorrections.value = false;
   correctionsText.value = "";
   submissionDialog.value = true;
+}
+
+function openEditedSubmissionDialog(item: ProtocolRow) {
+  selectedEditStudent.value = item;
+  acceptSubmission.value = false;
+  editSubmissionDialog.value = true;
+}
+
+function formatSubmissionDate(value: Date | string | null | undefined): string {
+  if (!value) return "—";
+
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return format(date, "dd.MM.yyyy");
 }
 
 function onAcceptChange(value: boolean | null) {
@@ -210,6 +310,33 @@ async function saveSubmission() {
   }
 }
 
+async function saveEditedSubmission() {
+  if (!selectedEditStudent.value || !acceptSubmission.value) return;
+
+  savingEditSubmission.value = true;
+
+  try {
+    console.log("selectedEditStudent.value", selectedEditStudent.value);
+    await store.submitProtocol({
+      lab_day: labDay.value,
+      records: [
+        {
+          student_id: selectedEditStudent.value.id,
+          submitted: true,
+          submission_date: selectedEditStudent.value.submission_date,
+          necessary_corrections:
+            selectedEditStudent.value.necessary_corrections,
+          accepted: true,
+          accepted_date: new Date(),
+        },
+      ],
+    });
+    editSubmissionDialog.value = false;
+  } finally {
+    savingEditSubmission.value = false;
+  }
+}
+
 onMounted(async () => {
   await Promise.all([
     attendeeStore.fetchStudents(),
@@ -231,6 +358,11 @@ const rows = computed<ProtocolRow[]>(() =>
         : protocol?.submitted
           ? "Eingereicht"
           : "Nicht eingereicht",
+      accepted_date: protocol?.accepted_date ?? null,
+      accepted: protocol?.accepted ?? false,
+      necessary_corrections: protocol?.necessary_corrections ?? null,
+      submission_date: protocol?.submission_date ?? null,
+      submitted: protocol?.submitted ?? false,
     };
   }),
 );
