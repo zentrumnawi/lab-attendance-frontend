@@ -24,30 +24,49 @@
       <template #expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length">
-            <v-sheet class="ma-2" rounded="lg" border>
-              <div v-if="item.status === 'Nicht eingereicht'">
-                <v-btn text="Abgabe" @click="openSubmissionDialog(item)" />
-              </div>
-              <div v-if="item.status === 'Eingereicht'">
-                <v-btn
-                  text="Abgabe akzeptieren"
-                  @click="openEditedSubmissionDialog(item)"
-                />
-              </div>
-              <div
-                class="d-flex justify-space-between"
-                v-if="item.status === 'Akzeptiert'"
+            <div
+              class="d-flex justify-end"
+              v-if="item.status === 'Nicht eingereicht'"
+            >
+              <v-btn
+                class="text-none"
+                color="blue-darken-4"
+                rounded="0"
+                variant="outlined"
+                text="Abgabe"
+                @click="openSubmissionDialog(item)"
+              />
+            </div>
+            <div
+              class="d-flex justify-end"
+              v-if="item.status === 'Eingereicht'"
+            >
+              <v-btn
+                class="text-none"
+                color="blue-darken-4"
+                rounded="0"
+                variant="outlined"
+                text="Abgabe akzeptieren"
+                @click="openEditedSubmissionDialog(item)"
+              />
+            </div>
+            <div
+              class="d-flex justify-space-between"
+              v-if="item.status === 'Akzeptiert'"
+            >
+              <span
+                >Akzeptiert am
+                {{ formatSubmissionDate(item.accepted_date) }}</span
               >
-                <span
-                  >Akzeptiert am
-                  {{ formatSubmissionDate(item.accepted_date) }}</span
-                >
-                <v-btn
-                  text="Zurückziehen"
-                  @click="openWithdrawSubmissionDialog(item)"
-                />
-              </div>
-            </v-sheet>
+              <v-btn
+                class="text-none"
+                color="blue-darken-4"
+                rounded="0"
+                variant="outlined"
+                text="Zurückziehen"
+                @click="openWithdrawSubmissionDialog(item)"
+              />
+            </div>
           </td>
         </tr>
       </template>
