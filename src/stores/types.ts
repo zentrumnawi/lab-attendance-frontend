@@ -22,6 +22,7 @@ export interface Experiment {
   id: string;
   title: string;
   description: string;
+  lab_day: number;
 }
 
 export interface Group {

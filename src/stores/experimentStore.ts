@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { v4 as uuidv4 } from "uuid";
 import type { Experiment } from "./types";
+import { getExperiments } from "@/api/experiments";
 
 export const useExperimentStore = defineStore("experiments", {
   state: () => ({
@@ -22,6 +23,7 @@ export const useExperimentStore = defineStore("experiments", {
           id: uuidv4(),
           title: formData.title,
           description: formData.description,
+          lab_day: formData.lab_day,
         });
       }
     },
@@ -39,7 +41,14 @@ export const useExperimentStore = defineStore("experiments", {
     clearExperiments() {
       this.experiments = [];
     },
-  },
+    async fetchExperiments(): Promise<Experiment[]> {
+      if (this.experiments.length > 0) {
+        return this.experiments;
+      }
 
-  persist: true,
+      const experiments = await getExperiments();
+      this.experiments = [...experiments];
+      return this.experiments;
+    },
+  },
 });
