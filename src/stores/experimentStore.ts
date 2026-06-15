@@ -1,7 +1,11 @@
 import { defineStore } from "pinia";
-import { v4 as uuidv4 } from "uuid";
 import type { Experiment } from "./types";
-import { getExperiments } from "@/api/experiments";
+import {
+  deleteExperiment,
+  getExperiments,
+  patchExperiment,
+  postExperiment,
+} from "@/api/experiments";
 
 export const useExperimentStore = defineStore("experiments", {
   state: () => ({
@@ -9,8 +13,9 @@ export const useExperimentStore = defineStore("experiments", {
   }),
 
   actions: {
-    saveExperiment(formData: Omit<Experiment, "id"> & { id?: string }) {
+    async saveExperiment(formData: Omit<Experiment, "id"> & { id?: string }) {
       if (formData.id) {
+        await patchExperiment(formData.id, formData);
         const index = this.experiments.findIndex(
           (experiment) => experiment.id === formData.id,
         );
@@ -19,16 +24,13 @@ export const useExperimentStore = defineStore("experiments", {
           this.experiments[index] = { ...formData, id: formData.id };
         }
       } else {
-        this.experiments.push({
-          id: uuidv4(),
-          title: formData.title,
-          description: formData.description,
-          lab_day: formData.lab_day,
-        });
+        const newExperiment = await postExperiment(formData);
+        this.experiments.push(newExperiment);
       }
     },
 
-    removeExperiment(id: string) {
+    async removeExperiment(id: string) {
+      await deleteExperiment(id);
       const index = this.experiments.findIndex(
         (experiment) => experiment.id === id,
       );
