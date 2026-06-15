@@ -84,6 +84,11 @@
                 label="Description"
                 :rules="descriptionRules"
               ></v-text-field>
+              <v-select
+                v-model="formModel.lab_day"
+                label="Lab Day"
+                :items="labDayOptions"
+              ></v-select>
             </v-col>
           </v-row>
         </v-form>
@@ -120,8 +125,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef } from "vue";
-import { useExperimentStore, type Experiment } from "@/stores/experimentStore";
+import { computed, ref, shallowRef, onMounted } from "vue";
+import { useExperimentStore } from "@/stores/experimentStore";
+import type { Experiment } from "@/stores/types";
 const store = useExperimentStore();
 const deleteDialog = ref(false);
 const selectedExperimentId = ref<string | null>(null);
@@ -132,15 +138,24 @@ const titleRules = [(v: string) => !!v || "Title is required"];
 
 const descriptionRules = [(v: string) => !!v || "Description is required"];
 
+const labDayOptions = Array.from({ length: 8 }, (_, index) => ({
+  title: `Versuchstag ${index + 1}`,
+  value: index + 1,
+}));
+
 function createNewRecord(): Experiment {
   return {
     id: "",
     title: "",
     description: "",
+    lab_day: 1,
   };
 }
 
-const experiments = computed(() => store.experiments);
+const experiments = computed<Experiment[]>(() => store.experiments);
+onMounted(() => {
+  void store.fetchExperiments();
+});
 const formModel = ref(createNewRecord());
 const dialog = shallowRef(false);
 const isEditing = computed(() => !!formModel.value.id);
@@ -148,6 +163,7 @@ const isEditing = computed(() => !!formModel.value.id);
 const headers = [
   { title: "Title", key: "title", align: "start" as const },
   { title: "Description", key: "description", align: "start" as const },
+  { title: "Lab Day", key: "lab_day", align: "start" as const },
   { title: "Action", key: "actions", align: "end" as const, sortable: false },
 ];
 
@@ -164,6 +180,7 @@ function edit(id: string): void {
     id: found.id,
     title: found.title,
     description: found.description,
+    lab_day: found.lab_day,
   };
 
   dialog.value = true;
@@ -177,7 +194,7 @@ function confirmRemove(id: string): void {
 function removeConfirmed(): void {
   if (!selectedExperimentId.value) return;
 
-  store.removeExperiments(selectedExperimentId.value);
+  store.removeExperiment(selectedExperimentId.value);
 
   deleteDialog.value = false;
   selectedExperimentId.value = null;
