@@ -22,6 +22,7 @@ import SingleSession from "@/components/SingleSession.vue";
 import Login from "@/components/Login.vue";
 import { setCsrfTokenProvider } from "@/api/http";
 import { useAuthStore } from "@/stores/auth";
+import ExperimentExecutions from "@/components/ExperimentExecutions.vue";
 
 const vuetify = createVuetify({
   icons: {
@@ -70,6 +71,11 @@ const routes = [
     path: "/experiments",
     name: "Experiments",
     component: ExperimentsOverview,
+  },
+  {
+    path: "/experiment-executions",
+    name: "Versuchsdurchführungen",
+    component: ExperimentExecutions,
   },
   {
     path: "/groups",
