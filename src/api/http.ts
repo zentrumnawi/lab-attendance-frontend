@@ -1,3 +1,15 @@
+export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
+
+let csrfTokenProvider: (() => string | null) | null = null;
+
+export function setCsrfTokenProvider(provider: () => string | null): void {
+  csrfTokenProvider = provider;
+}
+
+function isUnsafeMethod(method: HttpMethod): boolean {
+  return method !== "GET";
+}
+
 export class HttpError extends Error {
   status: number;
   body: unknown;
@@ -20,16 +32,37 @@ async function parseJsonOrText(res: Response): Promise<unknown> {
 
 export async function httpJson<T>(
   path: string,
-  opts?: { signal?: AbortSignal; headers?: Record<string, string> },
+  opts?: {
+    method?: HttpMethod;
+    body?: unknown;
+    signal?: AbortSignal;
+    headers?: Record<string, string>;
+  },
 ): Promise<T> {
   const headers: Record<string, string> = {
     Accept: "application/json",
     ...(opts?.headers ?? {}),
   };
 
+  const method = opts?.method ?? "GET";
+
+  if (isUnsafeMethod(method)) {
+    const csrfToken = csrfTokenProvider?.() ?? null;
+    if (csrfToken) {
+      headers["X-CSRFToken"] = csrfToken;
+    }
+  }
+
+  let body: string | undefined;
+  if (opts?.body !== undefined) {
+    headers["Content-Type"] = headers["Content-Type"] ?? "application/json";
+    body = JSON.stringify(opts.body);
+  }
+
   const res = await fetch(path, {
-    method: "GET",
+    method,
     headers,
+    body,
     signal: opts?.signal,
     credentials: "include",
   });

@@ -17,6 +17,11 @@ import ExperimentsOverview from "@/components/ExperimentsOverview.vue";
 import DepartmentOverview from "@/components/DepartmentOverview.vue";
 import GroupsOverview from "@/components/GroupsOverview.vue";
 import IndividualFinalResult from "@/components/IndividualFinalResult.vue";
+import Attendance from "@/components/Attendance.vue";
+import SingleSession from "@/components/SingleSession.vue";
+import Login from "@/components/Login.vue";
+import { setCsrfTokenProvider } from "@/api/http";
+import { useAuthStore } from "@/stores/auth";
 
 const vuetify = createVuetify({
   icons: {
@@ -29,6 +34,12 @@ const vuetify = createVuetify({
 });
 
 const routes = [
+  {
+    path: "/login",
+    name: "Login",
+    component: Login,
+    meta: { public: true },
+  },
   {
     path: "/admin",
     name: "Admin",
@@ -71,14 +82,64 @@ const routes = [
     component: IndividualFinalResult,
     props: true,
   },
+  {
+    path: "/attendance",
+    name: "Attendance",
+    component: Attendance,
+  },
+  {
+    path: "/attendance/:date",
+    name: "SingleSession",
+    component: SingleSession,
+    props: true,
+  },
 ];
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
+
+setCsrfTokenProvider(() => useAuthStore(pinia).csrfToken);
 
 export const router = createRouter({
   history: createWebHashHistory(),
   routes,
 });
 
-createApp(App).use(router).use(pinia).use(vuetify).mount("#app");
+// direct to login if not authenticated and not public
+router.beforeEach((to) => {
+  const auth = useAuthStore(pinia);
+
+  if (auth.isAuthenticated) {
+    if (to.name === "Login") {
+      return { path: "/" };
+    }
+    return true;
+  }
+
+  if (to.meta.public) {
+    return true;
+  }
+
+  return {
+    path: "/login",
+    query: { redirect: to.fullPath },
+  };
+});
+
+async function bootstrap() {
+  const app = createApp(App);
+  app.use(pinia);
+
+  const auth = useAuthStore(pinia);
+  if (auth.isAuthenticated) {
+    try {
+      await auth.ensureCsrfToken();
+    } catch {
+      console.error("Failed to fetch CSRF token");
+    }
+  }
+
+  app.use(router).use(vuetify).mount("#app");
+}
+
+bootstrap();
