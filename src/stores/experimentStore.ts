@@ -1,7 +1,8 @@
 import { defineStore } from "pinia";
-import type { Experiment } from "./types";
+import type { Experiment, ExperimentCompletion } from "./types";
 import {
   deleteExperiment,
+  getExperimentCompletions,
   getExperiments,
   patchExperiment,
   postExperiment,
@@ -10,6 +11,7 @@ import {
 export const useExperimentStore = defineStore("experiments", {
   state: () => ({
     experiments: [] as Experiment[],
+    experimentCompletions: new Map<number, ExperimentCompletion[]>(),
   }),
 
   actions: {
@@ -51,6 +53,17 @@ export const useExperimentStore = defineStore("experiments", {
       const experiments = await getExperiments();
       this.experiments = [...experiments];
       return this.experiments;
+    },
+    async fetchExperimentCompletions(
+      labDay: number,
+    ): Promise<ExperimentCompletion[]> {
+      if (this.experimentCompletions.has(labDay)) {
+        return this.experimentCompletions.get(labDay)!;
+      }
+
+      const completions = await getExperimentCompletions(labDay);
+      this.experimentCompletions.set(labDay, completions);
+      return completions;
     },
   },
 });

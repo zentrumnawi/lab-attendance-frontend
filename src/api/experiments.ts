@@ -1,11 +1,19 @@
 import { httpJson } from "@/api/http";
-import type { Experiment } from "@/stores/types";
+import type { Experiment, ExperimentCompletion } from "@/stores/types";
 
 export async function getExperiments(labDay?: number): Promise<Experiment[]> {
   if (labDay) {
     return await httpJson<Experiment[]>(`/api/experiments/?lab_day=${labDay}`);
   }
   return await httpJson<Experiment[]>(`/api/experiments/`);
+}
+
+export async function getExperimentCompletions(
+  labDay: number,
+): Promise<ExperimentCompletion[]> {
+  return await httpJson<ExperimentCompletion[]>(
+    `/api/experiments/completions/?lab_day=${labDay}`,
+  );
 }
 
 export async function deleteExperiment(id: string) {

@@ -25,6 +25,11 @@ export interface Experiment {
   lab_day: number;
 }
 
+export interface ExperimentCompletion {
+  student: string;
+  experiment_completions: string[]; // list of experiment ids
+}
+
 export interface Group {
   id: string;
   name: string;
