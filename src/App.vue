@@ -6,6 +6,7 @@
       v-model="drawer"
       color="primary"
       width="250"
+      :temporary="$vuetify.display.mobile"
     >
       <v-list base-color="white" active-color="white" nav>
         <v-list-item title="Attendance" link />
@@ -23,6 +24,7 @@
     </v-navigation-drawer>
 
     <v-app-bar color="primary">
+      <v-app-bar-nav-icon @click="drawer = !drawer" />
       <v-toolbar-title class="headline text-uppercase"
         >Anwesenheitsformular</v-toolbar-title
       >
