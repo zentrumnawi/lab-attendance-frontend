@@ -1,4 +1,15 @@
 <template>
+  <v-snackbar
+    color="success"
+    location="bottom end"
+    prepend-icon="$success"
+    text="Änderungen gespeichert."
+    timeout="3000"
+    title="Erfolgreich gespeichert"
+    contained
+    v-model="snackbar"
+  >
+  </v-snackbar>
   <div>
     <v-select
       v-model="labDay"
@@ -128,6 +139,7 @@ const labDayOptions = Array.from({ length: 8 }, (_, index) => ({
   title: `Versuchstag ${index + 1}`,
   value: index + 1,
 }));
+const snackbar = ref(false);
 
 const headers: {
   title: string;
@@ -224,6 +236,7 @@ async function saveCompletions(studentId: string) {
   const remainingDrafts = { ...draftCompletions.value };
   delete remainingDrafts[studentId];
   draftCompletions.value = remainingDrafts;
+  snackbar.value = true;
 }
 
 const experimentsForLabDay = computed(() =>
