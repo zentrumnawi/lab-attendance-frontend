@@ -52,16 +52,7 @@
         show-expand
       >
         <template #[`item.status`]="{ value }">
-          <v-tooltip :text="value">
-            <template #activator="{ props: tooltipProps }">
-              <v-icon
-                v-bind="tooltipProps"
-                icon="mdi-check"
-                color="green"
-                size="small"
-              />
-            </template>
-          </v-tooltip>
+          {{ value }}
         </template>
 
         <template #expanded-row="{ columns, item }">
@@ -121,6 +112,7 @@ interface ExperimentExecutionRow {
   firstName: string;
   matriculationNumber: string;
   labPartner: string;
+  status: string;
   experimentsWithCompletionStatus: {
     id: string;
     title: string;
@@ -249,19 +241,25 @@ const rows = computed<ExperimentExecutionRow[]>(() =>
     );
     const completedIds = new Set(completion?.experiment_completions ?? []);
 
+    const experimentsWithCompletionStatus = experimentsForLabDay.value.map(
+      (experiment) => ({
+        id: experiment.id,
+        title: experiment.title,
+        completed: completedIds.has(experiment.id),
+      }),
+    );
+    const completedCount = experimentsWithCompletionStatus.filter(
+      (experiment) => experiment.completed,
+    ).length;
+
     return {
       id: attendee.id,
       name: attendee.name ?? "",
       firstName: attendee.firstName ?? "",
       matriculationNumber: attendee.matriculationNumber ?? "",
       labPartner: attendee.labPartner ?? "",
-      experimentsWithCompletionStatus: experimentsForLabDay.value.map(
-        (experiment) => ({
-          id: experiment.id,
-          title: experiment.title,
-          completed: completedIds.has(experiment.id),
-        }),
-      ),
+      status: `${completedCount}/${experimentsWithCompletionStatus.length}`,
+      experimentsWithCompletionStatus,
     };
   }),
 );
