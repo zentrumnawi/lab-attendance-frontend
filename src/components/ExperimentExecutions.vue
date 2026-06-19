@@ -68,7 +68,7 @@
           <tr>
             <td :colspan="columns.length" class="pa-4">
               <div
-                v-for="experiment in item.successfulExperiments"
+                v-for="experiment in item.experimentsWithCompletionStatus"
                 :key="experiment.id"
                 class="d-flex align-center"
               >
@@ -78,7 +78,7 @@
                       item.id,
                       experiment.id,
                       experiment.completed,
-                      item.successfulExperiments,
+                      item.experimentsWithCompletionStatus,
                     )
                   "
                   :label="experiment.title"
@@ -89,7 +89,7 @@
                       item.id,
                       experiment.id,
                       $event,
-                      item.successfulExperiments,
+                      item.experimentsWithCompletionStatus,
                     )
                   "
                 />
@@ -121,7 +121,7 @@ interface ExperimentExecutionRow {
   firstName: string;
   matriculationNumber: string;
   labPartner: string;
-  successfulExperiments: {
+  experimentsWithCompletionStatus: {
     id: string;
     title: string;
     completed: boolean;
@@ -170,7 +170,7 @@ watch(labDay, (day) => {
 });
 
 type SuccessfulExperiment =
-  ExperimentExecutionRow["successfulExperiments"][number];
+  ExperimentExecutionRow["experimentsWithCompletionStatus"][number];
 
 function ensureDraft(studentId: string, experiments: SuccessfulExperiment[]) {
   if (draftCompletions.value[studentId]) return;
@@ -255,11 +255,13 @@ const rows = computed<ExperimentExecutionRow[]>(() =>
       firstName: attendee.firstName ?? "",
       matriculationNumber: attendee.matriculationNumber ?? "",
       labPartner: attendee.labPartner ?? "",
-      successfulExperiments: experimentsForLabDay.value.map((experiment) => ({
-        id: experiment.id,
-        title: experiment.title,
-        completed: completedIds.has(experiment.id),
-      })),
+      experimentsWithCompletionStatus: experimentsForLabDay.value.map(
+        (experiment) => ({
+          id: experiment.id,
+          title: experiment.title,
+          completed: completedIds.has(experiment.id),
+        }),
+      ),
     };
   }),
 );
