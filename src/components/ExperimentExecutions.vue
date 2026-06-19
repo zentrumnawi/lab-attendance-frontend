@@ -73,12 +73,35 @@
                 class="d-flex align-center"
               >
                 <v-checkbox
-                  :model-value="experiment.completed"
+                  :model-value="
+                    draftCompleted(
+                      item.id,
+                      experiment.id,
+                      experiment.completed,
+                      item.successfulExperiments,
+                    )
+                  "
                   :label="experiment.title"
                   density="compact"
                   hide-details
+                  @update:model-value="
+                    updateDraft(
+                      item.id,
+                      experiment.id,
+                      $event,
+                      item.successfulExperiments,
+                    )
+                  "
                 />
               </div>
+
+              <v-btn
+                class="mt-2"
+                color="primary"
+                size="small"
+                text="Speichern"
+                @click="saveCompletions(item.id)"
+              />
             </td>
           </tr>
         </template>
@@ -108,6 +131,7 @@ interface ExperimentExecutionRow {
 const attendeeStore = useAttendeeStore();
 const experimentStore = useExperimentStore();
 const labDay = ref(1);
+const draftCompletions = ref<Record<string, Record<string, boolean>>>({});
 const labDayOptions = Array.from({ length: 8 }, (_, index) => ({
   title: `Versuchstag ${index + 1}`,
   value: index + 1,
@@ -140,8 +164,75 @@ onMounted(async () => {
 });
 
 watch(labDay, (day) => {
+  // reset unsaved state of checkboxes
+  draftCompletions.value = {};
   void experimentStore.fetchExperimentCompletions(day);
 });
+
+type SuccessfulExperiment =
+  ExperimentExecutionRow["successfulExperiments"][number];
+
+function ensureDraft(studentId: string, experiments: SuccessfulExperiment[]) {
+  if (draftCompletions.value[studentId]) return;
+
+  draftCompletions.value = {
+    ...draftCompletions.value,
+    [studentId]: Object.fromEntries(
+      experiments.map((experiment) => [experiment.id, experiment.completed]),
+    ),
+  };
+}
+
+// This is for local, not yet dispatched edits, so that checkboxes reflect the right state
+function draftCompleted(
+  studentId: string,
+  experimentId: string,
+  saved: boolean,
+  experiments: SuccessfulExperiment[],
+) {
+  ensureDraft(studentId, experiments);
+  return draftCompletions.value[studentId][experimentId] ?? saved;
+}
+
+function updateDraft(
+  studentId: string,
+  experimentId: string,
+  completed: boolean | null,
+  experiments: SuccessfulExperiment[],
+) {
+  if (completed === null) return;
+
+  ensureDraft(studentId, experiments);
+  draftCompletions.value = {
+    ...draftCompletions.value,
+    [studentId]: {
+      ...draftCompletions.value[studentId],
+      [experimentId]: completed,
+    },
+  };
+}
+
+async function saveCompletions(studentId: string) {
+  const draft = draftCompletions.value[studentId];
+  if (!draft) return;
+
+  const experimentIds = [];
+  for (const experimentId in draft) {
+    if (draft[experimentId]) {
+      experimentIds.push(experimentId);
+    }
+  }
+
+  await experimentStore.setExperimentCompletion(
+    labDay.value,
+    studentId,
+    experimentIds,
+  );
+
+  const remainingDrafts = { ...draftCompletions.value };
+  delete remainingDrafts[studentId];
+  draftCompletions.value = remainingDrafts;
+}
 
 const experimentsForLabDay = computed(() =>
   experimentStore.experiments.filter((e) => e.lab_day === labDay.value),
