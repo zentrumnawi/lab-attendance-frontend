@@ -16,6 +16,25 @@ export async function getExperimentCompletions(
   );
 }
 
+export interface ExperimentCompletionRecord {
+  student_id: string;
+  experiment_ids: string[];
+}
+
+export interface SaveExperimentCompletionsPayload {
+  lab_day: number;
+  records: ExperimentCompletionRecord[];
+}
+
+export async function saveExperimentCompletions(
+  payload: SaveExperimentCompletionsPayload,
+): Promise<void> {
+  return await httpJson<void>(`/api/experiments/completions/bulk/`, {
+    method: "POST",
+    body: payload,
+  });
+}
+
 export async function deleteExperiment(id: string) {
   return await httpJson<void>(`/api/experiments/${id}/`, {
     method: "DELETE",

@@ -6,6 +6,7 @@ import {
   getExperiments,
   patchExperiment,
   postExperiment,
+  saveExperimentCompletions,
 } from "@/api/experiments";
 
 export const useExperimentStore = defineStore("experiments", {
@@ -64,6 +65,41 @@ export const useExperimentStore = defineStore("experiments", {
       const completions = await getExperimentCompletions(labDay);
       this.experimentCompletions.set(labDay, completions);
       return completions;
+    },
+
+    async setExperimentCompletion(
+      labDay: number,
+      studentId: string,
+      experimentIds: string[],
+    ) {
+      await saveExperimentCompletions({
+        lab_day: labDay,
+        records: [
+          {
+            student_id: studentId,
+            experiment_ids: experimentIds,
+          },
+        ],
+      });
+
+      const entry: ExperimentCompletion = {
+        student: studentId,
+        experiment_completions: experimentIds,
+      };
+
+      const completions = [...(this.experimentCompletions.get(labDay) ?? [])];
+      const index = completions.findIndex(
+        (completion) => completion.student === studentId,
+      );
+
+      if (index === -1) {
+        completions.push(entry);
+      } else {
+        completions[index] = entry;
+      }
+
+      this.experimentCompletions.set(labDay, completions);
+      return entry;
     },
   },
 });
