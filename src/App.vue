@@ -6,6 +6,7 @@
       v-model="drawer"
       color="primary"
       width="250"
+      :temporary="$vuetify.display.mobile"
     >
       <v-list base-color="white" active-color="white" nav>
         <v-list-item title="Attendance" to="/attendance" link />
@@ -21,13 +22,14 @@
           link
         />
         <v-list-item title="Final results" link />
+        <v-list-item title="Paper Submission" to="/protocols" link />
         <v-list-item title="Groups" to="/groups" link />
-        <v-list-item title="Paper Submission" link />
         <v-list-item title="Papers" link />
       </v-list>
     </v-navigation-drawer>
 
     <v-app-bar color="primary">
+      <v-app-bar-nav-icon @click="drawer = !drawer" />
       <v-toolbar-title class="headline text-uppercase"
         >Praktikum AAC</v-toolbar-title
       >
