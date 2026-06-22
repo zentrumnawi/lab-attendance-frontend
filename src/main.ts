@@ -22,6 +22,7 @@ import SingleSession from "@/components/SingleSession.vue";
 import Login from "@/components/Login.vue";
 import { setCsrfTokenProvider } from "@/api/http";
 import { useAuthStore } from "@/stores/auth";
+import ProtocolOverview from "@/components/ProtocolOverview.vue";
 
 const vuetify = createVuetify({
   icons: {
@@ -81,6 +82,11 @@ const routes = [
     name: "IndividualFinalResult",
     component: IndividualFinalResult,
     props: true,
+  },
+  {
+    path: "/protocols",
+    name: "ProtocolOverview",
+    component: ProtocolOverview,
   },
   {
     path: "/attendance",
