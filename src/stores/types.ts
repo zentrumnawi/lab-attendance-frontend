@@ -22,6 +22,12 @@ export interface Experiment {
   id: string;
   title: string;
   description: string;
+  lab_day: number;
+}
+
+export interface ExperimentCompletion {
+  student: string;
+  experiment_completions: string[]; // list of experiment ids
 }
 
 export interface Group {
