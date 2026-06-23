@@ -1,10 +1,12 @@
 import { defineStore } from "pinia";
 import { v4 as uuidv4 } from "uuid";
 import type { Exercise } from "./types";
+import { getExerciseStatus, submitSingleExerciseData } from "@/api/exercises";
 
 export const useExerciseStore = defineStore("exercises", {
   state: () => ({
     exercises: [] as Exercise[],
+    exercise_completions: [] as string[],
   }),
 
   actions: {
@@ -36,7 +38,29 @@ export const useExerciseStore = defineStore("exercises", {
     clearExercises() {
       this.exercises = [];
     },
-  },
+    async fetchExerciseStatus(lab_day: number) {
+      const exerciseStatus = await getExerciseStatus(lab_day);
+      this.exercise_completions = exerciseStatus;
+    },
+    async submitSingleExerciseData(
+      lab_day: number,
+      student_id: string,
+      completed: boolean,
+    ) {
+      await submitSingleExerciseData(lab_day, student_id, completed);
 
-  persist: true,
+      if (completed) {
+        if (!this.exercise_completions.includes(student_id)) {
+          this.exercise_completions.push(student_id);
+        }
+      } else {
+        if (this.exercise_completions.includes(student_id)) {
+          this.exercise_completions.splice(
+            this.exercise_completions.indexOf(student_id),
+            1,
+          );
+        }
+      }
+    },
+  },
 });
