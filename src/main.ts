@@ -24,6 +24,7 @@ import { setCsrfTokenProvider } from "@/api/http";
 import { useAuthStore } from "@/stores/auth";
 import ExperimentExecutions from "@/components/ExperimentExecutions.vue";
 import ProtocolOverview from "@/components/ProtocolOverview.vue";
+import ExerciseExecutions from "@/components/ExerciseExecutions.vue";
 
 const vuetify = createVuetify({
   icons: {
@@ -77,6 +78,11 @@ const routes = [
     path: "/experiment-executions",
     name: "Versuchsdurchführungen",
     component: ExperimentExecutions,
+  },
+  {
+    path: "/exercise-executions",
+    name: "ExerciseExecutions",
+    component: ExerciseExecutions,
   },
   {
     path: "/groups",
