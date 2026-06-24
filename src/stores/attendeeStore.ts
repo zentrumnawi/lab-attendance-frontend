@@ -1,6 +1,11 @@
 import { defineStore } from "pinia";
 import { v4 as uuidv4 } from "uuid";
-import { getSingleStudentData, getStudents } from "@/api/students";
+import {
+  getSingleStudentData,
+  getStudents,
+  updateLabPartnersBulk,
+  type BulkLabPartnersPayload,
+} from "@/api/students";
 import type { Attendee } from "./types";
 
 export const useAttendeeStore = defineStore("attendees", {
@@ -90,6 +95,25 @@ export const useAttendeeStore = defineStore("attendees", {
         throw e;
       } finally {
         this.loadingStudents = false;
+      }
+    },
+
+    async saveLabPartners(payload: BulkLabPartnersPayload): Promise<void> {
+      await updateLabPartnersBulk(payload);
+
+      for (const record of payload.pairs) {
+        const attendeeA = this.getAttendeeById(record.student_a_id);
+        const attendeeB = this.getAttendeeById(record.student_b_id);
+        if (attendeeA && attendeeB) {
+          attendeeA.labPartner = attendeeB.id;
+          attendeeB.labPartner = attendeeA.id;
+        }
+      }
+      for (const studentId of payload.unpaired_student_ids) {
+        const attendee = this.getAttendeeById(studentId);
+        if (attendee) {
+          attendee.labPartner = "";
+        }
       }
     },
 
