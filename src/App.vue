@@ -21,6 +21,7 @@
           to="/experiment-executions"
           link
         />
+        <v-list-item title="Übungsblätter" to="/exercise-executions" link />
         <v-list-item title="Final results" link />
         <v-list-item title="Paper Submission" to="/protocols" link />
         <v-list-item title="Groups" to="/groups" link />
