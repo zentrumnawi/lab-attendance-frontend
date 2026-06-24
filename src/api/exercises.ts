@@ -36,12 +36,15 @@ export async function submitSingleExerciseData(
   student_id: string,
   completed: boolean,
 ) {
-  return await httpJson<Record<string, any>>("/api/exercises/completions/", {
-    method: "POST",
-    body: {
-      lab_day: lab_day,
-      student_id: student_id,
-      completed: completed,
+  return await httpJson<Record<string, any>>(
+    "/api/exercise-completions/upsert/",
+    {
+      method: "POST",
+      body: {
+        lab_day: lab_day,
+        student_id: student_id,
+        completed: completed,
+      },
     },
-  });
+  );
 }
