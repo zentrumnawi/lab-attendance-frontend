@@ -25,6 +25,7 @@ import { useAuthStore } from "@/stores/auth";
 import ExperimentExecutions from "@/components/ExperimentExecutions.vue";
 import ProtocolOverview from "@/components/ProtocolOverview.vue";
 import ExerciseExecutions from "@/components/ExerciseExecutions.vue";
+import LabPartners from "@/components/LabPartners.vue";
 
 const vuetify = createVuetify({
   icons: {
@@ -88,6 +89,11 @@ const routes = [
     path: "/groups",
     name: "Groups",
     component: GroupsOverview,
+  },
+  {
+    path: "/lab-partners",
+    name: "LabPartners",
+    component: LabPartners,
   },
   {
     path: "/attendee/:id",
