@@ -9,7 +9,8 @@
       :temporary="$vuetify.display.mobile"
     >
       <v-list base-color="white" active-color="white" nav>
-        <v-list-item title="Attendance" to="/attendance" link />
+        <v-list-item title="Teilnehmer" to="/students" link />
+        <v-list-item title="Anwesenheit" to="/attendance" link />
 
         <v-list-item title="Departments" to="/departments" link />
 
@@ -23,10 +24,9 @@
         />
         <v-list-item title="Übungsblätter" to="/exercise-executions" link />
         <v-list-item title="Final results" link />
-        <v-list-item title="Paper Submission" to="/protocols" link />
+        <v-list-item title="Protokollabgaben" to="/protocols" link />
         <v-list-item title="Groups" to="/groups" link />
         <v-list-item title="Labor-Partner" to="/lab-partners" link />
-        <v-list-item title="Papers" link />
       </v-list>
     </v-navigation-drawer>
 

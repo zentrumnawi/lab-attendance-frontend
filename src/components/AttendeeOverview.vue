@@ -44,7 +44,7 @@
       </template>
 
       <template #[`item.actions`]="{ item }">
-        <div class="d-flex ga-2 justify-end">
+        <div class="d-flex ga-2 justify-end" @click.stop>
           <v-icon
             color="medium-emphasis"
             icon="mdi-pencil"

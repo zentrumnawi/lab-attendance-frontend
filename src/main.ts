@@ -26,6 +26,7 @@ import ExperimentExecutions from "@/components/ExperimentExecutions.vue";
 import ProtocolOverview from "@/components/ProtocolOverview.vue";
 import ExerciseExecutions from "@/components/ExerciseExecutions.vue";
 import LabPartners from "@/components/LabPartners.vue";
+import AttendeeOverview from "@/components/AttendeeOverview.vue";
 
 const vuetify = createVuetify({
   icons: {
@@ -74,6 +75,11 @@ const routes = [
     path: "/experiments",
     name: "Experiments",
     component: ExperimentsOverview,
+  },
+  {
+    path: "/students",
+    name: "Teilnehmer",
+    component: AttendeeOverview,
   },
   {
     path: "/experiment-executions",
