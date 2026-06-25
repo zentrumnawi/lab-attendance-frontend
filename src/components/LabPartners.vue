@@ -174,10 +174,18 @@ function initDraftFromStore() {
 }
 
 function setPartner(studentId: string, partnerId: string | null) {
-  draftPartners.value = {
-    ...draftPartners.value,
-    [studentId]: partnerId,
-  };
+  if (partnerId === null) {
+    const formerPartner = draftPartners.value[studentId];
+    if (formerPartner) {
+      draftPartners.value[formerPartner] = null;
+    }
+    delete draftPartners.value[studentId];
+  } else {
+    draftPartners.value[studentId] = partnerId;
+    if (partnerId) {
+      draftPartners.value[partnerId] = studentId;
+    }
+  }
 }
 
 function buildLabPartnersPayload(): BulkLabPartnersPayload {
