@@ -138,5 +138,5 @@ export const useAttendeeStore = defineStore("attendees", {
     },
   },
 
-  persist: true,
+  persist: false,
 });
