@@ -135,8 +135,17 @@ const rows = computed<LabPartnerRow[]>(() =>
 );
 
 function partnerOptionsFor(studentId: string): PartnerOption[] {
+  // paired individuals should not be available as options
+  const partners = Object.entries(draftPartners.value).map(
+    ([, partnerId]) => partnerId,
+  );
   return attendeeStore.attendees
-    .filter((attendee) => attendee.id !== studentId)
+    .filter(
+      (attendee) =>
+        attendee.id !== studentId &&
+        (!partners.includes(attendee.id) ||
+          draftPartners.value[studentId] === attendee.id),
+    )
     .map((attendee) => ({
       title: formatPartnerLabel(attendee),
       value: attendee.id,
@@ -174,17 +183,16 @@ function initDraftFromStore() {
 }
 
 function setPartner(studentId: string, partnerId: string | null) {
+  // sever link to former partner
+  const formerPartner = draftPartners.value[studentId];
+  if (formerPartner) {
+    draftPartners.value[formerPartner] = null;
+  }
   if (partnerId === null) {
-    const formerPartner = draftPartners.value[studentId];
-    if (formerPartner) {
-      draftPartners.value[formerPartner] = null;
-    }
     delete draftPartners.value[studentId];
   } else {
     draftPartners.value[studentId] = partnerId;
-    if (partnerId) {
-      draftPartners.value[partnerId] = studentId;
-    }
+    draftPartners.value[partnerId] = studentId;
   }
 }
 
