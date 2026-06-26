@@ -98,13 +98,6 @@
               label="Email"
             ></v-text-field>
           </v-col>
-
-          <v-col cols="12" md="6">
-            <v-text-field
-              v-model="formModel.labPartner"
-              label="Lab Partner"
-            ></v-text-field>
-          </v-col>
         </v-row>
       </template>
 
