@@ -502,7 +502,9 @@ const rows = computed<ProtocolRow[]>(() =>
       name: attendee.name ?? "",
       firstName: attendee.firstName ?? "",
       matriculationNumber: attendee.matriculationNumber ?? "",
-      labPartner: attendee.labPartner ?? "",
+      labPartner: attendee.labPartner
+        ? (attendeeStore.getAttendeeById(attendee.labPartner)?.name ?? "—")
+        : "—",
       status: protocol?.accepted
         ? "Akzeptiert"
         : protocol?.submitted

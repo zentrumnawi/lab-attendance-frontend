@@ -270,7 +270,9 @@ const rows = computed<ExperimentExecutionRow[]>(() =>
       name: attendee.name ?? "",
       firstName: attendee.firstName ?? "",
       matriculationNumber: attendee.matriculationNumber ?? "",
-      labPartner: attendee.labPartner ?? "",
+      labPartner: attendee.labPartner
+        ? (attendeeStore.getAttendeeById(attendee.labPartner)?.name ?? "—")
+        : "—",
       status: `${completedCount}/${experimentsWithCompletionStatus.length}`,
       experimentsWithCompletionStatus,
     };
