@@ -14,14 +14,14 @@
               size="x-small"
               start
             ></v-icon>
-            Exercises
+            Übungsblätter
           </v-toolbar-title>
 
           <v-btn
             class="me-2"
             prepend-icon="mdi-plus"
             rounded="lg"
-            text="Add Exercise"
+            text="Übungsblatt hinzufügen"
             border
             @click="add"
           ></v-btn>
@@ -60,15 +60,14 @@
       </template>
 
       <template #no-data>
-        <div><p>No experiments found</p></div>
+        <div><p>Keine Übungsblätter gefunden</p></div>
       </template>
     </v-data-table>
   </v-sheet>
 
   <v-dialog v-model="dialog" max-width="600">
     <v-card
-      :subtitle="`${isEditing ? 'Update' : 'Create'} exercises`"
-      :title="`${isEditing ? 'Edit' : 'Add'} exercises`"
+      :title="`${isEditing ? 'Übungsblatt bearbeiten' : 'Übungsblatt hinzufügen'}`"
     >
       <template #text>
         <v-form ref="form">
@@ -87,28 +86,28 @@
       <v-divider></v-divider>
 
       <v-card-actions class="bg-surface-light">
-        <v-btn text="Cancel" variant="plain" @click="dialog = false"></v-btn>
+        <v-btn text="Abbrechen" variant="plain" @click="dialog = false"></v-btn>
 
         <v-spacer></v-spacer>
 
-        <v-btn text="Save" @click="save"></v-btn>
+        <v-btn text="Speichern" @click="save"></v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
   <v-dialog v-model="deleteDialog" max-width="400">
     <v-card>
-      <v-card-title class="text-h6"> Delete Exercise </v-card-title>
+      <v-card-title class="text-h6"> Übungsblatt löschen </v-card-title>
 
       <v-card-text>
-        Are you sure you want to delete this exercise?
+        Sind Sie sicher, dass Sie dieses Übungsblatt löschen möchten?
       </v-card-text>
 
       <v-card-actions>
         <v-spacer />
 
-        <v-btn text="Cancel" variant="text" @click="deleteDialog = false" />
+        <v-btn text="Abbrechen" variant="text" @click="deleteDialog = false" />
 
-        <v-btn color="red" text="Delete" @click="removeConfirmed" />
+        <v-btn color="red" text="Löschen" @click="removeConfirmed" />
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -123,7 +122,7 @@ const selectedExerciseId = ref<string | null>(null);
 
 const form = ref();
 
-const nameRules = [(v: string) => !!v || "Name is required"];
+const nameRules = [(v: string) => !!v || "Name ist erforderlich"];
 
 function createNewRecord(): Exercise {
   return {
@@ -139,7 +138,7 @@ const isEditing = computed(() => !!formModel.value.id);
 
 const headers = [
   { title: "Name", key: "name", align: "start" as const },
-  { title: "Action", key: "actions", align: "end" as const, sortable: false },
+  { title: "Aktion", key: "actions", align: "end" as const, sortable: false },
 ];
 
 function add() {

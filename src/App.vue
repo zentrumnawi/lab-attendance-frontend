@@ -12,20 +12,24 @@
         <v-list-item title="Teilnehmer" to="/students" link />
         <v-list-item title="Anwesenheit" to="/attendance" link />
 
-        <v-list-item title="Departments" to="/departments" link />
+        <v-list-item title="Studiengänge" to="/departments" link />
 
-        <v-list-item title="Exercises" to="/exercises" link />
+        <v-list-item title="Übungsblätter" to="/exercises" link />
 
-        <v-list-item title="Experiments" to="/experiments" link />
+        <v-list-item title="Versuche" to="/experiments" link />
         <v-list-item
           title="Versuchsdurchführungen"
           to="/experiment-executions"
           link
         />
-        <v-list-item title="Übungsblätter" to="/exercise-executions" link />
-        <v-list-item title="Final results" link />
+        <v-list-item
+          title="Übungsblätterabgaben"
+          to="/exercise-executions"
+          link
+        />
+        <v-list-item title="Endergebnisse" link />
         <v-list-item title="Protokollabgaben" to="/protocols" link />
-        <v-list-item title="Groups" to="/groups" link />
+        <v-list-item title="Gruppen" to="/groups" link />
         <v-list-item title="Labor-Partner" to="/lab-partners" link />
       </v-list>
     </v-navigation-drawer>
@@ -58,7 +62,7 @@
                 "
                 label
               >
-                {{ groupName ? "Group " + groupName : "Admin" }}
+                {{ groupName ? "Gruppe " + groupName : "Admin" }}
               </v-chip>
             </v-card-text>
           </v-card>

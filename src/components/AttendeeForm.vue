@@ -1,5 +1,5 @@
 <template>
-  <h1>Add student</h1>
+  <h1>Studierenden hinzufügen</h1>
   <form @submit.prevent="submit">
     <v-text-field
       v-model="name.value.value"
@@ -12,24 +12,24 @@
       v-model="studentId.value.value"
       :counter="7"
       :error-messages="studentId.errorMessage.value"
-      label="Student ID"
+      label="Matrikelnummer"
     ></v-text-field>
 
     <v-text-field
       v-model="email.value.value"
       :error-messages="email.errorMessage.value"
-      label="E-mail"
+      label="E-Mail"
     ></v-text-field>
 
     <v-text-field
       v-model="labPartner.value.value"
       :error-messages="labPartner.errorMessage.value"
-      label="Lab Partner"
+      label="Labor-Partner"
     ></v-text-field>
 
-    <v-btn class="me-4" type="submit"> submit </v-btn>
+    <v-btn class="me-4" type="submit"> Absenden </v-btn>
 
-    <v-btn @click="handleReset"> clear </v-btn>
+    <v-btn @click="handleReset"> Zurücksetzen </v-btn>
   </form>
 </template>
 
@@ -51,22 +51,22 @@ const { handleSubmit, handleReset } = useForm<AttendeeForm>({
     name(value: string) {
       if (value?.length >= 2) return true;
 
-      return "Name needs to be at least 2 characters.";
+      return "Der Name muss mindestens 2 Zeichen lang sein.";
     },
     studentId(value: string) {
       if (/^[0-9-]{7,}$/.test(value)) return true;
 
-      return "Student ID needs to be at least 7 digits.";
+      return "Die Matrikelnummer muss mindestens 7 Ziffern haben.";
     },
     email(value: string) {
       if (/^[a-z.-]+@[a-z.-]+\.[a-z]+$/i.test(value)) return true;
 
-      return "Must be a valid e-mail.";
+      return "Bitte geben Sie eine gültige E-Mail-Adresse ein.";
     },
     labPartner(value: string) {
       if (value?.length >= 2) return true;
 
-      return "Lab partner needs to be at least 2 characters.";
+      return "Der Labor-Partner muss mindestens 2 Zeichen lang sein.";
     },
   },
 });
