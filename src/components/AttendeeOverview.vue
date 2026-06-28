@@ -30,19 +30,6 @@
         </v-toolbar>
       </template>
 
-      <template #[`item.name`]="{ value }">
-        <v-chip
-          :text="value"
-          border="thin opacity-25"
-          prepend-icon="mdi-account"
-          label
-        >
-          <template #prepend>
-            <v-icon color="medium-emphasis"></v-icon>
-          </template>
-        </v-chip>
-      </template>
-
       <template #[`item.actions`]="{ item }">
         <div class="d-flex ga-2 justify-end" @click.stop>
           <v-icon
