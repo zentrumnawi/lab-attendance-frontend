@@ -7,15 +7,7 @@
     >
       <template #top>
         <v-toolbar flat>
-          <v-toolbar-title>
-            <v-icon
-              color="medium-emphasis"
-              icon="mdi-account-multiple"
-              size="x-small"
-              start
-            ></v-icon>
-            Übungsblätter
-          </v-toolbar-title>
+          <v-toolbar-title> Übungsblätter </v-toolbar-title>
 
           <v-btn
             class="me-2"
