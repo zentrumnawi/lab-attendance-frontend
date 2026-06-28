@@ -189,7 +189,7 @@ function setPartner(studentId: string, partnerId: string | null) {
     draftPartners.value[formerPartner] = null;
   }
   if (partnerId === null) {
-    delete draftPartners.value[studentId];
+    draftPartners.value[studentId] = null;
   } else {
     draftPartners.value[studentId] = partnerId;
     draftPartners.value[partnerId] = studentId;
