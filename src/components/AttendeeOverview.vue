@@ -73,7 +73,7 @@
 
           <v-col cols="12" md="4">
             <v-text-field
-              v-model="formModel.studentId"
+              v-model="formModel.matriculationNumber"
               label="Matrikelnummer"
             ></v-text-field>
           </v-col>
