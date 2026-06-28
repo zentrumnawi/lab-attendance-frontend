@@ -10,6 +10,12 @@
       max-width="280"
     />
 
+    <v-alert border="top" type="info" variant="outlined" prominent>
+      Hinweis: Speichern der Daten erfolgt sowohl für den ausgewählten
+      Studierenden als auch für dessen Labor-Partner.
+    </v-alert>
+    <br />
+
     <v-sheet border rounded>
       <v-data-table
         :headers="headers"
@@ -280,6 +286,7 @@
 import { useProtocolStore } from "@/stores/protocols";
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import { useAttendeeStore } from "@/stores/attendeeStore";
+import type { SubmitPaperRecord } from "@/api/protocols";
 import { format } from "date-fns";
 
 type ProtocolStatus = "Akzeptiert" | "Eingereicht" | "Nicht eingereicht";
@@ -290,6 +297,7 @@ interface ProtocolRow {
   firstName: string;
   matriculationNumber: string;
   labPartner: string;
+  labPartnerId: string | null;
   status: ProtocolStatus;
   accepted_date: Date | null;
   accepted: boolean;
@@ -406,6 +414,37 @@ function onCorrectionsChange(value: boolean | null) {
   }
 }
 
+function buildSubmissionRecords(student: ProtocolRow): SubmitPaperRecord[] {
+  const submissionDate = new Date();
+  const necessaryCorrections = requireCorrections.value
+    ? correctionsText.value.trim() || null
+    : null;
+
+  const records: SubmitPaperRecord[] = [
+    {
+      student_id: student.id,
+      submitted: true,
+      submission_date: submissionDate,
+      necessary_corrections: necessaryCorrections,
+      accepted: acceptImmediately.value,
+      accepted_date: acceptImmediately.value ? submissionDate : null,
+    },
+  ];
+
+  if (student.labPartnerId) {
+    records.push({
+      student_id: student.labPartnerId,
+      submitted: true,
+      submission_date: submissionDate,
+      necessary_corrections: necessaryCorrections,
+      accepted: acceptImmediately.value,
+      accepted_date: acceptImmediately.value ? submissionDate : null,
+    });
+  }
+
+  return records;
+}
+
 async function saveSubmission() {
   if (!selectedStudent.value || !canSaveSubmission.value) return;
 
@@ -414,18 +453,7 @@ async function saveSubmission() {
   try {
     await store.submitProtocol({
       lab_day: labDay.value,
-      records: [
-        {
-          student_id: selectedStudent.value.id,
-          submitted: true,
-          submission_date: new Date(),
-          necessary_corrections: requireCorrections.value
-            ? correctionsText.value.trim() || null
-            : null,
-          accepted: acceptImmediately.value,
-          accepted_date: acceptImmediately.value ? new Date() : null,
-        },
-      ],
+      records: buildSubmissionRecords(selectedStudent.value),
     });
     submissionDialog.value = false;
   } finally {
@@ -438,21 +466,32 @@ async function saveEditedSubmission() {
 
   savingEditSubmission.value = true;
 
+  const baseData = {
+    submitted: true,
+    submission_date: selectedEditStudent.value.submission_date,
+    necessary_corrections: selectedEditStudent.value.necessary_corrections,
+    accepted: true,
+    accepted_date: new Date(),
+  };
+
+  const records = [
+    {
+      ...baseData,
+      student_id: selectedEditStudent.value.id,
+    },
+  ];
+
+  if (selectedEditStudent.value.labPartnerId) {
+    records.push({
+      ...baseData,
+      student_id: selectedEditStudent.value.labPartnerId,
+    });
+  }
+
   try {
-    console.log("selectedEditStudent.value", selectedEditStudent.value);
     await store.submitProtocol({
       lab_day: labDay.value,
-      records: [
-        {
-          student_id: selectedEditStudent.value.id,
-          submitted: true,
-          submission_date: selectedEditStudent.value.submission_date,
-          necessary_corrections:
-            selectedEditStudent.value.necessary_corrections,
-          accepted: true,
-          accepted_date: new Date(),
-        },
-      ],
+      records: records,
     });
     editSubmissionDialog.value = false;
   } finally {
@@ -463,20 +502,32 @@ async function saveEditedSubmission() {
 async function saveWithdrawSubmission() {
   if (!selectedEditStudent.value || !withdrawSubmission.value) return;
 
+  const baseData = {
+    submitted: true,
+    submission_date: selectedEditStudent.value.submission_date,
+    necessary_corrections: selectedEditStudent.value.necessary_corrections,
+    accepted: false,
+    accepted_date: null,
+  };
+
+  const records = [
+    {
+      ...baseData,
+      student_id: selectedEditStudent.value.id,
+    },
+  ];
+
+  if (selectedEditStudent.value.labPartnerId) {
+    records.push({
+      ...baseData,
+      student_id: selectedEditStudent.value.labPartnerId,
+    });
+  }
+
   try {
     await store.submitProtocol({
       lab_day: labDay.value,
-      records: [
-        {
-          student_id: selectedEditStudent.value.id,
-          submitted: true,
-          submission_date: selectedEditStudent.value.submission_date,
-          necessary_corrections:
-            selectedEditStudent.value.necessary_corrections,
-          accepted: false,
-          accepted_date: null,
-        },
-      ],
+      records: records,
     });
   } finally {
     withdrawSubmissionDialog.value = false;
@@ -502,7 +553,10 @@ const rows = computed<ProtocolRow[]>(() =>
       name: attendee.name ?? "",
       firstName: attendee.firstName ?? "",
       matriculationNumber: attendee.matriculationNumber ?? "",
-      labPartner: attendee.labPartner ?? "",
+      labPartnerId: attendee.labPartner || null,
+      labPartner: attendee.labPartner
+        ? (attendeeStore.getAttendeeById(attendee.labPartner)?.name ?? "—")
+        : "—",
       status: protocol?.accepted
         ? "Akzeptiert"
         : protocol?.submitted

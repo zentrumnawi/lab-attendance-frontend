@@ -19,19 +19,21 @@ export const useProtocolStore = defineStore("protocols", {
       this.protocols = protocols;
     },
     async submitProtocol(payload: SubmitPaperPayload) {
-      const protocol = await submitPaperSubmission(payload);
-      // For now, let's assume that the protocol is only one (will change later)
-      const index = this.protocols.findIndex(
-        (entry) => entry.student.id === protocol[0].student.id,
-      );
+      const protocols = await submitPaperSubmission(payload);
 
-      if (index !== -1) {
-        this.protocols[index] = protocol[0];
-      } else {
-        this.protocols.push(protocol[0]);
+      for (const protocol of protocols) {
+        const index = this.protocols.findIndex(
+          (entry) => entry.student.id === protocol.student.id,
+        );
+
+        if (index !== -1) {
+          this.protocols[index] = protocol;
+        } else {
+          this.protocols.push(protocol);
+        }
       }
 
-      return protocol[0];
+      return protocols;
     },
     removeProtocol(id: string) {
       const index = this.protocols.findIndex((p) => p.id === id);

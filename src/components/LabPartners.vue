@@ -135,8 +135,17 @@ const rows = computed<LabPartnerRow[]>(() =>
 );
 
 function partnerOptionsFor(studentId: string): PartnerOption[] {
+  // paired individuals should not be available as options
+  const partners = Object.entries(draftPartners.value).map(
+    ([, partnerId]) => partnerId,
+  );
   return attendeeStore.attendees
-    .filter((attendee) => attendee.id !== studentId)
+    .filter(
+      (attendee) =>
+        attendee.id !== studentId &&
+        (!partners.includes(attendee.id) ||
+          draftPartners.value[studentId] === attendee.id),
+    )
     .map((attendee) => ({
       title: formatPartnerLabel(attendee),
       value: attendee.id,
@@ -174,10 +183,17 @@ function initDraftFromStore() {
 }
 
 function setPartner(studentId: string, partnerId: string | null) {
-  draftPartners.value = {
-    ...draftPartners.value,
-    [studentId]: partnerId,
-  };
+  // sever link to former partner
+  const formerPartner = draftPartners.value[studentId];
+  if (formerPartner) {
+    draftPartners.value[formerPartner] = null;
+  }
+  if (partnerId === null) {
+    draftPartners.value[studentId] = null;
+  } else {
+    draftPartners.value[studentId] = partnerId;
+    draftPartners.value[partnerId] = studentId;
+  }
 }
 
 function buildLabPartnersPayload(): BulkLabPartnersPayload {

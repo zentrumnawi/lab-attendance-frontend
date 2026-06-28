@@ -33,7 +33,7 @@ export async function getProtocols(lab_day: number) {
 }
 
 export async function submitPaperSubmission(payload: SubmitPaperPayload) {
-  return await httpJson<ProtocolData>("/api/paper-submissions/bulk/", {
+  return await httpJson<ProtocolData[]>("/api/paper-submissions/bulk/", {
     method: "POST",
     body: payload,
   });

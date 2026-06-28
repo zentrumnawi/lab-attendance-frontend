@@ -72,15 +72,6 @@
             <v-text-field :model-value="attendee?.group"></v-text-field>
           </v-col>
         </v-row>
-        <v-row>
-          <v-col cols="4">
-            <v-list-subheader>Lab Partner</v-list-subheader>
-          </v-col>
-
-          <v-col cols="8">
-            <v-text-field :model-value="attendee?.labPartner"></v-text-field>
-          </v-col>
-        </v-row>
       </v-expansion-panel-text>
     </v-expansion-panel>
 
