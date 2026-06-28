@@ -21,6 +21,12 @@
       max-width="280"
     />
 
+    <v-alert border="top" type="info" variant="outlined" prominent>
+      Hinweis: Speichern der Daten erfolgt sowohl für den ausgewählten
+      Studierenden als auch für dessen Labor-Partner.
+    </v-alert>
+    <br />
+
     <v-sheet border rounded class="mb-4 pa-4">
       <div class="text-subtitle-2 font-weight-medium mb-2">Experimente</div>
 
@@ -231,6 +237,7 @@ async function saveCompletions(studentId: string) {
     labDay.value,
     studentId,
     experimentIds,
+    attendeeStore.getAttendeeById(studentId)?.labPartner,
   );
 
   const remainingDrafts = { ...draftCompletions.value };

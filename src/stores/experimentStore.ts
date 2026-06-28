@@ -71,25 +71,40 @@ export const useExperimentStore = defineStore("experiments", {
       labDay: number,
       studentId: string,
       experimentIds: string[],
+      labPartnerId?: string,
     ) {
+      const records = [
+        { student_id: studentId, experiment_ids: experimentIds },
+      ];
+      if (labPartnerId) {
+        records.push({
+          student_id: labPartnerId,
+          experiment_ids: experimentIds,
+        });
+      }
       await saveExperimentCompletions({
         lab_day: labDay,
-        records: [
-          {
-            student_id: studentId,
-            experiment_ids: experimentIds,
-          },
-        ],
+        records: records,
       });
 
-      const entry: ExperimentCompletion = {
-        student: studentId,
-        experiment_completions: experimentIds,
-      };
-
+      // Update local state for one or two students.
+      await this._writeNewCompletionsToStorage(
+        labDay,
+        {
+          student: studentId,
+          experiment_completions: experimentIds,
+        },
+        labPartnerId ?? undefined,
+      );
+    },
+    async _writeNewCompletionsToStorage(
+      labDay: number,
+      entry: ExperimentCompletion,
+      labPartnerId?: string,
+    ) {
       const completions = [...(this.experimentCompletions.get(labDay) ?? [])];
       const index = completions.findIndex(
-        (completion) => completion.student === studentId,
+        (completion) => completion.student === entry.student,
       );
 
       if (index === -1) {
@@ -98,8 +113,19 @@ export const useExperimentStore = defineStore("experiments", {
         completions[index] = entry;
       }
 
+      if (labPartnerId) {
+        const labPartnerEntry = { ...entry, student: labPartnerId };
+        const labPartnerIndex = completions.findIndex(
+          (completion) => completion.student === labPartnerId,
+        );
+        if (labPartnerIndex === -1) {
+          completions.push(labPartnerEntry);
+        } else {
+          completions[labPartnerIndex] = labPartnerEntry;
+        }
+      }
+
       this.experimentCompletions.set(labDay, completions);
-      return entry;
     },
   },
 });
