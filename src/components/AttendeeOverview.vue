@@ -16,31 +16,18 @@
               start
             ></v-icon>
 
-            Attendees
+            Teilnehmer
           </v-toolbar-title>
 
           <v-btn
             class="me-2"
             prepend-icon="mdi-plus"
             rounded="lg"
-            text="Add attendee"
+            text="Teilnehmer hinzufügen"
             border
             @click="add"
           ></v-btn>
         </v-toolbar>
-      </template>
-
-      <template #[`item.name`]="{ value }">
-        <v-chip
-          :text="value"
-          border="thin opacity-25"
-          prepend-icon="mdi-account"
-          label
-        >
-          <template #prepend>
-            <v-icon color="medium-emphasis"></v-icon>
-          </template>
-        </v-chip>
       </template>
 
       <template #[`item.actions`]="{ item }">
@@ -62,15 +49,14 @@
       </template>
 
       <template #no-data>
-        <div><p>No attendees found</p></div>
+        <div><p>Keine Teilnehmer gefunden</p></div>
       </template>
     </v-data-table>
   </v-sheet>
 
   <v-dialog v-model="dialog" max-width="600">
     <v-card
-      :subtitle="`${isEditing ? 'Update' : 'Create'} attendee`"
-      :title="`${isEditing ? 'Edit' : 'Add'} attendee`"
+      :title="`${isEditing ? 'Teilnehmer bearbeiten' : 'Teilnehmer hinzufügen'}`"
     >
       <template #text>
         <v-row>
@@ -81,21 +67,21 @@
           <v-col cols="12">
             <v-text-field
               v-model="formModel.firstName"
-              label="First Name"
+              label="Vorname"
             ></v-text-field>
           </v-col>
 
           <v-col cols="12" md="4">
             <v-text-field
-              v-model="formModel.studentId"
-              label="Student ID"
+              v-model="formModel.matriculationNumber"
+              label="Matrikelnummer"
             ></v-text-field>
           </v-col>
 
           <v-col cols="12" md="8">
             <v-text-field
               v-model="formModel.email"
-              label="Email"
+              label="E-Mail"
             ></v-text-field>
           </v-col>
         </v-row>
@@ -104,11 +90,11 @@
       <v-divider></v-divider>
 
       <v-card-actions class="bg-surface-light">
-        <v-btn text="Cancel" variant="plain" @click="dialog = false"></v-btn>
+        <v-btn text="Abbrechen" variant="plain" @click="dialog = false"></v-btn>
 
         <v-spacer></v-spacer>
 
-        <v-btn text="Save" @click="save"></v-btn>
+        <v-btn text="Speichern" @click="save"></v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -145,8 +131,8 @@ const headers: {
   sortable?: boolean;
 }[] = [
   { title: "Name", key: "name", align: "start" },
-  { title: "First Name", key: "firstName" },
-  { title: "Matriculation Number", key: "matriculationNumber" },
+  { title: "Vorname", key: "firstName" },
+  { title: "Matrikelnummer", key: "matriculationNumber" },
   { title: "", key: "actions", align: "end", sortable: false },
 ];
 

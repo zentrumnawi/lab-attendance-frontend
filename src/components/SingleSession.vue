@@ -2,7 +2,7 @@
   <div>
     <v-breadcrumbs
       :items="[
-        { title: 'Attendance', to: '/attendance' },
+        { title: 'Anwesenheit', to: '/attendance' },
         { title: props.date },
       ]"
       divider=">"
@@ -34,7 +34,7 @@
                 size="x-small"
                 start
               ></v-icon>
-              Attendance — {{ props.date }}
+              Anwesenheit — {{ props.date }}
             </v-toolbar-title>
             <v-spacer />
             <v-text-field
@@ -42,7 +42,7 @@
               class="mr-4"
               density="compact"
               hide-details
-              label="Praktikum day"
+              label="Praktikumstag"
               style="max-width: 140px"
               type="number"
               min="1"
@@ -56,7 +56,7 @@
               variant="outlined"
               @click="deleteDialog = true"
             >
-              Delete
+              Löschen
             </v-btn>
             <v-btn
               color="primary"
@@ -64,7 +64,7 @@
               :loading="saving"
               @click="saveAttendance"
             >
-              Save
+              Speichern
             </v-btn>
           </v-toolbar>
         </template>
@@ -91,7 +91,7 @@
               color="primary"
               @update:model-value="togglePresent"
             />
-            <span>present</span>
+            <span>Anwesend</span>
           </div>
         </template>
 
@@ -122,28 +122,29 @@
         </template>
 
         <template #no-data>
-          <div><p>No students found</p></div>
+          <div><p>Keine Studierenden gefunden</p></div>
         </template>
       </v-data-table>
     </v-sheet>
 
     <v-dialog v-model="deleteDialog" max-width="400">
       <v-card>
-        <v-card-title class="text-h6">Delete session</v-card-title>
+        <v-card-title class="text-h6">Sitzung löschen</v-card-title>
         <v-card-text>
-          Delete the roll call for {{ props.date }}? This cannot be undone.
+          Anwesenheitsliste für {{ props.date }} löschen? Dies kann nicht
+          rückgängig gemacht werden.
         </v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn
-            text="Cancel"
+            text="Abbrechen"
             variant="text"
             :disabled="deleting"
             @click="deleteDialog = false"
           />
           <v-btn
             color="error"
-            text="Delete"
+            text="Löschen"
             :loading="deleting"
             @click="deleteSession"
           />
@@ -153,20 +154,24 @@
 
     <v-dialog v-model="commentDialog" max-width="500">
       <v-card>
-        <v-card-title class="text-h6">Comment</v-card-title>
+        <v-card-title class="text-h6">Kommentar</v-card-title>
         <v-card-text>
           <v-textarea
             v-model="commentText"
             auto-grow
             hide-details
-            label="Comment"
+            label="Kommentar"
             rows="3"
           />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn text="Cancel" variant="text" @click="commentDialog = false" />
-          <v-btn color="primary" text="Save" @click="saveComment" />
+          <v-btn
+            text="Abbrechen"
+            variant="text"
+            @click="commentDialog = false"
+          />
+          <v-btn color="primary" text="Speichern" @click="saveComment" />
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -220,10 +225,10 @@ const headers: {
   width?: string;
 }[] = [
   { title: "Name", key: "name", align: "start", width: "40%" },
-  { title: "First Name", key: "firstName", align: "start", width: "40%" },
+  { title: "Vorname", key: "firstName", align: "start", width: "40%" },
   { title: "", key: "comment", align: "end", sortable: false },
   {
-    title: "Attendance",
+    title: "Anwesenheit",
     key: "present",
     align: "end",
     sortable: false,
@@ -270,7 +275,7 @@ async function deleteSession() {
   } catch {
     deleteDialog.value = false;
     saveError.value = true;
-    saveMessage.value = "Failed to delete session.";
+    saveMessage.value = "Sitzung konnte nicht gelöscht werden.";
   } finally {
     deleting.value = false;
   }
@@ -294,10 +299,10 @@ async function saveAttendance() {
         ...(row.comment ? { comment: row.comment } : {}),
       })),
     );
-    saveMessage.value = "Attendance saved.";
+    saveMessage.value = "Anwesenheit gespeichert.";
   } catch {
     saveError.value = true;
-    saveMessage.value = "Failed to save attendance.";
+    saveMessage.value = "Anwesenheit konnte nicht gespeichert werden.";
   } finally {
     saving.value = false;
   }

@@ -1,20 +1,20 @@
 <template>
   <v-breadcrumbs
     :items="[
-      { title: 'Students', to: '/' },
-      { title: attendee?.matriculationNumber ?? 'someName' },
+      { title: 'Teilnehmer', to: '/' },
+      { title: attendee?.matriculationNumber ?? 'Unbekannt' },
     ]"
     divider=">"
   ></v-breadcrumbs>
   <v-expansion-panels v-model="expanded" multiple :elevation="5">
     <v-expansion-panel>
       <v-expansion-panel-title color="blue-grey-lighten-4"
-        >General Data</v-expansion-panel-title
+        >Allgemeine Daten</v-expansion-panel-title
       >
       <v-expansion-panel-text>
         <v-row>
           <v-col cols="4">
-            <v-list-subheader>First Name</v-list-subheader>
+            <v-list-subheader>Vorname</v-list-subheader>
           </v-col>
 
           <v-col cols="8">
@@ -24,7 +24,7 @@
 
         <v-row>
           <v-col cols="4">
-            <v-list-subheader>Last Name</v-list-subheader>
+            <v-list-subheader>Nachname</v-list-subheader>
           </v-col>
 
           <v-col cols="8">
@@ -34,7 +34,7 @@
 
         <v-row>
           <v-col cols="4">
-            <v-list-subheader>Email Address</v-list-subheader>
+            <v-list-subheader>E-Mail-Adresse</v-list-subheader>
           </v-col>
 
           <v-col cols="8">
@@ -44,7 +44,7 @@
 
         <v-row>
           <v-col cols="4">
-            <v-list-subheader>Immatriculation Number</v-list-subheader>
+            <v-list-subheader>Matrikelnummer</v-list-subheader>
           </v-col>
 
           <v-col cols="8">
@@ -56,7 +56,7 @@
         </v-row>
         <v-row>
           <v-col cols="4">
-            <v-list-subheader>Department</v-list-subheader>
+            <v-list-subheader>Studiengang</v-list-subheader>
           </v-col>
 
           <v-col cols="8">
@@ -65,7 +65,7 @@
         </v-row>
         <v-row>
           <v-col cols="4">
-            <v-list-subheader>Group</v-list-subheader>
+            <v-list-subheader>Gruppe</v-list-subheader>
           </v-col>
 
           <v-col cols="8">
@@ -77,7 +77,7 @@
 
     <v-expansion-panel>
       <v-expansion-panel-title color="blue-grey-lighten-4"
-        >Attendance and Performance</v-expansion-panel-title
+        >Anwesenheit und Leistung</v-expansion-panel-title
       >
       <v-expansion-panel-text>
         <v-alert
@@ -91,7 +91,7 @@
         </v-alert>
         <v-row>
           <v-col cols="4">
-            <v-list-subheader>Number of submitted papers</v-list-subheader>
+            <v-list-subheader>Anzahl eingereichter Protokolle</v-list-subheader>
           </v-col>
 
           <v-col cols="8">
@@ -106,7 +106,7 @@
 
         <v-row>
           <v-col cols="4">
-            <v-list-subheader>Number of passed exercises</v-list-subheader>
+            <v-list-subheader>Anzahl bestandener Übungen</v-list-subheader>
           </v-col>
 
           <v-col cols="8">
@@ -121,7 +121,7 @@
 
         <v-row>
           <v-col cols="4">
-            <v-list-subheader>Number of attended lab days</v-list-subheader>
+            <v-list-subheader>Anzahl besuchter Labortage</v-list-subheader>
           </v-col>
 
           <v-col cols="8">
@@ -138,14 +138,14 @@
 
     <v-expansion-panel>
       <v-expansion-panel-title color="blue-grey-lighten-4"
-        >Additional Comments</v-expansion-panel-title
+        >Zusätzliche Kommentare</v-expansion-panel-title
       >
       <v-expansion-panel-text>
         <v-row class="justify-space-around" density="compact">
           <v-col cols="12">
             <v-textarea
-              label="Legit reasons for absence, disability compensation etc."
-              model-value="Additional Comments"
+              label="Berechtigte Abwesenheitsgründe, Nachteilsausgleich usw."
+              model-value=""
             ></v-textarea>
           </v-col>
         </v-row>

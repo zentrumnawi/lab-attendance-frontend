@@ -8,7 +8,7 @@
 
         <v-card-text>
           <p class="text-medium-emphasis mb-4">
-            Please enter your username and password.
+            Bitte geben Sie Benutzername und Passwort ein.
           </p>
 
           <v-alert
@@ -106,10 +106,10 @@ async function submit() {
   loginError.value = "";
 
   if (!username.value.trim()) {
-    usernameError.value = ["Username is required"];
+    usernameError.value = ["Benutzername ist erforderlich"];
   }
   if (!password.value) {
-    passwordError.value = ["Password is required"];
+    passwordError.value = ["Passwort ist erforderlich"];
   }
   if (usernameError.value.length || passwordError.value.length) {
     return;
@@ -138,13 +138,13 @@ function formatLoginError(e: unknown): string {
       }
     }
     if (e.status === 401 || e.status === 400) {
-      return "Username or password is incorrect";
+      return "Benutzername oder Passwort ist falsch";
     }
     return e.message;
   }
   if (e instanceof Error) {
     return e.message;
   }
-  return "Login failed";
+  return "Anmeldung fehlgeschlagen";
 }
 </script>

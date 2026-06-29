@@ -7,38 +7,17 @@
     >
       <template #top>
         <v-toolbar flat>
-          <v-toolbar-title>
-            <v-icon
-              color="medium-emphasis"
-              icon="mdi-account-multiple"
-              size="x-small"
-              start
-            ></v-icon>
-            Departments
-          </v-toolbar-title>
+          <v-toolbar-title> Studiengänge </v-toolbar-title>
 
           <v-btn
             class="me-2"
             prepend-icon="mdi-plus"
             rounded="lg"
-            text="Add department"
+            text="Studiengang hinzufügen"
             border
             @click="add"
           ></v-btn>
         </v-toolbar>
-      </template>
-
-      <template #[`item.name`]="{ value }">
-        <v-chip
-          :text="value"
-          border="thin opacity-25"
-          prepend-icon="mdi-account"
-          label
-        >
-          <template #prepend>
-            <v-icon color="medium-emphasis"></v-icon>
-          </template>
-        </v-chip>
       </template>
 
       <template #[`item.actions`]="{ item }">
@@ -60,15 +39,15 @@
       </template>
 
       <template #no-data>
-        <div><p>No departments found</p></div>
+        <div><p>Keine Studiengänge gefunden</p></div>
       </template>
     </v-data-table>
   </v-sheet>
 
   <v-dialog v-model="dialog" max-width="600">
     <v-card
-      :subtitle="`${isEditing ? 'Update' : 'Create'} department`"
-      :title="`${isEditing ? 'Edit' : 'Add'} department`"
+      :subtitle="`${isEditing ? 'Studiengang aktualisieren' : 'Studiengang erstellen'}`"
+      :title="`${isEditing ? 'Studiengang bearbeiten' : 'Studiengang hinzufügen'}`"
     >
       <template #text>
         <v-row>
@@ -81,11 +60,11 @@
       <v-divider></v-divider>
 
       <v-card-actions class="bg-surface-light">
-        <v-btn text="Cancel" variant="plain" @click="dialog = false"></v-btn>
+        <v-btn text="Abbrechen" variant="plain" @click="dialog = false"></v-btn>
 
         <v-spacer></v-spacer>
 
-        <v-btn text="Save" @click="save"></v-btn>
+        <v-btn text="Speichern" @click="save"></v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -110,7 +89,7 @@ const isEditing = computed(() => !!formModel.value.id);
 
 const headers = [
   { title: "Name", key: "name", align: "start" as const },
-  { title: "Action", key: "actions", align: "end" as const, sortable: false },
+  { title: "Aktion", key: "actions", align: "end" as const, sortable: false },
 ];
 
 function add() {
