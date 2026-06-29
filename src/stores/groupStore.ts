@@ -1,15 +1,24 @@
 import { defineStore } from "pinia";
-import { v4 as uuidv4 } from "uuid";
 import type { Group } from "./types";
+import {
+  deleteGroup,
+  getGroups,
+  getUsers,
+  patchGroup,
+  postGroup,
+} from "@/api/groups";
 
 export const useGroupStore = defineStore("groups", {
   state: () => ({
     groups: [] as Group[],
+    users: [] as { id: string; username: string }[],
   }),
 
   actions: {
-    saveGroup(formData: Omit<Group, "id"> & { id?: string }) {
+    async saveGroup(formData: Omit<Group, "id"> & { id?: string }) {
+      console.log(formData);
       if (formData.id) {
+        await patchGroup(formData.id, formData);
         const index = this.groups.findIndex(
           (group) => group.id === formData.id,
         );
@@ -18,15 +27,13 @@ export const useGroupStore = defineStore("groups", {
           this.groups[index] = { ...formData, id: formData.id };
         }
       } else {
-        this.groups.push({
-          id: uuidv4(),
-          name: formData.name,
-          description: formData.description,
-        });
+        const newGroup = await postGroup(formData);
+        this.groups.push(newGroup);
       }
     },
 
-    removeGroup(id: string) {
+    async removeGroup(id: string) {
+      await deleteGroup(id);
       const index = this.groups.findIndex((group) => group.id === id);
 
       if (index !== -1) {
@@ -34,10 +41,23 @@ export const useGroupStore = defineStore("groups", {
       }
     },
 
+    async fetchGroups() {
+      if (this.groups.length > 0) {
+        return this.groups;
+      }
+
+      const groups = await getGroups();
+      this.groups = [...groups];
+      return this.groups;
+    },
     clearGroups() {
       this.groups = [];
     },
+    async fetchUsers(): Promise<{ id: string; username: string }[]> {
+      const users = await getUsers();
+      return users;
+    },
   },
 
-  persist: true,
+  persist: false,
 });

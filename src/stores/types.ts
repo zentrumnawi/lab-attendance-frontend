@@ -34,4 +34,5 @@ export interface Group {
   id: string;
   name: string;
   description: string;
+  teaching_assistant: { id: string; username: string };
 }
