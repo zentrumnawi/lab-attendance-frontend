@@ -100,8 +100,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef } from "vue";
-import { useGroupStore, type Excercise } from "@/stores/groupStore";
+import { computed, onMounted, ref, shallowRef } from "vue";
+import { useGroupStore } from "@/stores/groupStore";
+import type { Group } from "@/stores/types";
 const store = useGroupStore();
 const deleteDialog = ref(false);
 const selectedGroupId = ref<string | null>(null);
@@ -118,10 +119,15 @@ function createNewRecord(): Group {
     id: "",
     name: "",
     description: "",
+    teaching_assistant: { id: "", username: "" },
   };
 }
 
-const groups = computed(() => store.groups);
+onMounted(async () => {
+  void store.fetchGroups();
+  void store.fetchUsers();
+});
+const groups = computed<Group[]>(() => store.groups);
 const formModel = ref(createNewRecord());
 const dialog = shallowRef(false);
 const isEditing = computed(() => !!formModel.value.id);
@@ -131,6 +137,11 @@ const headers = [
   {
     title: "Kommentare/Termine etc.",
     key: "description",
+    align: "start" as const,
+  },
+  {
+    title: "Tutor",
+    key: "teaching_assistant.username",
     align: "start" as const,
   },
   { title: "Aktion", key: "actions", align: "end" as const, sortable: false },
@@ -149,6 +160,7 @@ function edit(id: string): void {
     id: found.id,
     name: found.name,
     description: found.description,
+    teaching_assistant: found.teaching_assistant,
   };
 
   dialog.value = true;
@@ -168,11 +180,11 @@ function removeConfirmed(): void {
   selectedGroupId.value = null;
 }
 
-async function save() {
+async function save(): Promise<void> {
   const { valid } = await form.value.validate();
 
   if (!valid) return;
-  store.saveGroup(formModel.value);
+  await store.saveGroup(formModel.value);
   dialog.value = false;
 }
 </script>
