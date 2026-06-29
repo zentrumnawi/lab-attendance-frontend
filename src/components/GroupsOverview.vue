@@ -58,11 +58,12 @@
                 label="Name"
                 :rules="nameRules"
               ></v-text-field>
-              <v-text-field
+              <v-textarea
+                auto-grow
                 v-model="formModel.description"
-                label="Beschreibung"
+                label="Bemerkungen/Termine etc."
                 :rules="descriptionRules"
-              ></v-text-field>
+              ></v-textarea>
             </v-col>
           </v-row>
         </v-form>
@@ -127,7 +128,11 @@ const isEditing = computed(() => !!formModel.value.id);
 
 const headers = [
   { title: "Name", key: "name", align: "start" as const },
-  { title: "Beschreibung", key: "description", align: "start" as const },
+  {
+    title: "Kommentare/Termine etc.",
+    key: "description",
+    align: "start" as const,
+  },
   { title: "Aktion", key: "actions", align: "end" as const, sortable: false },
 ];
 
