@@ -1,11 +1,15 @@
 import {
   BulkAttendanceRecord,
   deleteLabSessionByDate,
+  deleteSeminarSessionByDate,
   getLabDates,
   getLabSessionByDate,
+  getSeminarSessionByDate,
   LabDate,
   saveBulkAttendance,
+  saveSeminarAttendance,
   type BulkAttendancePayload,
+  type SeminarAttendancePayload,
 } from "@/api/attendance";
 import { defineStore } from "pinia";
 
@@ -13,7 +17,8 @@ export const useAttendanceStore = defineStore("attendance", {
   state: () => ({
     // list of passed lab dates, minimal info for calendar view
     labDates: [] as LabDate[],
-    wholeSessions: [] as BulkAttendancePayload[],
+    labSessions: [] as BulkAttendancePayload[],
+    seminarSessions: [] as SeminarAttendancePayload[],
   }),
   actions: {
     async fetchLabDates() {
@@ -42,8 +47,34 @@ export const useAttendanceStore = defineStore("attendance", {
       const labSession = await getLabSessionByDate(date);
       return labSession;
     },
+    async fetchSingleSeminarSession(date: string) {
+      try {
+        const seminarSession = await getSeminarSessionByDate(date);
+        return seminarSession.length > 0 ? seminarSession : null;
+      } catch (error) {
+        console.error(error);
+        return null;
+      }
+    },
     getLabDate(date: string): LabDate | undefined {
       return this.labDates.find((labDate) => labDate.date === date);
+    },
+    async saveSeminarSession(date: string, records: BulkAttendanceRecord[]) {
+      const payload: SeminarAttendancePayload = {
+        date,
+        day_type: "LECTURE",
+        records,
+      };
+      await saveSeminarAttendance(payload);
+
+      const existingSeminarSession = this.seminarSessions.find(
+        (session) => session.date === date,
+      );
+      if (existingSeminarSession) {
+        existingSeminarSession.records = records;
+      } else {
+        this.seminarSessions.push(payload);
+      }
     },
     async saveLabSession(
       date: string,
@@ -56,6 +87,7 @@ export const useAttendanceStore = defineStore("attendance", {
         date,
         praktikum_day: praktikumDay,
         group,
+        day_type: "LAB",
         records,
       };
 
@@ -72,20 +104,28 @@ export const useAttendanceStore = defineStore("attendance", {
 
       await saveBulkAttendance(payload);
 
-      const existingSession = this.wholeSessions.find(
+      const existingSession = this.labSessions.find(
         (session) => session.date === date && session.group === group,
       );
       if (existingSession) {
         existingSession.praktikum_day = praktikumDay;
         existingSession.records = records;
       } else {
-        this.wholeSessions.push(payload);
+        this.labSessions.push(payload);
       }
     },
-    async deleteLabSession(date: string, group: string) {
-      await deleteLabSessionByDate(date, group);
+    async deleteSession(
+      date: string,
+      group: string,
+      day_type: "LAB" | "LECTURE",
+    ) {
+      if (day_type === "LAB") {
+        await deleteLabSessionByDate(date, group);
+      } else {
+        await deleteSeminarSessionByDate(date);
+      }
       this.labDates = this.labDates.filter((labDate) => labDate.date !== date);
-      this.wholeSessions = this.wholeSessions.filter(
+      this.labSessions = this.labSessions.filter(
         (session) => !(session.date === date && session.group === group),
       );
     },
