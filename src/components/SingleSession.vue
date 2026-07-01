@@ -34,7 +34,7 @@
                 size="x-small"
                 start
               ></v-icon>
-              Anwesenheit — {{ props.date }}
+              {{ sessionTitle }}
             </v-toolbar-title>
             <v-spacer />
             <v-text-field
@@ -46,6 +46,7 @@
               style="max-width: 140px"
               type="number"
               min="1"
+              :readonly="props.sem"
             />
             <v-btn
               v-if="existingSession"
@@ -186,6 +187,7 @@ import { useAttendanceStore } from "@/stores/attendance";
 
 const props = defineProps<{
   date: string;
+  sem?: boolean;
 }>();
 
 interface SessionRow {
@@ -211,7 +213,13 @@ const saveMessage = ref<string | null>(null);
 const saveError = ref(false);
 const existingSession = ref(false);
 
-const canSave = computed(() => praktikumDay.value !== null);
+const canSave = computed(() =>
+  props.sem ? rows.value.length > 0 : praktikumDay.value !== null,
+);
+
+const sessionTitle = computed(() =>
+  props.sem ? `Seminarsitzung — ${props.date}` : `Anwesenheit — ${props.date}`,
+);
 
 const allPresent = computed(
   () => rows.value.length > 0 && rows.value.every((row) => row.present),
@@ -264,11 +272,15 @@ async function deleteSession() {
   deleting.value = true;
   saveMessage.value = null;
   saveError.value = false;
+  const group = props.sem
+    ? ""
+    : (attendanceStore.getLabDate(props.date)?.group ?? "");
 
   try {
-    await attendanceStore.deleteLabSession(
+    await attendanceStore.deleteSession(
       props.date,
-      attendanceStore.getLabDate(props.date)?.group ?? "",
+      group,
+      props.sem ? "LECTURE" : "LAB",
     );
     deleteDialog.value = false;
     await router.push("/attendance");
@@ -281,24 +293,35 @@ async function deleteSession() {
   }
 }
 
+function buildRecords() {
+  return rows.value.map((row) => ({
+    student_id: row.id,
+    is_present: row.present,
+    ...(row.comment ? { comment: row.comment } : {}),
+  }));
+}
+
 async function saveAttendance() {
-  const day = praktikumDay.value;
-  if (day === null || day <= 0) return;
+  if (!props.sem) {
+    const day = praktikumDay.value;
+    if (day === null || day <= 0) return;
+  }
 
   saving.value = true;
   saveMessage.value = null;
   saveError.value = false;
 
   try {
-    await attendanceStore.saveLabSession(
-      props.date,
-      day,
-      rows.value.map((row) => ({
-        student_id: row.id,
-        is_present: row.present,
-        ...(row.comment ? { comment: row.comment } : {}),
-      })),
-    );
+    if (props.sem) {
+      await attendanceStore.saveSeminarSession(props.date, buildRecords());
+      existingSession.value = true;
+    } else {
+      await attendanceStore.saveLabSession(
+        props.date,
+        praktikumDay.value!,
+        buildRecords(),
+      );
+    }
     saveMessage.value = "Anwesenheit gespeichert.";
   } catch {
     saveError.value = true;
@@ -310,6 +333,27 @@ async function saveAttendance() {
 
 onMounted(async () => {
   await store.fetchStudents();
+
+  if (props.sem) {
+    const seminarSession = await attendanceStore.fetchSingleSeminarSession(
+      props.date,
+    );
+    existingSession.value = seminarSession !== null;
+    rows.value = store.attendees.map((student) => {
+      const record = seminarSession?.find(
+        (entry) => entry.student === student.id,
+      );
+      return {
+        id: student.id,
+        name: student.name,
+        firstName: student.firstName,
+        present: record?.is_present ?? false,
+        ...(record?.comment ? { comment: record.comment } : {}),
+      };
+    });
+    praktikumDay.value = null;
+    return;
+  }
 
   // try to fetch attendance record for this date, if not found, create a new one
   const labSession = await attendanceStore.fetchSingleLabSession(props.date);
