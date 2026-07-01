@@ -131,7 +131,7 @@ const routes = [
     }),
   },
   {
-    path: "/attendance/:date",
+    path: "/attendance/:date/:group",
     name: "SingleSession",
     component: SingleSession,
     props: true,

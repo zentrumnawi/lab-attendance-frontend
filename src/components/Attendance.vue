@@ -46,7 +46,14 @@ const AttendanceStore = useAttendanceStore();
 const AuthStore = useAuthStore();
 const value = ref("");
 const events = ref<
-  { name: string; start: Date; end: Date; color: string; timed: boolean }[]
+  {
+    name: string;
+    start: Date;
+    end: Date;
+    color: string;
+    timed: boolean;
+    group?: string;
+  }[]
 >([]);
 
 const SEMINAR_DAYS = ["2026-08-03", "2026-08-10", "2026-08-17", "2026-08-24"];
@@ -82,6 +89,7 @@ function getEvents() {
       end: new Date(labDate.date),
       color: "pink-accent-2",
       timed: false,
+      group: labDate.group,
     });
   }
 
@@ -95,16 +103,26 @@ function getEventColor(event: any) {
 function handleButtonClick(date: string | Date | number) {
   router.push({
     name: "SingleSession",
-    params: { date: date.toString() },
+    params: {
+      date: date.toString(),
+      group: AuthStore.groupName ?? "",
+    },
   });
 }
 
 function handleEventClick(nativeEvent: any, { event }: any) {
   const date = event.start.toLocaleDateString("en-CA");
-  const isSeminarDay = SEMINAR_DAYS.includes(date);
+
+  if (event.group) {
+    router.push({
+      name: "SingleSession",
+      params: { date, group: event.group },
+    });
+    return;
+  }
 
   router.push({
-    name: isSeminarDay ? "SingleSessionSem" : "SingleSession",
+    name: "SingleSessionSem",
     params: { date },
   });
 }

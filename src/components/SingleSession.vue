@@ -38,6 +38,7 @@
             </v-toolbar-title>
             <v-spacer />
             <v-text-field
+              v-if="!props.sem"
               v-model.number="praktikumDay"
               class="mr-4"
               density="compact"
@@ -187,6 +188,7 @@ import { useAttendanceStore } from "@/stores/attendance";
 
 const props = defineProps<{
   date: string;
+  group?: string;
   sem?: boolean;
 }>();
 
@@ -217,9 +219,11 @@ const canSave = computed(() =>
   props.sem ? rows.value.length > 0 : praktikumDay.value !== null,
 );
 
-const sessionTitle = computed(() =>
-  props.sem ? `Seminarsitzung — ${props.date}` : `Anwesenheit — ${props.date}`,
-);
+const sessionTitle = computed(() => {
+  if (props.sem) return `Seminarsitzung — ${props.date}`;
+  const groupSuffix = props.group ? ` (${props.group})` : "";
+  return `Anwesenheit — ${props.date}${groupSuffix}`;
+});
 
 const allPresent = computed(
   () => rows.value.length > 0 && rows.value.every((row) => row.present),
@@ -272,9 +276,7 @@ async function deleteSession() {
   deleting.value = true;
   saveMessage.value = null;
   saveError.value = false;
-  const group = props.sem
-    ? ""
-    : (attendanceStore.getLabDate(props.date)?.group ?? "");
+  const group = props.group ?? "";
 
   try {
     await attendanceStore.deleteSession(
@@ -320,6 +322,7 @@ async function saveAttendance() {
         props.date,
         praktikumDay.value!,
         buildRecords(),
+        props.group ?? "",
       );
     }
     saveMessage.value = "Anwesenheit gespeichert.";
@@ -356,7 +359,10 @@ onMounted(async () => {
   }
 
   // try to fetch attendance record for this date, if not found, create a new one
-  const labSession = await attendanceStore.fetchSingleLabSession(props.date);
+  const labSession = await attendanceStore.fetchSingleLabSession(
+    props.date,
+    props.group ?? "",
+  );
   existingSession.value = labSession !== null;
   if (!labSession) {
     rows.value = store.attendees.map((student) => ({
@@ -374,11 +380,9 @@ onMounted(async () => {
       present: attendee.is_present,
       ...(attendee.comment ? { comment: attendee.comment } : {}),
     }));
-    console.log("lab date", attendanceStore.getLabDate(props.date));
-    // get number of praktikum day from state
     praktikumDay.value =
-      attendanceStore.getLabDate(props.date)?.praktikum_day ?? null;
-    console.log(praktikumDay.value);
+      attendanceStore.getLabDate(props.date, props.group)?.praktikum_day ??
+      null;
   }
 });
 </script>

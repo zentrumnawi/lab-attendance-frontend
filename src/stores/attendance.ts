@@ -39,13 +39,15 @@ export const useAttendanceStore = defineStore("attendance", {
         this.labDates = [];
       }
     },
-    async fetchSingleLabSession(date: string) {
+    async fetchSingleLabSession(date: string, group: string) {
       if (this.labDates.length === 0) await this.fetchLabDates();
-      const labDate = this.labDates.find((labDate) => labDate.date === date);
-      // only fetch details if it's a past session (vs. newly to be created)
-      if (!labDate) return null;
-      const labSession = await getLabSessionByDate(date);
-      return labSession;
+      try {
+        const labSession = await getLabSessionByDate(date, group);
+        return labSession.length > 0 ? labSession : null;
+      } catch (error) {
+        console.error(error);
+        return null;
+      }
     },
     async fetchSingleSeminarSession(date: string) {
       try {
@@ -56,8 +58,11 @@ export const useAttendanceStore = defineStore("attendance", {
         return null;
       }
     },
-    getLabDate(date: string): LabDate | undefined {
-      return this.labDates.find((labDate) => labDate.date === date);
+    getLabDate(date: string, group?: string): LabDate | undefined {
+      return this.labDates.find(
+        (labDate) =>
+          labDate.date === date && (!group || labDate.group === group),
+      );
     },
     async saveSeminarSession(date: string, records: BulkAttendanceRecord[]) {
       const payload: SeminarAttendancePayload = {
@@ -80,9 +85,8 @@ export const useAttendanceStore = defineStore("attendance", {
       date: string,
       praktikumDay: number,
       records: BulkAttendanceRecord[],
+      group: string,
     ) {
-      const group =
-        this.getLabDate(date)?.group ?? this.labDates[0]?.group ?? "";
       const payload: BulkAttendancePayload = {
         date,
         praktikum_day: praktikumDay,
@@ -91,7 +95,7 @@ export const useAttendanceStore = defineStore("attendance", {
         records,
       };
 
-      const existingLabDate = this.getLabDate(date);
+      const existingLabDate = this.getLabDate(date, group);
       if (existingLabDate) {
         existingLabDate.praktikum_day = praktikumDay;
       } else {
@@ -124,7 +128,9 @@ export const useAttendanceStore = defineStore("attendance", {
       } else {
         await deleteSeminarSessionByDate(date);
       }
-      this.labDates = this.labDates.filter((labDate) => labDate.date !== date);
+      this.labDates = this.labDates.filter(
+        (labDate) => !(labDate.date === date && labDate.group === group),
+      );
       this.labSessions = this.labSessions.filter(
         (session) => !(session.date === date && session.group === group),
       );

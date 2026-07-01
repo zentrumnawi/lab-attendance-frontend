@@ -39,9 +39,9 @@ export async function getLabDates() {
 }
 
 // full roll call for a given date
-export async function getLabSessionByDate(date: string) {
+export async function getLabSessionByDate(date: string, group: string) {
   return await httpJson<IndividualAttendanceRecord[]>(
-    `/api/attendance-records/?date=${date}`,
+    `/api/attendance-records/?date=${date}&day_type=LAB&group=${encodeURIComponent(group)}`,
   );
 }
 
