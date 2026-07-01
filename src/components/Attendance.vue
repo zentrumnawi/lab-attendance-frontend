@@ -100,10 +100,12 @@ function handleButtonClick(date: string | Date | number) {
 }
 
 function handleEventClick(nativeEvent: any, { event }: any) {
-  console.log(event);
+  const date = event.start.toLocaleDateString("en-CA");
+  const isSeminarDay = SEMINAR_DAYS.includes(date);
+
   router.push({
-    name: "SingleSession",
-    params: { date: event.start.toLocaleDateString("en-CA") },
+    name: isSeminarDay ? "SingleSessionSem" : "SingleSession",
+    params: { date },
   });
 }
 
