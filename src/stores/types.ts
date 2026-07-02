@@ -3,8 +3,10 @@ export interface Attendee {
   name: string;
   firstName: string;
   studentId: string;
+  matriculationNumber: string;
   email: string;
   labPartner: string;
+  group: string;
   [key: string]: any;
 }
 

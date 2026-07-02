@@ -6,6 +6,8 @@ export interface StudentData {
   id: string;
   email: string;
   lab_partner?: string;
+  matriculation_number?: string;
+  group?: { id: string; name: string };
   [key: string]: any;
 }
 export interface StudentPerformance {

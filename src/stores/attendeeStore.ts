@@ -61,8 +61,10 @@ export const useAttendeeStore = defineStore("attendees", {
         name: "Gatsby",
         firstName: "F. Scott",
         studentId: "1274567890",
+        matriculationNumber: "",
         email: "f.scott.fitzgerald@example.com",
         labPartner: "Tim Banks",
+        group: "",
       });
     },
 
@@ -85,6 +87,7 @@ export const useAttendeeStore = defineStore("attendees", {
           matriculationNumber: student.matriculation_number ?? "",
           email: student.email,
           labPartner: student.lab_partner || "",
+          group: student.group?.id ?? "",
         }));
 
         this.attendees = attendees;
@@ -134,6 +137,7 @@ export const useAttendeeStore = defineStore("attendees", {
         matriculationNumber: student.matriculation_number ?? "",
         email: student.email,
         labPartner: student.lab_partner || "",
+        group: student.group?.id ?? "",
       };
     },
   },
