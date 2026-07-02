@@ -89,7 +89,7 @@
             ></v-text-field>
           </v-col>
 
-          <v-col cols="12">
+          <v-col v-if="isSuperuser" cols="12">
             <v-select
               v-model="formModel.group"
               :items="groupOptions"
@@ -119,10 +119,12 @@ import { computed, onMounted, ref, shallowRef, toRef } from "vue";
 import { useAttendeeStore } from "@/stores/attendeeStore";
 import { useGroupStore } from "@/stores/groupStore";
 import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
 const store = useAttendeeStore();
 const groupStore = useGroupStore();
 const router = useRouter();
-
+const auth = useAuthStore();
+const isSuperuser = computed(() => auth.isSuperuser);
 function createNewRecord() {
   return {
     id: "",
