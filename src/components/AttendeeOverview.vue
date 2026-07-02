@@ -30,6 +30,10 @@
         </v-toolbar>
       </template>
 
+      <template #[`item.group`]="{ item }">
+        {{ groupLabel(item.group) }}
+      </template>
+
       <template #[`item.actions`]="{ item }">
         <div class="d-flex ga-2 justify-end" @click.stop>
           <v-icon
@@ -84,6 +88,16 @@
               label="E-Mail"
             ></v-text-field>
           </v-col>
+
+          <v-col cols="12">
+            <v-select
+              v-model="formModel.group"
+              :items="groupOptions"
+              item-title="title"
+              item-value="value"
+              label="Gruppe"
+            ></v-select>
+          </v-col>
         </v-row>
       </template>
 
@@ -103,8 +117,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, shallowRef, toRef } from "vue";
 import { useAttendeeStore } from "@/stores/attendeeStore";
+import { useGroupStore } from "@/stores/groupStore";
 import { useRouter } from "vue-router";
 const store = useAttendeeStore();
+const groupStore = useGroupStore();
 const router = useRouter();
 
 function createNewRecord() {
@@ -116,13 +132,30 @@ function createNewRecord() {
     matriculationNumber: "",
     email: "",
     labPartner: "",
+    group: "",
   };
 }
 
 const attendees = computed(() => store.attendees);
+const groupOptions = computed(() =>
+  groupStore.groups.map((group) => ({
+    title: group.name,
+    value: group.id,
+  })),
+);
 const formModel = ref(createNewRecord());
 const dialog = shallowRef(false);
 const isEditing = toRef(() => !!formModel.value.id);
+
+function groupLabel(groupRef: string): string {
+  if (!groupRef) return "";
+
+  const byId = groupStore.groups.find((group) => group.id === groupRef);
+  if (byId) return byId.name;
+
+  const byName = groupStore.groups.find((group) => group.name === groupRef);
+  return byName?.name ?? groupRef;
+}
 
 const headers: {
   title: string;
@@ -133,6 +166,7 @@ const headers: {
   { title: "Name", key: "name", align: "start" },
   { title: "Vorname", key: "firstName" },
   { title: "Matrikelnummer", key: "matriculationNumber" },
+  { title: "Gruppe", key: "group" },
   { title: "", key: "actions", align: "end", sortable: false },
 ];
 
@@ -152,6 +186,7 @@ function edit(id: string): void {
     matriculationNumber: found.matriculationNumber,
     email: found.email,
     labPartner: found.labPartner,
+    group: found.group,
   };
 
   dialog.value = true;
@@ -171,6 +206,6 @@ function handleClickRow(event: Event, row: any) {
 }
 
 onMounted(() => {
-  void store.fetchStudents();
+  void Promise.all([store.fetchStudents(), groupStore.fetchGroups()]);
 });
 </script>
