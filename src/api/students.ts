@@ -50,3 +50,23 @@ export async function updateLabPartnersBulk(payload: BulkLabPartnersPayload) {
     body: payload,
   });
 }
+
+export async function patchStudent(id: string, data: Partial<StudentData>) {
+  return await httpJson<void>(`/api/students/${id}/`, {
+    method: "PATCH",
+    body: data,
+  });
+}
+
+export async function postStudent(data: Omit<StudentData, "id">) {
+  return await httpJson<StudentData>(`/api/students/`, {
+    method: "POST",
+    body: data,
+  });
+}
+
+export async function deleteStudent(id: string) {
+  return await httpJson<void>(`/api/students/${id}/`, {
+    method: "DELETE",
+  });
+}

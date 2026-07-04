@@ -3,8 +3,11 @@ import { v4 as uuidv4 } from "uuid";
 import {
   getSingleStudentData,
   getStudents,
+  patchStudent,
+  postStudent,
   updateLabPartnersBulk,
   type BulkLabPartnersPayload,
+  deleteStudent,
 } from "@/api/students";
 import type { Attendee } from "./types";
 
@@ -24,8 +27,16 @@ export const useAttendeeStore = defineStore("attendees", {
   },
 
   actions: {
-    saveAttendee(formData: Omit<Attendee, "id"> & { id?: string }) {
+    async saveAttendee(formData: Omit<Attendee, "id"> & { id?: string }) {
       if (formData.id) {
+        await patchStudent(formData.id, {
+          last_name: formData.name,
+          first_name: formData.firstName,
+          email: formData.email,
+          lab_partner: formData.labPartner,
+          matriculation_number: formData.matriculationNumber,
+          group: formData.group,
+        });
         const index = this.attendees.findIndex(
           (attendee) => attendee.id === formData.id,
         );
@@ -34,12 +45,29 @@ export const useAttendeeStore = defineStore("attendees", {
           this.attendees[index] = formData as Attendee;
         }
       } else {
-        formData.id = uuidv4();
-        this.attendees.push(formData as Attendee);
+        const newStudent = await postStudent({
+          last_name: formData.name,
+          first_name: formData.firstName,
+          email: formData.email,
+          lab_partner: formData.labPartner,
+          matriculation_number: formData.matriculationNumber,
+          group: formData.group,
+        });
+        this.attendees.push({
+          id: newStudent.id,
+          name: newStudent.last_name,
+          firstName: newStudent.first_name,
+          studentId: newStudent.id,
+          matriculationNumber: newStudent.matriculation_number ?? "",
+          email: newStudent.email,
+          labPartner: newStudent.lab_partner || "",
+          group: newStudent.group?.id ?? "",
+        });
       }
     },
 
-    removeAttendee(id: string) {
+    async removeAttendee(id: string) {
+      await deleteStudent(id);
       const index = this.attendees.findIndex((attendee) => attendee.id === id);
 
       if (index !== -1) {
