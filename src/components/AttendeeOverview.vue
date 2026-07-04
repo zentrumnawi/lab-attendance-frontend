@@ -20,6 +20,7 @@
           </v-toolbar-title>
 
           <v-btn
+            v-if="isSuperuser"
             class="me-2"
             prepend-icon="mdi-plus"
             rounded="lg"
