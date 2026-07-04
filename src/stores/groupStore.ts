@@ -14,6 +14,11 @@ export const useGroupStore = defineStore("groups", {
     users: [] as { id: string; username: string }[],
   }),
 
+  getters: {
+    groupNameById(state): Map<string, string> {
+      return new Map(state.groups.map((group) => [group.id, group.name]));
+    },
+  },
   actions: {
     async saveGroup(formData: Omit<Group, "id"> & { id?: string }) {
       console.log(formData);
@@ -56,6 +61,9 @@ export const useGroupStore = defineStore("groups", {
     async fetchUsers(): Promise<{ id: string; username: string }[]> {
       const users = await getUsers();
       return users;
+    },
+    getGroupNameById(id: string): string | undefined {
+      return this.groupNameById.get(id) ?? undefined;
     },
   },
 
