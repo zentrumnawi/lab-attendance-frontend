@@ -198,8 +198,8 @@ function remove(id: string): void {
   store.removeAttendee(id);
 }
 
-function save() {
-  store.saveAttendee(formModel.value);
+async function save() {
+  await store.saveAttendee(formModel.value);
   dialog.value = false;
 }
 
