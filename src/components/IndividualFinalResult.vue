@@ -69,7 +69,9 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field :model-value="attendee?.group"></v-text-field>
+            <v-text-field
+              :model-value="groupStore.getGroupNameById(attendee?.group ?? '')"
+            ></v-text-field>
           </v-col>
         </v-row>
       </v-expansion-panel-text>
@@ -157,6 +159,9 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 import { useAttendeeStore } from "@/stores/attendeeStore";
+import { useGroupStore } from "@/stores/groupStore";
+
+const groupStore = useGroupStore();
 
 const props = defineProps<{
   id: string;
