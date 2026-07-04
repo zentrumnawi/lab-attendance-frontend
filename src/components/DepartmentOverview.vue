@@ -72,7 +72,8 @@
 
 <script setup lang="ts">
 import { computed, ref, shallowRef } from "vue";
-import { useDepartmentStore, type Department } from "@/stores/departmentStore";
+import { useDepartmentStore } from "@/stores/departmentStore";
+import type { Department } from "@/stores/types";
 const store = useDepartmentStore();
 
 function createNewRecord(): Department {

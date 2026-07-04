@@ -94,7 +94,8 @@
 
 <script setup lang="ts">
 import { computed, ref, shallowRef } from "vue";
-import { useExerciseStore, type Exercise } from "@/stores/exerciseStore";
+import { useExerciseStore } from "@/stores/exerciseStore";
+import type { Exercise } from "@/stores/types";
 const store = useExerciseStore();
 const deleteDialog = ref(false);
 const selectedExerciseId = ref<string | null>(null);

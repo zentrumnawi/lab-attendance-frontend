@@ -10,6 +10,7 @@ const pathSegments = path.dirname(filename);
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: "/attendance-app/",
   plugins: [vue(), vuetify({ autoImport: true })],
   css: {
     postcss: {

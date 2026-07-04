@@ -247,9 +247,9 @@ export default {
       if (this.password != this.requiredPassword) return;
       this.authenticated = true;
     },
-    select(course: Course) {
+    /*select(course: Course) {
       (this.faculties_act as Course[]).push(course);
-    },
+    },*/
     clearlist() {
       this.clearAttendees();
       this.clearconfirm = false;
@@ -334,7 +334,8 @@ export default {
     this.csv_flds = [...this.csv_flds, ...this.crs_headers];
   },
   computed: {
-    ...mapState(useAttendeeStore, ["attendees", "faculties_act"]),
+    /*...mapState(useAttendeeStore, ["attendees", "faculties_act"]),*/
+    ...mapState(useAttendeeStore, ["attendees"]),
     export() {
       (this.attendees as Attendee[]).forEach((attendee: Attendee) => {
         this.crs_headers.forEach((course: HeaderField) => {
