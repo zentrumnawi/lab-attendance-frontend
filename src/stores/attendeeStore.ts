@@ -14,6 +14,7 @@ import type { Attendee } from "./types";
 export const useAttendeeStore = defineStore("attendees", {
   state: () => ({
     attendees: [] as Attendee[],
+    studentsListLoaded: false,
     loadingStudents: false,
     errorStudents: null as string | null,
   }),
@@ -77,6 +78,7 @@ export const useAttendeeStore = defineStore("attendees", {
 
     clearAttendees() {
       this.attendees = [];
+      this.studentsListLoaded = false;
     },
 
     getAttendeeById(id: string): Attendee | undefined {
@@ -101,7 +103,7 @@ export const useAttendeeStore = defineStore("attendees", {
       this.errorStudents = null;
 
       try {
-        if (this.attendees.length > 0) {
+        if (this.studentsListLoaded) {
           return this.attendees;
         }
 
@@ -119,6 +121,7 @@ export const useAttendeeStore = defineStore("attendees", {
         }));
 
         this.attendees = attendees;
+        this.studentsListLoaded = true;
         return attendees;
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
@@ -149,15 +152,15 @@ export const useAttendeeStore = defineStore("attendees", {
     },
 
     async fetchSingleStudent(studentId: string): Promise<Attendee> {
-      const attendee = this.getAttendeeById(studentId);
+      const existing = this.getAttendeeById(studentId);
 
-      if (attendee) {
-        return attendee;
+      if (existing) {
+        return existing;
       }
 
       const student = await getSingleStudentData(studentId);
 
-      return {
+      const attendee: Attendee = {
         id: student.id,
         name: student.last_name,
         firstName: student.first_name,
@@ -167,6 +170,9 @@ export const useAttendeeStore = defineStore("attendees", {
         labPartner: student.lab_partner || "",
         group: student.group?.id ?? "",
       };
+
+      this.attendees.push(attendee);
+      return attendee;
     },
   },
 

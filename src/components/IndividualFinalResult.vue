@@ -283,14 +283,27 @@ async function loadPerformance() {
   await performanceStore.fetchPerformance(props.id);
 }
 
+async function loadStudentData() {
+  await appStore.fetchSingleStudent(props.id);
+}
+
+async function loadPageData() {
+  await Promise.all([
+    loadPerformance(),
+    loadStudentData(),
+    experimentStore.fetchExperiments(),
+    groupStore.fetchGroups(),
+  ]);
+}
+
 onMounted(() => {
-  void Promise.all([loadPerformance(), experimentStore.fetchExperiments()]);
+  void loadPageData();
 });
 
 watch(
   () => props.id,
   () => {
-    void loadPerformance();
+    void loadPageData();
   },
 );
 </script>
