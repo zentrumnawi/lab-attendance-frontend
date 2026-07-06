@@ -93,7 +93,7 @@
         </v-alert>
         <v-row>
           <v-col cols="4">
-            <v-list-subheader>Anzahl eingereichter Protokolle</v-list-subheader>
+            <v-list-subheader>Anzahl akzeptierter Protokolle</v-list-subheader>
           </v-col>
 
           <v-col cols="8">
@@ -108,7 +108,9 @@
 
         <v-row>
           <v-col cols="4">
-            <v-list-subheader>Anzahl bestandener Übungen</v-list-subheader>
+            <v-list-subheader
+              >Anzahl akzeptierter Übungsblätter</v-list-subheader
+            >
           </v-col>
 
           <v-col cols="8">
@@ -128,8 +130,39 @@
 
           <v-col cols="8">
             <v-text-field
-              :model-value="performance?.attendance_count ?? ''"
+              :model-value="performance?.lab_attendance_count ?? ''"
               type="number"
+              :loading="loading"
+              readonly
+            ></v-text-field>
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col cols="4">
+            <v-list-subheader
+              >Anzahl besuchter Seminarsitzungen</v-list-subheader
+            >
+          </v-col>
+
+          <v-col cols="8">
+            <v-text-field
+              :model-value="performance?.lecture_attendance_count ?? ''"
+              type="number"
+              :loading="loading"
+              readonly
+            ></v-text-field>
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col cols="4">
+            <v-list-subheader>Anzahl absolvierter Versuche</v-list-subheader>
+          </v-col>
+
+          <v-col cols="8">
+            <v-text-field
+              :model-value="experimentsCompletionDisplay"
               :loading="loading"
               readonly
             ></v-text-field>
@@ -160,8 +193,10 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 import { useAttendeeStore } from "@/stores/attendeeStore";
 import { useGroupStore } from "@/stores/groupStore";
+import { useExperimentStore } from "@/stores/experimentStore";
 
 const groupStore = useGroupStore();
+const experimentStore = useExperimentStore();
 
 const props = defineProps<{
   id: string;
@@ -176,12 +211,17 @@ const performance = computed(() => performanceStore.byStudentId[props.id]);
 const loading = computed(() => performanceStore.loadingByStudentId[props.id]);
 const error = computed(() => performanceStore.errorByStudentId[props.id]);
 
+const experimentsCompletionDisplay = computed(
+  () =>
+    `${performance.value?.experiments_completed ?? ""} / ${experimentStore.experiments.length}`,
+);
+
 async function loadPerformance() {
   await performanceStore.fetchPerformance(props.id);
 }
 
 onMounted(() => {
-  void loadPerformance();
+  void Promise.all([loadPerformance(), experimentStore.fetchExperiments()]);
 });
 
 watch(

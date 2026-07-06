@@ -13,7 +13,9 @@ export interface StudentData {
 export interface StudentPerformance {
   papers_completed: number;
   exercises_completed: number;
-  attendance_count: number;
+  lab_attendance_count: number;
+  lecture_attendance_count: number;
+  experiments_completed: number;
   [key: string]: any;
 }
 
