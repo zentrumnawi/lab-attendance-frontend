@@ -179,20 +179,23 @@
         <v-row class="justify-space-around" density="compact">
           <v-col cols="11">
             <v-textarea
-              label="Berechtigte Abwesenheitsgründe, Nachteilsausgleich usw."
+              label="Berechtigte Abwesenheitsgründe, Nachteilsausgleich, Gründe für Nichtbestehen usw."
               :model-value="performance?.comment ?? ''"
               auto-grow
               hide-details
               readonly
             ></v-textarea>
           </v-col>
-          <v-col cols="1" class="d-flex align-start justify-end pt-2">
-            <v-icon
-              color="medium-emphasis"
-              icon="mdi-dots-vertical"
-              size="small"
+          <v-col cols="1" class="d-flex align-start justify-end pt-1">
+            <v-btn
+              color="primary"
+              icon
+              size="default"
+              variant="tonal"
               @click="openCommentDialog"
-            ></v-icon>
+            >
+              <v-icon icon="mdi-dots-vertical" size="medium" />
+            </v-btn>
           </v-col>
         </v-row>
       </v-expansion-panel-text>
