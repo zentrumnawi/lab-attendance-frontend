@@ -3,8 +3,10 @@ export interface Attendee {
   name: string;
   firstName: string;
   studentId: string;
+  matriculationNumber: string;
   email: string;
   labPartner: string;
+  group: string;
   [key: string]: any;
 }
 
@@ -34,4 +36,5 @@ export interface Group {
   id: string;
   name: string;
   description: string;
+  teaching_assistant: { id: string; username: string };
 }
