@@ -16,12 +16,26 @@ export interface StudentPerformance {
   lab_attendance_count: number;
   lecture_attendance_count: number;
   experiments_completed: number;
+  comment?: string;
   [key: string]: any;
 }
 
 export async function getStudentPerformance(studentId: string) {
   return await httpJson<StudentPerformance>(
     `/api/final-results/${encodeURIComponent(studentId)}/`,
+  );
+}
+
+export async function patchStudentPerformance(
+  studentId: string,
+  data: Partial<StudentPerformance>,
+) {
+  return await httpJson<void>(
+    `/api/final-results/${encodeURIComponent(studentId)}/`,
+    {
+      method: "PATCH",
+      body: data,
+    },
   );
 }
 

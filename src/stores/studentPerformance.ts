@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import type { StudentPerformance } from "@/api/students";
-import { getStudentPerformance } from "@/api/students";
+import { getStudentPerformance, patchStudentPerformance } from "@/api/students";
 
 export const useStudentPerformanceStore = defineStore("studentPerformance", {
   state: () => ({
@@ -25,6 +25,23 @@ export const useStudentPerformanceStore = defineStore("studentPerformance", {
         throw e;
       } finally {
         this.loadingByStudentId[studentId] = false;
+      }
+    },
+
+    async saveComment(studentId: string, comment: string): Promise<void> {
+      const trimmed = comment.trim();
+      await patchStudentPerformance(studentId, {
+        comment: trimmed || undefined,
+      });
+      const existing = this.byStudentId[studentId];
+      if (existing) {
+        this.byStudentId[studentId] = {
+          ...existing,
+          ...(trimmed ? { comment: trimmed } : {}),
+        };
+        if (!trimmed) {
+          delete this.byStudentId[studentId].comment;
+        }
       }
     },
   },
