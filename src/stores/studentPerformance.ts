@@ -11,10 +11,9 @@ export const useStudentPerformanceStore = defineStore("studentPerformance", {
 
   actions: {
     async fetchPerformance(studentId: string): Promise<StudentPerformance> {
+      if (this.byStudentId[studentId]) return this.byStudentId[studentId];
       this.loadingByStudentId[studentId] = true;
       this.errorByStudentId[studentId] = null;
-
-      if (this.byStudentId[studentId]) return this.byStudentId[studentId];
 
       try {
         const perf = await getStudentPerformance(studentId);
