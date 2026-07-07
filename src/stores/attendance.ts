@@ -32,11 +32,13 @@ export const useAttendanceStore = defineStore("attendance", {
         this.labDates = [];
       }
     },
-    async fetchSingleLabSession(date: string) {
-      const labDate = this.labDates.find((labDate) => labDate.date === date);
+    async fetchSingleLabSession(date: string, group: string) {
+      const labDate = this.labDates.find(
+        (labDate) => labDate.date === date && labDate.group === group,
+      );
       // only fetch details if it's a past session (vs. newly to be created)
       if (!labDate) return null;
-      const labSession = await getLabSessionByDate(date);
+      const labSession = await getLabSessionByDate(date, group);
       return labSession;
     },
     getLabDate(date: string): LabDate | undefined {
