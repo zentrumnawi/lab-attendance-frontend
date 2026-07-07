@@ -10,8 +10,17 @@ export const useStudentPerformanceStore = defineStore("studentPerformance", {
   }),
 
   actions: {
+    // This is so that performance is refetched when needed.
+    invalidate(studentId: string): void {
+      delete this.byStudentId[studentId];
+      delete this.loadingByStudentId[studentId];
+      delete this.errorByStudentId[studentId];
+    },
+
     async fetchPerformance(studentId: string): Promise<StudentPerformance> {
-      if (this.byStudentId[studentId]) return this.byStudentId[studentId];
+      if (this.byStudentId[studentId]) {
+        return this.byStudentId[studentId];
+      }
       this.loadingByStudentId[studentId] = true;
       this.errorByStudentId[studentId] = null;
 

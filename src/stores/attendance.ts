@@ -7,6 +7,7 @@ import {
   saveBulkAttendance,
 } from "@/api/attendance";
 import { defineStore } from "pinia";
+import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 
 export const useAttendanceStore = defineStore("attendance", {
   state: () => ({
@@ -58,6 +59,12 @@ export const useAttendanceStore = defineStore("attendance", {
         group: this.labDates[0].group ?? "",
         records,
       });
+
+      // invalidate for affected students so that their performance is recalculated
+      const perfStore = useStudentPerformanceStore();
+      for (const record of records) {
+        perfStore.invalidate(record.student_id);
+      }
     },
     async deleteLabSession(date: string, group: string) {
       await deleteLabSessionByDate(date, group);

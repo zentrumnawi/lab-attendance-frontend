@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { v4 as uuidv4 } from "uuid";
 import type { Exercise } from "./types";
 import { getExerciseStatus, submitSingleExerciseData } from "@/api/exercises";
+import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 
 export const useExerciseStore = defineStore("exercises", {
   state: () => ({
@@ -61,6 +62,9 @@ export const useExerciseStore = defineStore("exercises", {
           );
         }
       }
+
+      // Invalidate derived final-results counters
+      useStudentPerformanceStore().invalidate(student_id);
     },
   },
 });
