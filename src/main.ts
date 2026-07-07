@@ -118,7 +118,7 @@ const routes = [
     component: Attendance,
   },
   {
-    path: "/attendance/:date",
+    path: "/attendance/:date/:group?",
     name: "SingleSession",
     component: SingleSession,
     props: true,

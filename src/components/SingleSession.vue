@@ -186,6 +186,7 @@ import { useAttendanceStore } from "@/stores/attendance";
 
 const props = defineProps<{
   date: string;
+  group?: string;
 }>();
 
 interface SessionRow {
@@ -312,7 +313,10 @@ onMounted(async () => {
   await store.fetchStudents();
 
   // try to fetch attendance record for this date, if not found, create a new one
-  const labSession = await attendanceStore.fetchSingleLabSession(props.date);
+  const labSession = await attendanceStore.fetchSingleLabSession(
+    props.date,
+    props.group ?? "",
+  );
   existingSession.value = labSession !== null;
   if (!labSession) {
     rows.value = store.attendees.map((student) => ({
