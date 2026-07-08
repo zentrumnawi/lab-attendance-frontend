@@ -118,7 +118,7 @@ function handleEventClick(nativeEvent: any, { event }: any) {
   console.log(event);
   if (event.day_type === "seminar") {
     router.push({
-      name: "SingleSession",
+      name: "SingleSessionSem",
       params: { date: event.start.toLocaleDateString("en-CA") },
     });
   } else if (event.day_type === "lab") {
