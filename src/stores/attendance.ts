@@ -41,8 +41,12 @@ export const useAttendanceStore = defineStore("attendance", {
       const labSession = await getLabSessionByDate(date, group);
       return labSession;
     },
-    getLabDate(date: string): LabDate | undefined {
-      return this.labDates.find((labDate) => labDate.date === date);
+    getLabDate(date: string, group?: string): LabDate | undefined {
+      return this.labDates.find(
+        (labDate) =>
+          labDate.date === date &&
+          (group === undefined || labDate.group === group),
+      );
     },
     async saveLabSession(
       date: string,
@@ -63,7 +67,9 @@ export const useAttendanceStore = defineStore("attendance", {
     },
     async deleteLabSession(date: string, group: string) {
       await deleteLabSessionByDate(date, group);
-      this.labDates = this.labDates.filter((labDate) => labDate.date !== date);
+      this.labDates = this.labDates.filter(
+        (labDate) => labDate.date !== date || labDate.group !== group,
+      );
     },
   },
 });

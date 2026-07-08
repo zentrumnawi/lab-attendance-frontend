@@ -267,10 +267,7 @@ async function deleteSession() {
   saveError.value = false;
 
   try {
-    await attendanceStore.deleteLabSession(
-      props.date,
-      attendanceStore.getLabDate(props.date)?.group ?? "",
-    );
+    await attendanceStore.deleteLabSession(props.date, props.group ?? "");
     deleteDialog.value = false;
     await router.push("/attendance");
   } catch {
@@ -334,11 +331,10 @@ onMounted(async () => {
       present: attendee.is_present,
       ...(attendee.comment ? { comment: attendee.comment } : {}),
     }));
-    console.log("lab date", attendanceStore.getLabDate(props.date));
     // get number of praktikum day from state
     praktikumDay.value =
-      attendanceStore.getLabDate(props.date)?.praktikum_day ?? null;
-    console.log(praktikumDay.value);
+      attendanceStore.getLabDate(props.date, props.group)?.praktikum_day ??
+      null;
   }
 });
 </script>
