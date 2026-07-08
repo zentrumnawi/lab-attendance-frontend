@@ -24,7 +24,7 @@
               v-if="!AuthStore.isSuperuser && !hasEventOn(date)"
               size="x-small"
               class="day-button"
-              @click.stop="handleButtonClick(date)"
+              @click.stop="handleButtonClick(date, AuthStore.groupName)"
             >
               +
             </v-btn>
@@ -103,10 +103,14 @@ function getEventColor(event: any) {
   return event.color;
 }
 
-function handleButtonClick(date: string | Date | number) {
+function handleButtonClick(date: string | Date | number, group: string | null) {
+  const params = {
+    date: date.toString(),
+    group: group ?? "",
+  };
   router.push({
     name: "SingleSession",
-    params: { date: date.toString() },
+    params,
   });
 }
 

@@ -296,6 +296,7 @@ async function saveAttendance() {
         is_present: row.present,
         ...(row.comment ? { comment: row.comment } : {}),
       })),
+      props.group ?? "",
     );
     saveMessage.value = "Anwesenheit gespeichert.";
   } catch {
