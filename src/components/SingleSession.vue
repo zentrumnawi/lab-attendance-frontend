@@ -308,6 +308,7 @@ async function saveAttendance() {
 
 onMounted(async () => {
   await store.fetchStudents();
+  await attendanceStore.fetchLabDates();
 
   // try to fetch attendance record for this date, if not found, create a new one
   const labSession = await attendanceStore.fetchSingleLabSession(
