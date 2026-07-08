@@ -22,6 +22,13 @@ export interface BulkAttendancePayload {
   date: string;
   praktikum_day: number;
   group: string;
+  day_type: "LAB";
+  records: BulkAttendanceRecord[];
+}
+
+export interface SeminarAttendancePayload {
+  date: string;
+  day_type: "LECTURE";
   records: BulkAttendanceRecord[];
 }
 
@@ -38,7 +45,20 @@ export async function getLabSessionByDate(date: string, group: string) {
   );
 }
 
+export async function getSeminarSessionByDate(date: string) {
+  return await httpJson<IndividualAttendanceRecord[]>(
+    `/api/attendance-records/?date=${date}&day_type=LECTURE`,
+  );
+}
+
 export async function saveBulkAttendance(payload: BulkAttendancePayload) {
+  return await httpJson<void>("/api/attendance-records/bulk/", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function saveSeminarAttendance(payload: SeminarAttendancePayload) {
   return await httpJson<void>("/api/attendance-records/bulk/", {
     method: "POST",
     body: payload,
@@ -48,6 +68,15 @@ export async function saveBulkAttendance(payload: BulkAttendancePayload) {
 export async function deleteLabSessionByDate(date: string, group: string) {
   return await httpJson<void>(
     `/api/attendance-records/delete/?date=${date}&group=${group}`,
+    {
+      method: "DELETE",
+    },
+  );
+}
+
+export async function deleteSeminarSessionByDate(date: string) {
+  return await httpJson<void>(
+    `/api/attendance-records/delete/?date=${date}&day_type=LECTURE`,
     {
       method: "DELETE",
     },
