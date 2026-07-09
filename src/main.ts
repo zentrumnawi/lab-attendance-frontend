@@ -1,7 +1,11 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
-import { createRouter, createWebHashHistory } from "vue-router";
+import {
+  createRouter,
+  createWebHashHistory,
+  type RouteLocationNormalized,
+} from "vue-router";
 import "vuetify/dist/vuetify.min.css"; // Ensure you are using css-loader
 import "vuetify/styles";
 import { createVuetify } from "vuetify";
@@ -116,6 +120,15 @@ const routes = [
     path: "/attendance",
     name: "Attendance",
     component: Attendance,
+  },
+  {
+    path: "/attendance/:date/sem",
+    name: "SingleSessionSem",
+    component: SingleSession,
+    props: (route: RouteLocationNormalized) => ({
+      date: route.params.date as string,
+      sem: true,
+    }),
   },
   {
     path: "/attendance/:date/:group?",
