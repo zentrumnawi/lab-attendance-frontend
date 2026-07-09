@@ -5,6 +5,7 @@ import {
   getLabDates,
   getLabSessionByDate,
   getSeminarSessionByDate,
+  IndividualAttendanceRecord,
   LabDate,
   saveBulkAttendance,
   saveSeminarAttendance,
@@ -12,6 +13,27 @@ import {
   type SeminarAttendancePayload,
 } from "@/api/attendance";
 import { defineStore } from "pinia";
+
+// this is because of different API shapes for read vs write
+function bulkRecordsToIndividual(
+  records: BulkAttendanceRecord[],
+): IndividualAttendanceRecord[] {
+  return records.map((r) => ({
+    student: r.student_id,
+    comment: r.comment ?? "",
+    is_present: r.is_present,
+  }));
+}
+
+function individualToBulkRecords(
+  records: IndividualAttendanceRecord[],
+): BulkAttendanceRecord[] {
+  return records.map((r) => ({
+    student_id: r.student,
+    is_present: r.is_present,
+    ...(r.comment ? { comment: r.comment } : {}),
+  }));
+}
 
 export const useAttendanceStore = defineStore("attendance", {
   state: () => ({
@@ -44,12 +66,49 @@ export const useAttendanceStore = defineStore("attendance", {
       const labDate = this.getLabDate(date, group);
       // only fetch details if it's a past session (vs. newly to be created)
       if (!labDate) return null;
+
+      const cached = this.labSessions.find(
+        (session) => session.date === date && session.group === group,
+      );
+      if (cached) {
+        return bulkRecordsToIndividual(cached.records);
+      }
+
       const labSession = await getLabSessionByDate(date, group);
+
+      const payload: BulkAttendancePayload = {
+        date,
+        group,
+        praktikum_day: labDate.praktikum_day,
+        day_type: "LAB",
+        records: individualToBulkRecords(labSession),
+      };
+      this.labSessions.push(payload);
+
       return labSession;
     },
     async fetchSingleSeminarSession(date: string) {
       try {
+        const cached = this.seminarSessions.find(
+          (session) => session.date === date,
+        );
+        if (cached) {
+          return cached.records.length > 0
+            ? bulkRecordsToIndividual(cached.records)
+            : null;
+        }
+
         const seminarSession = await getSeminarSessionByDate(date);
+
+        if (seminarSession.length > 0) {
+          const payload: SeminarAttendancePayload = {
+            date,
+            day_type: "LECTURE",
+            records: individualToBulkRecords(seminarSession),
+          };
+          this.seminarSessions.push(payload);
+        }
+
         return seminarSession.length > 0 ? seminarSession : null;
       } catch (error) {
         console.error(error);
