@@ -6,13 +6,13 @@ export interface LabDate {
   group: string;
 }
 
-export interface IndividualAttendanceRecord {
+export interface AttendanceRecordRead {
   student: string;
   comment: string;
   is_present: boolean;
 }
 
-export interface BulkAttendanceRecord {
+export interface AttendanceRecordWrite {
   student_id: string;
   is_present: boolean;
   comment?: string;
@@ -23,13 +23,13 @@ export interface BulkAttendancePayload {
   praktikum_day: number;
   group: string;
   day_type: "LAB";
-  records: BulkAttendanceRecord[];
+  records: AttendanceRecordWrite[];
 }
 
 export interface SeminarAttendancePayload {
   date: string;
   day_type: "LECTURE";
-  records: BulkAttendanceRecord[];
+  records: AttendanceRecordWrite[];
 }
 
 export async function getLabDates() {
@@ -40,13 +40,13 @@ export async function getLabDates() {
 
 // full roll call for a given date
 export async function getLabSessionByDate(date: string, group: string) {
-  return await httpJson<IndividualAttendanceRecord[]>(
+  return await httpJson<AttendanceRecordRead[]>(
     `/api/attendance-records/?date=${date}&group=${group}`,
   );
 }
 
 export async function getSeminarSessionByDate(date: string) {
-  return await httpJson<IndividualAttendanceRecord[]>(
+  return await httpJson<AttendanceRecordRead[]>(
     `/api/attendance-records/?date=${date}&day_type=LECTURE`,
   );
 }

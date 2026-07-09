@@ -43,7 +43,7 @@
               class="mr-4"
               density="compact"
               hide-details
-              label="Praktikumstag"
+              label="Versuchstag"
               style="max-width: 140px"
               type="number"
               min="1"

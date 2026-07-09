@@ -1,11 +1,11 @@
 import {
-  BulkAttendanceRecord,
+  AttendanceRecordWrite,
   deleteLabSessionByDate,
   deleteSeminarSessionByDate,
   getLabDates,
   getLabSessionByDate,
   getSeminarSessionByDate,
-  IndividualAttendanceRecord,
+  AttendanceRecordRead,
   LabDate,
   saveBulkAttendance,
   saveSeminarAttendance,
@@ -16,8 +16,8 @@ import { defineStore } from "pinia";
 
 // this is because of different API shapes for read vs write
 function bulkRecordsToIndividual(
-  records: BulkAttendanceRecord[],
-): IndividualAttendanceRecord[] {
+  records: AttendanceRecordWrite[],
+): AttendanceRecordRead[] {
   return records.map((r) => ({
     student: r.student_id,
     comment: r.comment ?? "",
@@ -26,8 +26,8 @@ function bulkRecordsToIndividual(
 }
 
 function individualToBulkRecords(
-  records: IndividualAttendanceRecord[],
-): BulkAttendanceRecord[] {
+  records: AttendanceRecordRead[],
+): AttendanceRecordWrite[] {
   return records.map((r) => ({
     student_id: r.student,
     is_present: r.is_present,
@@ -120,7 +120,7 @@ export const useAttendanceStore = defineStore("attendance", {
         (labDate) => labDate.date === date && labDate.group === group,
       );
     },
-    async saveSeminarSession(date: string, records: BulkAttendanceRecord[]) {
+    async saveSeminarSession(date: string, records: AttendanceRecordWrite[]) {
       const payload: SeminarAttendancePayload = {
         date,
         day_type: "LECTURE",
@@ -140,7 +140,7 @@ export const useAttendanceStore = defineStore("attendance", {
     async saveLabSession(
       date: string,
       praktikumDay: number,
-      records: BulkAttendanceRecord[],
+      records: AttendanceRecordWrite[],
       group: string,
     ) {
       const payload: BulkAttendancePayload = {
