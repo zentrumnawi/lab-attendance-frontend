@@ -8,6 +8,7 @@ import {
   postExperiment,
   saveExperimentCompletions,
 } from "@/api/experiments";
+import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 
 export const useExperimentStore = defineStore("experiments", {
   state: () => ({
@@ -96,6 +97,13 @@ export const useExperimentStore = defineStore("experiments", {
         },
         labPartnerId ?? undefined,
       );
+
+      // Final-results counters are derived server-side; invalidate cached copy.
+      const perfStore = useStudentPerformanceStore();
+      perfStore.invalidate(studentId);
+      if (labPartnerId) {
+        perfStore.invalidate(labPartnerId);
+      }
     },
     async _writeNewCompletionsToStorage(
       labDay: number,

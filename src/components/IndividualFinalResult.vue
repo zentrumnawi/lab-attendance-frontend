@@ -93,7 +93,7 @@
         </v-alert>
         <v-row>
           <v-col cols="4">
-            <v-list-subheader>Anzahl eingereichter Protokolle</v-list-subheader>
+            <v-list-subheader>Anzahl akzeptierter Protokolle</v-list-subheader>
           </v-col>
 
           <v-col cols="8">
@@ -108,7 +108,9 @@
 
         <v-row>
           <v-col cols="4">
-            <v-list-subheader>Anzahl bestandener Übungen</v-list-subheader>
+            <v-list-subheader
+              >Anzahl akzeptierter Übungsblätter</v-list-subheader
+            >
           </v-col>
 
           <v-col cols="8">
@@ -128,8 +130,39 @@
 
           <v-col cols="8">
             <v-text-field
-              :model-value="performance?.attendance_count ?? ''"
+              :model-value="performance?.lab_attendance_count ?? ''"
               type="number"
+              :loading="loading"
+              readonly
+            ></v-text-field>
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col cols="4">
+            <v-list-subheader
+              >Anzahl besuchter Seminarsitzungen</v-list-subheader
+            >
+          </v-col>
+
+          <v-col cols="8">
+            <v-text-field
+              :model-value="performance?.lecture_attendance_count ?? ''"
+              type="number"
+              :loading="loading"
+              readonly
+            ></v-text-field>
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col cols="4">
+            <v-list-subheader>Anzahl absolvierter Versuche</v-list-subheader>
+          </v-col>
+
+          <v-col cols="8">
+            <v-text-field
+              :model-value="experimentsCompletionDisplay"
               :loading="loading"
               readonly
             ></v-text-field>
@@ -144,24 +177,70 @@
       >
       <v-expansion-panel-text>
         <v-row class="justify-space-around" density="compact">
-          <v-col cols="12">
+          <v-col cols="11">
             <v-textarea
-              label="Berechtigte Abwesenheitsgründe, Nachteilsausgleich usw."
-              model-value=""
+              label="Berechtigte Abwesenheitsgründe, Nachteilsausgleich, Gründe für Nichtbestehen usw."
+              :model-value="performance?.comment ?? ''"
+              auto-grow
+              hide-details
+              readonly
             ></v-textarea>
+          </v-col>
+          <v-col cols="1" class="d-flex align-start justify-end pt-1">
+            <v-btn
+              color="primary"
+              icon
+              size="default"
+              variant="tonal"
+              @click="openCommentDialog"
+            >
+              <v-icon icon="mdi-dots-vertical" size="medium" />
+            </v-btn>
           </v-col>
         </v-row>
       </v-expansion-panel-text>
     </v-expansion-panel>
   </v-expansion-panels>
+
+  <v-dialog v-model="commentDialog" max-width="500">
+    <v-card>
+      <v-card-title class="text-h6">Kommentar</v-card-title>
+      <v-card-text>
+        <v-textarea
+          v-model="commentText"
+          auto-grow
+          hide-details
+          label="Kommentar"
+          rows="3"
+        />
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn
+          text="Abbrechen"
+          variant="text"
+          :disabled="savingComment"
+          @click="commentDialog = false"
+        />
+        <v-btn
+          color="primary"
+          text="Speichern"
+          :loading="savingComment"
+          @click="saveComment"
+        />
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 import { useAttendeeStore } from "@/stores/attendeeStore";
 import { useGroupStore } from "@/stores/groupStore";
+import { useExperimentStore } from "@/stores/experimentStore";
 
 const groupStore = useGroupStore();
+const experimentStore = useExperimentStore();
 
 const props = defineProps<{
   id: string;
@@ -176,18 +255,55 @@ const performance = computed(() => performanceStore.byStudentId[props.id]);
 const loading = computed(() => performanceStore.loadingByStudentId[props.id]);
 const error = computed(() => performanceStore.errorByStudentId[props.id]);
 
+const experimentsCompletionDisplay = computed(
+  () =>
+    `${performance.value?.experiments_completed ?? ""} / ${experimentStore.experiments.length}`,
+);
+
+const commentDialog = ref(false);
+const commentText = ref("");
+const savingComment = ref(false);
+
+function openCommentDialog() {
+  commentText.value = performance.value?.comment ?? "";
+  commentDialog.value = true;
+}
+
+async function saveComment() {
+  savingComment.value = true;
+  try {
+    await performanceStore.saveComment(props.id, commentText.value);
+    commentDialog.value = false;
+  } finally {
+    savingComment.value = false;
+  }
+}
+
 async function loadPerformance() {
   await performanceStore.fetchPerformance(props.id);
 }
 
+async function loadStudentData() {
+  await appStore.fetchSingleStudent(props.id);
+}
+
+async function loadPageData() {
+  await Promise.all([
+    loadPerformance(),
+    loadStudentData(),
+    experimentStore.fetchExperiments(),
+    groupStore.fetchGroups(),
+  ]);
+}
+
 onMounted(() => {
-  void loadPerformance();
+  void loadPageData();
 });
 
 watch(
   () => props.id,
   () => {
-    void loadPerformance();
+    void loadPageData();
   },
 );
 </script>
