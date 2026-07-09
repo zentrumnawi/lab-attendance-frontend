@@ -1,18 +1,47 @@
 import {
-  BulkAttendanceRecord,
+  AttendanceRecordWrite,
   deleteLabSessionByDate,
+  deleteSeminarSessionByDate,
   getLabDates,
   getLabSessionByDate,
+  getSeminarSessionByDate,
+  AttendanceRecordRead,
   LabDate,
   saveBulkAttendance,
+  saveSeminarAttendance,
+  type BulkAttendancePayload,
+  type SeminarAttendancePayload,
 } from "@/api/attendance";
 import { defineStore } from "pinia";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
+
+// this is because of different API shapes for read vs write
+function writeRecordsToReadRecords(
+  records: AttendanceRecordWrite[],
+): AttendanceRecordRead[] {
+  return records.map((r) => ({
+    student: r.student_id,
+    comment: r.comment ?? "",
+    is_present: r.is_present,
+  }));
+}
+
+function readRecordsToWriteRecords(
+  records: AttendanceRecordRead[],
+): AttendanceRecordWrite[] {
+  return records.map((r) => ({
+    student_id: r.student,
+    is_present: r.is_present,
+    ...(r.comment ? { comment: r.comment } : {}),
+  }));
+}
 
 export const useAttendanceStore = defineStore("attendance", {
   state: () => ({
     // list of passed lab dates, minimal info for calendar view
     labDates: [] as LabDate[],
+    labSessions: [] as BulkAttendancePayload[],
+    seminarSessions: [] as SeminarAttendancePayload[],
   }),
   actions: {
     async fetchLabDates() {
@@ -33,32 +62,81 @@ export const useAttendanceStore = defineStore("attendance", {
         this.labDates = [];
       }
     },
-    async fetchSingleLabSession(date: string) {
-      const labDate = this.labDates.find((labDate) => labDate.date === date);
+    async fetchSingleLabSession(date: string, group: string) {
+      if (this.labDates.length === 0) await this.fetchLabDates();
+      const labDate = this.getLabDate(date, group);
       // only fetch details if it's a past session (vs. newly to be created)
       if (!labDate) return null;
-      const labSession = await getLabSessionByDate(date);
+
+      const cached = this.labSessions.find(
+        (session) => session.date === date && session.group === group,
+      );
+      if (cached) {
+        return writeRecordsToReadRecords(cached.records);
+      }
+
+      const labSession = await getLabSessionByDate(date, group);
+
+      const payload: BulkAttendancePayload = {
+        date,
+        group,
+        praktikum_day: labDate.praktikum_day,
+        day_type: "LAB",
+        records: readRecordsToWriteRecords(labSession),
+      };
+      this.labSessions.push(payload);
+
       return labSession;
     },
-    getLabDate(date: string): LabDate | undefined {
-      return this.labDates.find((labDate) => labDate.date === date);
+    async fetchSingleSeminarSession(date: string) {
+      try {
+        const cached = this.seminarSessions.find(
+          (session) => session.date === date,
+        );
+        if (cached) {
+          return cached.records.length > 0
+            ? writeRecordsToReadRecords(cached.records)
+            : null;
+        }
+
+        const seminarSession = await getSeminarSessionByDate(date);
+
+        if (seminarSession.length > 0) {
+          const payload: SeminarAttendancePayload = {
+            date,
+            day_type: "LECTURE",
+            records: readRecordsToWriteRecords(seminarSession),
+          };
+          this.seminarSessions.push(payload);
+        }
+
+        return seminarSession.length > 0 ? seminarSession : null;
+      } catch (error) {
+        console.error(error);
+        return null;
+      }
     },
-    async saveLabSession(
-      date: string,
-      praktikumDay: number,
-      records: BulkAttendanceRecord[],
-    ) {
-      this.labDates.push({
+    getLabDate(date: string, group: string): LabDate | undefined {
+      return this.labDates.find(
+        (labDate) => labDate.date === date && labDate.group === group,
+      );
+    },
+    async saveSeminarSession(date: string, records: AttendanceRecordWrite[]) {
+      const payload: SeminarAttendancePayload = {
         date,
-        praktikum_day: praktikumDay,
-        group: this.labDates[0].group ?? "",
-      });
-      await saveBulkAttendance({
-        date,
-        praktikum_day: praktikumDay,
-        group: this.labDates[0].group ?? "",
+        day_type: "LECTURE",
         records,
-      });
+      };
+      await saveSeminarAttendance(payload);
+
+      const existingSeminarSession = this.seminarSessions.find(
+        (session) => session.date === date,
+      );
+      if (existingSeminarSession) {
+        existingSeminarSession.records = records;
+      } else {
+        this.seminarSessions.push(payload);
+      }
 
       // invalidate for affected students so that their performance is recalculated
       const perfStore = useStudentPerformanceStore();
@@ -66,9 +144,71 @@ export const useAttendanceStore = defineStore("attendance", {
         perfStore.invalidate(record.student_id);
       }
     },
-    async deleteLabSession(date: string, group: string) {
-      await deleteLabSessionByDate(date, group);
-      this.labDates = this.labDates.filter((labDate) => labDate.date !== date);
+    async saveLabSession(
+      date: string,
+      praktikumDay: number,
+      records: AttendanceRecordWrite[],
+      group: string,
+    ) {
+      const payload: BulkAttendancePayload = {
+        date,
+        praktikum_day: praktikumDay,
+        group,
+        day_type: "LAB",
+        records,
+      };
+
+      await saveBulkAttendance(payload);
+
+      const existingLabDate = this.getLabDate(date, group);
+      if (existingLabDate) {
+        existingLabDate.praktikum_day = praktikumDay;
+      } else {
+        this.labDates.push({
+          date,
+          praktikum_day: praktikumDay,
+          group,
+        });
+      }
+
+      const existingSession = this.labSessions.find(
+        (session) => session.date === date && session.group === group,
+      );
+      if (existingSession) {
+        existingSession.praktikum_day = praktikumDay;
+        existingSession.records = records;
+      } else {
+        this.labSessions.push(payload);
+      }
+
+      // invalidate for affected students so that their performance is recalculated
+      const perfStore = useStudentPerformanceStore();
+      for (const record of records) {
+        perfStore.invalidate(record.student_id);
+      }
+    },
+    async deleteSession(
+      date: string,
+      group: string,
+      day_type: "LAB" | "LECTURE",
+    ) {
+      if (day_type === "LAB") {
+        await deleteLabSessionByDate(date, group);
+      } else {
+        await deleteSeminarSessionByDate(date);
+      }
+      if (day_type === "LAB") {
+        this.labDates = this.labDates.filter(
+          (labDate) => labDate.date !== date || labDate.group !== group,
+        );
+        this.labSessions = this.labSessions.filter(
+          (session) => !(session.date === date && session.group === group),
+        );
+      } else {
+        this.seminarSessions = this.seminarSessions.filter(
+          (session) => session.date !== date,
+        );
+      }
     },
   },
 });

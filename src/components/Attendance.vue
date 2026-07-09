@@ -24,7 +24,7 @@
               v-if="!AuthStore.isSuperuser && !hasEventOn(date)"
               size="x-small"
               class="day-button"
-              @click.stop="handleButtonClick(date)"
+              @click.stop="handleButtonClick(date, AuthStore.groupName)"
             >
               +
             </v-btn>
@@ -46,7 +46,15 @@ const AttendanceStore = useAttendanceStore();
 const AuthStore = useAuthStore();
 const value = ref("");
 const events = ref<
-  { name: string; start: Date; end: Date; color: string; timed: boolean }[]
+  {
+    name: string;
+    start: Date;
+    end: Date;
+    color: string;
+    timed: boolean;
+    group?: string;
+    day_type?: string;
+  }[]
 >([]);
 
 const SEMINAR_DAYS = ["2026-08-03", "2026-08-10", "2026-08-17", "2026-08-24"];
@@ -72,6 +80,7 @@ function getEvents() {
       end: new Date(seminarDay),
       color: "deep-purple",
       timed: false,
+      day_type: "seminar",
     });
   }
 
@@ -82,6 +91,8 @@ function getEvents() {
       end: new Date(labDate.date),
       color: "pink-accent-2",
       timed: false,
+      group: labDate.group,
+      day_type: "lab",
     });
   }
 
@@ -92,19 +103,33 @@ function getEventColor(event: any) {
   return event.color;
 }
 
-function handleButtonClick(date: string | Date | number) {
+function handleButtonClick(date: string | Date | number, group: string | null) {
+  const params = {
+    date: date.toString(),
+    group: group ?? "",
+  };
   router.push({
     name: "SingleSession",
-    params: { date: date.toString() },
+    params,
   });
 }
 
 function handleEventClick(nativeEvent: any, { event }: any) {
   console.log(event);
-  router.push({
-    name: "SingleSession",
-    params: { date: event.start.toLocaleDateString("en-CA") },
-  });
+  if (event.day_type === "seminar") {
+    router.push({
+      name: "SingleSessionSem",
+      params: { date: event.start.toLocaleDateString("en-CA") },
+    });
+  } else if (event.day_type === "lab") {
+    router.push({
+      name: "SingleSession",
+      params: {
+        date: event.start.toLocaleDateString("en-CA"),
+        group: event.group,
+      },
+    });
+  }
 }
 
 onMounted(() => {

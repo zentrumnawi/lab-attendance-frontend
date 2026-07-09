@@ -38,11 +38,12 @@
             </v-toolbar-title>
             <v-spacer />
             <v-text-field
+              v-if="!isSem"
               v-model.number="praktikumDay"
               class="mr-4"
               density="compact"
               hide-details
-              label="Praktikumstag"
+              label="Versuchstag"
               style="max-width: 140px"
               type="number"
               min="1"
@@ -186,6 +187,8 @@ import { useAttendanceStore } from "@/stores/attendance";
 
 const props = defineProps<{
   date: string;
+  group?: string;
+  sem?: boolean;
 }>();
 
 interface SessionRow {
@@ -211,7 +214,11 @@ const saveMessage = ref<string | null>(null);
 const saveError = ref(false);
 const existingSession = ref(false);
 
-const canSave = computed(() => praktikumDay.value !== null);
+const isSem = computed(() => props.sem === true);
+
+const canSave = computed(() =>
+  isSem.value ? true : praktikumDay.value !== null,
+);
 
 const allPresent = computed(
   () => rows.value.length > 0 && rows.value.every((row) => row.present),
@@ -266,9 +273,10 @@ async function deleteSession() {
   saveError.value = false;
 
   try {
-    await attendanceStore.deleteLabSession(
+    await attendanceStore.deleteSession(
       props.date,
-      attendanceStore.getLabDate(props.date)?.group ?? "",
+      isSem.value ? "" : (props.group ?? ""),
+      isSem.value ? "LECTURE" : "LAB",
     );
     deleteDialog.value = false;
     await router.push("/attendance");
@@ -282,23 +290,34 @@ async function deleteSession() {
 }
 
 async function saveAttendance() {
-  const day = praktikumDay.value;
-  if (day === null || day <= 0) return;
-
   saving.value = true;
   saveMessage.value = null;
   saveError.value = false;
 
   try {
-    await attendanceStore.saveLabSession(
-      props.date,
-      day,
-      rows.value.map((row) => ({
-        student_id: row.id,
-        is_present: row.present,
-        ...(row.comment ? { comment: row.comment } : {}),
-      })),
-    );
+    if (isSem.value) {
+      await attendanceStore.saveSeminarSession(
+        props.date,
+        rows.value.map((row) => ({
+          student_id: row.id,
+          is_present: row.present,
+          ...(row.comment ? { comment: row.comment } : {}),
+        })),
+      );
+    } else {
+      const day = praktikumDay.value;
+      if (day === null || day <= 0) return;
+      await attendanceStore.saveLabSession(
+        props.date,
+        day,
+        rows.value.map((row) => ({
+          student_id: row.id,
+          is_present: row.present,
+          ...(row.comment ? { comment: row.comment } : {}),
+        })),
+        props.group ?? "",
+      );
+    }
     saveMessage.value = "Anwesenheit gespeichert.";
   } catch {
     saveError.value = true;
@@ -311,9 +330,41 @@ async function saveAttendance() {
 onMounted(async () => {
   await store.fetchStudents();
 
-  // try to fetch attendance record for this date, if not found, create a new one
-  const labSession = await attendanceStore.fetchSingleLabSession(props.date);
+  if (isSem.value) {
+    const seminarSession = await attendanceStore.fetchSingleSeminarSession(
+      props.date,
+    );
+    existingSession.value = seminarSession !== null;
+
+    if (!seminarSession) {
+      rows.value = store.attendees.map((student) => ({
+        id: student.id,
+        name: student.name,
+        firstName: student.firstName,
+        present: false,
+      }));
+    } else {
+      rows.value = seminarSession.map((attendee) => ({
+        id: attendee.student,
+        name: store.getAttendeeById(attendee.student)!.name,
+        firstName: store.getAttendeeById(attendee.student)!.firstName,
+        present: attendee.is_present,
+        ...(attendee.comment ? { comment: attendee.comment } : {}),
+      }));
+    }
+    praktikumDay.value = null;
+    return;
+  }
+
+  // LAB session
+  await attendanceStore.fetchLabDates();
+  const labSession = await attendanceStore.fetchSingleLabSession(
+    props.date,
+    props.group ?? "",
+  );
   existingSession.value = labSession !== null;
+
+  // create new session if not found
   if (!labSession) {
     rows.value = store.attendees.map((student) => ({
       id: student.id,
@@ -330,11 +381,9 @@ onMounted(async () => {
       present: attendee.is_present,
       ...(attendee.comment ? { comment: attendee.comment } : {}),
     }));
-    console.log("lab date", attendanceStore.getLabDate(props.date));
-    // get number of praktikum day from state
     praktikumDay.value =
-      attendanceStore.getLabDate(props.date)?.praktikum_day ?? null;
-    console.log(praktikumDay.value);
+      attendanceStore.getLabDate(props.date, props.group ?? "")
+        ?.praktikum_day ?? null;
   }
 });
 </script>
