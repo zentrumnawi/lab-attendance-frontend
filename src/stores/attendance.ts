@@ -137,6 +137,12 @@ export const useAttendanceStore = defineStore("attendance", {
       } else {
         this.seminarSessions.push(payload);
       }
+
+      // invalidate for affected students so that their performance is recalculated
+      const perfStore = useStudentPerformanceStore();
+      for (const record of records) {
+        perfStore.invalidate(record.student_id);
+      }
     },
     async saveLabSession(
       date: string,
