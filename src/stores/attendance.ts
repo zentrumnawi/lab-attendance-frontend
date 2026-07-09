@@ -13,6 +13,7 @@ import {
   type SeminarAttendancePayload,
 } from "@/api/attendance";
 import { defineStore } from "pinia";
+import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 
 // this is because of different API shapes for read vs write
 function writeRecordsToReadRecords(
@@ -172,6 +173,12 @@ export const useAttendanceStore = defineStore("attendance", {
         existingSession.records = records;
       } else {
         this.labSessions.push(payload);
+      }
+
+      // invalidate for affected students so that their performance is recalculated
+      const perfStore = useStudentPerformanceStore();
+      for (const record of records) {
+        perfStore.invalidate(record.student_id);
       }
     },
     async deleteSession(

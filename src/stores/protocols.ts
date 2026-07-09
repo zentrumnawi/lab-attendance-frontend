@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import type { ProtocolData, SubmitPaperPayload } from "@/api/protocols";
 import { getProtocols, submitPaperSubmission } from "@/api/protocols";
+import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 
 export const useProtocolStore = defineStore("protocols", {
   state: () => ({
@@ -31,6 +32,12 @@ export const useProtocolStore = defineStore("protocols", {
         } else {
           this.protocols.push(protocol);
         }
+      }
+
+      // Protocol acceptance/submission impacts final-results counters.
+      const perfStore = useStudentPerformanceStore();
+      for (const protocol of protocols) {
+        perfStore.invalidate(protocol.student.id);
       }
 
       return protocols;
