@@ -152,6 +152,8 @@ export const useAttendanceStore = defineStore("attendance", {
         records,
       };
 
+      await saveBulkAttendance(payload);
+
       const existingLabDate = this.getLabDate(date, group);
       if (existingLabDate) {
         existingLabDate.praktikum_day = praktikumDay;
@@ -162,8 +164,6 @@ export const useAttendanceStore = defineStore("attendance", {
           group,
         });
       }
-
-      await saveBulkAttendance(payload);
 
       const existingSession = this.labSessions.find(
         (session) => session.date === date && session.group === group,
