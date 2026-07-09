@@ -15,7 +15,7 @@ import {
 import { defineStore } from "pinia";
 
 // this is because of different API shapes for read vs write
-function bulkRecordsToIndividual(
+function writeRecordsToReadRecords(
   records: AttendanceRecordWrite[],
 ): AttendanceRecordRead[] {
   return records.map((r) => ({
@@ -25,7 +25,7 @@ function bulkRecordsToIndividual(
   }));
 }
 
-function individualToBulkRecords(
+function readRecordsToWriteRecords(
   records: AttendanceRecordRead[],
 ): AttendanceRecordWrite[] {
   return records.map((r) => ({
@@ -71,7 +71,7 @@ export const useAttendanceStore = defineStore("attendance", {
         (session) => session.date === date && session.group === group,
       );
       if (cached) {
-        return bulkRecordsToIndividual(cached.records);
+        return writeRecordsToReadRecords(cached.records);
       }
 
       const labSession = await getLabSessionByDate(date, group);
@@ -81,7 +81,7 @@ export const useAttendanceStore = defineStore("attendance", {
         group,
         praktikum_day: labDate.praktikum_day,
         day_type: "LAB",
-        records: individualToBulkRecords(labSession),
+        records: readRecordsToWriteRecords(labSession),
       };
       this.labSessions.push(payload);
 
@@ -94,7 +94,7 @@ export const useAttendanceStore = defineStore("attendance", {
         );
         if (cached) {
           return cached.records.length > 0
-            ? bulkRecordsToIndividual(cached.records)
+            ? writeRecordsToReadRecords(cached.records)
             : null;
         }
 
@@ -104,7 +104,7 @@ export const useAttendanceStore = defineStore("attendance", {
           const payload: SeminarAttendancePayload = {
             date,
             day_type: "LECTURE",
-            records: individualToBulkRecords(seminarSession),
+            records: readRecordsToWriteRecords(seminarSession),
           };
           this.seminarSessions.push(payload);
         }
