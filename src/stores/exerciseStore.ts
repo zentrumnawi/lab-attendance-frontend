@@ -1,7 +1,13 @@
 import { defineStore } from "pinia";
-import { v4 as uuidv4 } from "uuid";
 import type { Exercise } from "./types";
-import { getExerciseStatus, submitSingleExerciseData } from "@/api/exercises";
+import {
+  deleteExercise,
+  getAllExercises,
+  getExerciseStatus,
+  patchExercise,
+  postExercise,
+  submitSingleExerciseData,
+} from "@/api/exercises";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 
 export const useExerciseStore = defineStore("exercises", {
@@ -11,8 +17,9 @@ export const useExerciseStore = defineStore("exercises", {
   }),
 
   actions: {
-    saveExercise(formData: Omit<Exercise, "id"> & { id?: string }) {
+    async saveExercise(formData: Omit<Exercise, "id"> & { id?: string }) {
       if (formData.id) {
+        await patchExercise(formData.id, formData);
         const index = this.exercises.findIndex(
           (exercise) => exercise.id === formData.id,
         );
@@ -21,19 +28,28 @@ export const useExerciseStore = defineStore("exercises", {
           this.exercises[index] = { ...formData, id: formData.id };
         }
       } else {
-        this.exercises.push({
-          id: uuidv4(),
-          name: formData.name,
-        });
+        const newExercise = await postExercise(formData);
+        this.exercises.push(newExercise);
       }
     },
 
-    removeExercise(id: string) {
+    async removeExercise(id: string) {
+      await deleteExercise(id);
       const index = this.exercises.findIndex((exercise) => exercise.id === id);
 
       if (index !== -1) {
         this.exercises.splice(index, 1);
       }
+    },
+
+    async fetchExercises() {
+      if (this.exercises.length > 0) {
+        return this.exercises;
+      }
+
+      const exercises = await getAllExercises();
+      this.exercises = [...exercises];
+      return this.exercises;
     },
 
     clearExercises() {
