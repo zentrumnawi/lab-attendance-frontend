@@ -12,8 +12,6 @@
         <v-list-item title="Teilnehmer" to="/" link />
         <v-list-item title="Anwesenheit" to="/attendance" link />
 
-        <v-list-item title="Studiengänge" to="/departments" link />
-
         <v-list-item title="Übungsblätter" to="/exercises" link />
 
         <v-list-item title="Versuche" to="/experiments" link />
@@ -27,7 +25,6 @@
           to="/exercise-executions"
           link
         />
-        <v-list-item title="Endergebnisse" link />
         <v-list-item title="Protokollabgaben" to="/protocols" link />
         <v-list-item title="Gruppen" to="/groups" link />
         <v-list-item title="Labor-Partner" to="/lab-partners" link />
