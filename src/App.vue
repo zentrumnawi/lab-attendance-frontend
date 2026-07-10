@@ -9,7 +9,7 @@
       :temporary="$vuetify.display.mobile"
     >
       <v-list base-color="white" active-color="white" nav>
-        <v-list-item title="Teilnehmer" to="/students" link />
+        <v-list-item title="Teilnehmer" to="/" link />
         <v-list-item title="Anwesenheit" to="/attendance" link />
 
         <v-list-item title="Studiengänge" to="/departments" link />
