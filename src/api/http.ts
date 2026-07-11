@@ -1,4 +1,8 @@
+import { isFetchNetworkFailure, NetworkError } from "@/utils/network";
+
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+
+export { NetworkError } from "@/utils/network";
 
 let csrfTokenProvider: (() => string | null) | null = null;
 
@@ -20,6 +24,19 @@ export class HttpError extends Error {
     this.status = opts.status;
     this.body = opts.body;
   }
+}
+
+export function isRetryableError(e: unknown): boolean {
+  if (e instanceof NetworkError) {
+    return true;
+  }
+
+  // This kind of error might point to a temporary issue with the server.
+  if (e instanceof HttpError) {
+    return e.status >= 500;
+  }
+
+  return false;
 }
 
 async function parseJsonOrText(res: Response): Promise<unknown> {
@@ -59,13 +76,21 @@ export async function httpJson<T>(
     body = JSON.stringify(opts.body);
   }
 
-  const res = await fetch(path, {
-    method,
-    headers,
-    body,
-    signal: opts?.signal,
-    credentials: "include",
-  });
+  let res: Response;
+  try {
+    res = await fetch(path, {
+      method,
+      headers,
+      body,
+      signal: opts?.signal,
+      credentials: "include",
+    });
+  } catch (e) {
+    if (isFetchNetworkFailure(e)) {
+      throw new NetworkError("Could not reach server", { cause: e });
+    }
+    throw e;
+  }
 
   const parsed = await parseJsonOrText(res);
   if (!res.ok) {
