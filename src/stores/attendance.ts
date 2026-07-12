@@ -12,8 +12,10 @@ import {
   type BulkAttendancePayload,
   type SeminarAttendancePayload,
 } from "@/api/attendance";
+import { NetworkError } from "@/api/http";
 import { defineStore } from "pinia";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
+import { labDedupeKey, useSyncQueue } from "@/stores/syncQueue";
 
 // this is because of different API shapes for read vs write
 function writeRecordsToReadRecords(
@@ -158,8 +160,7 @@ export const useAttendanceStore = defineStore("attendance", {
         records,
       };
 
-      await saveBulkAttendance(payload);
-
+      // update the lab date if it exists
       const existingLabDate = this.getLabDate(date, group);
       if (existingLabDate) {
         existingLabDate.praktikum_day = praktikumDay;
@@ -171,6 +172,7 @@ export const useAttendanceStore = defineStore("attendance", {
         });
       }
 
+      // update or create the lab session
       const existingSession = this.labSessions.find(
         (session) => session.date === date && session.group === group,
       );
@@ -179,6 +181,24 @@ export const useAttendanceStore = defineStore("attendance", {
         existingSession.records = records;
       } else {
         this.labSessions.push(payload);
+      }
+
+      try {
+        await saveBulkAttendance(payload);
+      } catch (error) {
+        if (error instanceof NetworkError) {
+          useSyncQueue().enqueueAttendance({
+            id: crypto.randomUUID(),
+            type: "attendance.lab",
+            dedupeKey: labDedupeKey(date, group),
+            payload,
+            createdAt: new Date().toISOString(),
+            status: "pending",
+          });
+        } else {
+          throw error;
+        }
+        return;
       }
 
       // invalidate for affected students so that their performance is recalculated
