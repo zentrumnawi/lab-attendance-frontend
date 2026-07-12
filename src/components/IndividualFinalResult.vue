@@ -29,7 +29,10 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field :model-value="attendee?.firstName"></v-text-field>
+            <v-text-field
+              :model-value="attendee?.firstName"
+              readonly
+            ></v-text-field>
           </v-col>
         </v-row>
 
@@ -39,7 +42,7 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field :model-value="attendee?.name"></v-text-field>
+            <v-text-field :model-value="attendee?.name" readonly></v-text-field>
           </v-col>
         </v-row>
 
@@ -49,7 +52,10 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field :model-value="attendee?.email"></v-text-field>
+            <v-text-field
+              :model-value="attendee?.email"
+              readonly
+            ></v-text-field>
           </v-col>
         </v-row>
 
@@ -62,6 +68,7 @@
             <v-text-field
               :model-value="attendee?.matriculationNumber"
               type="number"
+              readonly
             ></v-text-field>
           </v-col>
         </v-row>
@@ -71,7 +78,10 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field :model-value="attendee?.department"></v-text-field>
+            <v-text-field
+              :model-value="attendee?.department"
+              readonly
+            ></v-text-field>
           </v-col>
         </v-row>
         <v-row>
@@ -82,6 +92,7 @@
           <v-col cols="8">
             <v-text-field
               :model-value="groupStore.getGroupNameById(attendee?.group ?? '')"
+              readonly
             ></v-text-field>
           </v-col>
         </v-row>
