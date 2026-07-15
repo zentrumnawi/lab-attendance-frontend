@@ -1,6 +1,12 @@
 import { defineStore } from "pinia";
 import * as authApi from "@/api/auth";
 import { HttpError } from "@/api/http";
+import { useAttendeeStore } from "@/stores/attendeeStore";
+import { useAttendanceStore } from "@/stores/attendance";
+import { useExerciseStore } from "@/stores/exerciseStore";
+import { useExperimentStore } from "@/stores/experimentStore";
+import { useProtocolStore } from "@/stores/protocols";
+import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -57,10 +63,8 @@ export const useAuthStore = defineStore("auth", {
           await authApi.logout();
         }
       } finally {
-        this.username = null;
-        this.isAuthenticated = false;
-        this.csrfToken = null;
-        this.csrfError = null;
+        resetApplicationStores();
+        this.$reset();
       }
     },
   },
@@ -68,6 +72,15 @@ export const useAuthStore = defineStore("auth", {
     pick: ["isAuthenticated", "username", "isSuperuser", "groupName"],
   },
 });
+
+function resetApplicationStores(): void {
+  useAttendeeStore().$reset();
+  useAttendanceStore().$reset();
+  useExerciseStore().$reset();
+  useExperimentStore().$reset();
+  useProtocolStore().$reset();
+  useStudentPerformanceStore().$reset();
+}
 
 function formatAuthError(e: unknown): string {
   if (e instanceof HttpError) {
