@@ -10,6 +10,7 @@
           <v-toolbar-title> Experimente </v-toolbar-title>
 
           <v-btn
+            v-if="isSuperuser"
             class="me-2"
             prepend-icon="mdi-plus"
             rounded="lg"
@@ -115,10 +116,12 @@
 import { computed, ref, shallowRef, onMounted } from "vue";
 import { useExperimentStore } from "@/stores/experimentStore";
 import type { Experiment } from "@/stores/types";
+import { useAuthStore } from "@/stores/auth";
 const store = useExperimentStore();
+const AuthStore = useAuthStore();
 const deleteDialog = ref(false);
 const selectedExperimentId = ref<string | null>(null);
-
+const isSuperuser = computed(() => AuthStore.isSuperuser);
 const form = ref();
 
 const titleRules = [(v: string) => !!v || "Titel ist erforderlich"];

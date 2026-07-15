@@ -10,6 +10,7 @@
           <v-toolbar-title> Übungsblätter </v-toolbar-title>
 
           <v-btn
+            v-if="isSuperuser"
             class="me-2"
             prepend-icon="mdi-plus"
             rounded="lg"
@@ -95,7 +96,9 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef } from "vue";
 import { useExerciseStore, type Exercise } from "@/stores/exerciseStore";
+import { useAuthStore } from "@/stores/auth";
 const store = useExerciseStore();
+const AuthStore = useAuthStore();
 const deleteDialog = ref(false);
 const selectedExerciseId = ref<string | null>(null);
 
@@ -114,7 +117,7 @@ const exercises = computed(() => store.exercises);
 const formModel = ref(createNewRecord());
 const dialog = shallowRef(false);
 const isEditing = computed(() => !!formModel.value.id);
-
+const isSuperuser = computed(() => AuthStore.isSuperuser);
 const headers = [
   { title: "Name", key: "name", align: "start" as const },
   { title: "Aktion", key: "actions", align: "end" as const, sortable: false },
