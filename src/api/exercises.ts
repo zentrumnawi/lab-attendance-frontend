@@ -25,6 +25,32 @@ export async function getExercises(lab_day: number) {
   return await httpJson<Exercise[]>(`/api/exercises/?lab_day=${lab_day}`);
 }
 
+export async function getAllExercises() {
+  return await httpJson<Exercise[]>(`/api/exercises/`);
+}
+
+export async function deleteExercise(id: string) {
+  return await httpJson<void>(`/api/exercises/${id}/`, {
+    method: "DELETE",
+  });
+}
+
+export async function patchExercise(id: string, data: Partial<Exercise>) {
+  return await httpJson<void>(`/api/exercises/${id}/`, {
+    method: "PATCH",
+    body: data,
+  });
+}
+
+export async function postExercise(data: Omit<Exercise, "id">) {
+  // TODO: Remove this once lab day restrictions are in place
+  const body = { ...data, lab_day: 0 };
+  return await httpJson<Exercise>(`/api/exercises/`, {
+    method: "POST",
+    body: body,
+  });
+}
+
 export async function getExerciseStatus(lab_day: number) {
   return await httpJson<string[]>(
     `/api/exercise-completions/status/?lab_day=${lab_day}`,

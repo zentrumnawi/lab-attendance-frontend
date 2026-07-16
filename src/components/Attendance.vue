@@ -21,7 +21,10 @@
           <div class="day-label">
             <div class="day-number">{{ new Date(date).getDate() }}</div>
             <v-btn
-              v-if="!AuthStore.isSuperuser && !hasEventOn(date)"
+              v-if="
+                !AuthStore.isSuperuser &&
+                !SEMINAR_DAYS.includes(date.toString())
+              "
               size="x-small"
               class="day-button"
               @click.stop="handleButtonClick(date, AuthStore.groupName)"
@@ -53,22 +56,12 @@ const events = ref<
     color: string;
     timed: boolean;
     group?: string;
+    praktikum_day?: number;
     day_type?: string;
   }[]
 >([]);
 
 const SEMINAR_DAYS = ["2026-08-03", "2026-08-10", "2026-08-17", "2026-08-24"];
-
-function hasEventOn(day: string | Date | number): boolean {
-  console.log("day", day);
-  let labDate = AttendanceStore.labDates.find(
-    (labDate) => labDate.date === day.toString(),
-  );
-  if (labDate) {
-    return true;
-  }
-  return false;
-}
 
 function getEvents() {
   const evts = [];
@@ -92,6 +85,7 @@ function getEvents() {
       color: "pink-accent-2",
       timed: false,
       group: labDate.group,
+      praktikum_day: labDate.praktikum_day,
       day_type: "lab",
     });
   }
@@ -104,13 +98,13 @@ function getEventColor(event: any) {
 }
 
 function handleButtonClick(date: string | Date | number, group: string | null) {
-  const params = {
-    date: date.toString(),
-    group: group ?? "",
-  };
+  // new session: date from calendar, Versuchstag entered on the form
   router.push({
     name: "SingleSession",
-    params,
+    params: {
+      date: date.toString(),
+      group: group ?? "",
+    },
   });
 }
 
@@ -127,6 +121,7 @@ function handleEventClick(nativeEvent: any, { event }: any) {
       params: {
         date: event.start.toLocaleDateString("en-CA"),
         group: event.group,
+        praktikumDay: String(event.praktikum_day),
       },
     });
   }

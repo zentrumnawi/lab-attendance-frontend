@@ -39,9 +39,9 @@ export async function getLabDates() {
 }
 
 // full roll call for a given date
-export async function getLabSessionByDate(date: string, group: string) {
+export async function getLabSessionByLabDay(labDay: number, group: string) {
   return await httpJson<AttendanceRecordRead[]>(
-    `/api/attendance-records/?date=${date}&group=${group}`,
+    `/api/attendance-records/?praktikum_day=${labDay}&group=${group}`,
   );
 }
 
@@ -65,9 +65,9 @@ export async function saveSeminarAttendance(payload: SeminarAttendancePayload) {
   });
 }
 
-export async function deleteLabSessionByDate(date: string, group: string) {
+export async function deleteLabSessionByLabDay(labDay: number, group: string) {
   return await httpJson<void>(
-    `/api/attendance-records/delete/?date=${date}&group=${group}`,
+    `/api/attendance-records/delete/?praktikum_day=${labDay}&group=${group}`,
     {
       method: "DELETE",
     },
