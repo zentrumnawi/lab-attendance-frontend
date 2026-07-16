@@ -21,7 +21,10 @@
           <div class="day-label">
             <div class="day-number">{{ new Date(date).getDate() }}</div>
             <v-btn
-              v-if="!AuthStore.isSuperuser"
+              v-if="
+                !AuthStore.isSuperuser &&
+                !SEMINAR_DAYS.includes(date.toString())
+              "
               size="x-small"
               class="day-button"
               @click.stop="handleButtonClick(date, AuthStore.groupName)"
