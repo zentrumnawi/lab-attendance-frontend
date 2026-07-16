@@ -10,6 +10,7 @@
           <v-toolbar-title> Gruppen </v-toolbar-title>
 
           <v-btn
+            v-if="isSuperuser"
             class="me-2"
             prepend-icon="mdi-plus"
             rounded="lg"
@@ -21,7 +22,10 @@
       </template>
 
       <template #[`item.actions`]="{ item }">
-        <div class="d-flex ga-2 justify-end">
+        <div
+          class="d-flex ga-2 justify-end"
+          v-if="isSuperuser || item.name === ownGroupName"
+        >
           <v-icon
             color="medium-emphasis"
             icon="mdi-pencil"
@@ -103,10 +107,13 @@
 import { computed, onMounted, ref, shallowRef } from "vue";
 import { useGroupStore } from "@/stores/groupStore";
 import type { Group } from "@/stores/types";
+import { useAuthStore } from "@/stores/auth";
 const store = useGroupStore();
+const AuthStore = useAuthStore();
+const ownGroupName = computed(() => AuthStore.groupName);
 const deleteDialog = ref(false);
 const selectedGroupId = ref<string | null>(null);
-
+const isSuperuser = computed(() => AuthStore.isSuperuser);
 const form = ref();
 
 const nameRules = [(v: string) => !!v || "Name ist erforderlich"];
