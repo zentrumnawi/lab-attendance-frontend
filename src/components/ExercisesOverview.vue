@@ -2,7 +2,7 @@
   <v-sheet border rounded>
     <v-data-table
       :headers="headers"
-      :hide-default-footer="exercises.length < 6"
+      :hide-default-footer="(exercises?.length ?? 0) < 6"
       :items="exercises"
     >
       <template #top>
@@ -53,9 +53,9 @@
           <v-row>
             <v-col cols="12">
               <v-text-field
-                v-model="formModel.name"
-                label="Name"
-                :rules="nameRules"
+                v-model="formModel.title"
+                label="Titel"
+                :rules="titleRules"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -93,30 +93,36 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef } from "vue";
-import { useExerciseStore, type Exercise } from "@/stores/exerciseStore";
+import { computed, onMounted, ref, shallowRef } from "vue";
+import { useExerciseStore } from "@/stores/exerciseStore";
+import type { Exercise } from "@/stores/types";
+
 const store = useExerciseStore();
 const deleteDialog = ref(false);
 const selectedExerciseId = ref<string | null>(null);
 
 const form = ref();
 
-const nameRules = [(v: string) => !!v || "Name ist erforderlich"];
+const titleRules = [(v: string) => !!v || "Titel ist erforderlich"];
 
 function createNewRecord(): Exercise {
   return {
     id: "",
-    name: "",
+    title: "",
   };
 }
 
-const exercises = computed(() => store.exercises);
+onMounted(async () => {
+  void store.fetchExercises();
+});
+
+const exercises = computed<Exercise[]>(() => store.exercises);
 const formModel = ref(createNewRecord());
 const dialog = shallowRef(false);
 const isEditing = computed(() => !!formModel.value.id);
 
 const headers = [
-  { title: "Name", key: "name", align: "start" as const },
+  { title: "Titel", key: "title", align: "start" as const },
   { title: "Aktion", key: "actions", align: "end" as const, sortable: false },
 ];
 
@@ -131,7 +137,7 @@ function edit(id: string): void {
 
   formModel.value = {
     id: found.id,
-    name: found.name,
+    title: found.title,
   };
 
   dialog.value = true;
@@ -142,20 +148,20 @@ function confirmRemove(id: string): void {
   deleteDialog.value = true;
 }
 
-function removeConfirmed(): void {
+async function removeConfirmed(): Promise<void> {
   if (!selectedExerciseId.value) return;
 
-  store.removeExercise(selectedExerciseId.value);
+  await store.removeExercise(selectedExerciseId.value);
 
   deleteDialog.value = false;
   selectedExerciseId.value = null;
 }
 
-async function save() {
+async function save(): Promise<void> {
   const { valid } = await form.value.validate();
 
   if (!valid) return;
-  store.saveExercise(formModel.value);
+  await store.saveExercise(formModel.value);
   dialog.value = false;
 }
 </script>

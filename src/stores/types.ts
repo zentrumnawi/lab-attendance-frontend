@@ -17,7 +17,7 @@ export interface Department {
 
 export interface Exercise {
   id: string;
-  name: string;
+  title: string;
 }
 
 export interface Experiment {
