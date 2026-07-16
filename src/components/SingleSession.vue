@@ -3,7 +3,7 @@
     <v-breadcrumbs
       :items="[
         { title: 'Anwesenheit', to: '/attendance' },
-        { title: props.date },
+        { title: sessionTitle },
       ]"
       divider=">"
     ></v-breadcrumbs>
@@ -34,7 +34,7 @@
                 size="x-small"
                 start
               ></v-icon>
-              Anwesenheit — {{ props.date }}
+              Anwesenheit — {{ sessionTitle }}
             </v-toolbar-title>
             <v-spacer />
             <v-text-field
@@ -132,7 +132,7 @@
       <v-card>
         <v-card-title class="text-h6">Sitzung löschen</v-card-title>
         <v-card-text>
-          Anwesenheitsliste für {{ props.date }} löschen? Dies kann nicht
+          Anwesenheitsliste für {{ sessionTitle }} löschen? Dies kann nicht
           rückgängig gemacht werden.
         </v-card-text>
         <v-card-actions>
@@ -188,6 +188,7 @@ import { useAttendanceStore } from "@/stores/attendance";
 const props = defineProps<{
   date: string;
   group?: string;
+  praktikumDay?: number;
   sem?: boolean;
 }>();
 
@@ -203,7 +204,7 @@ const attendanceStore = useAttendanceStore();
 
 const store = useAttendeeStore();
 const rows = ref<SessionRow[]>([]);
-const praktikumDay = ref<number | null>(null);
+const praktikumDay = ref<number | null>(props.praktikumDay ?? null);
 const saving = ref(false);
 const deleting = ref(false);
 const deleteDialog = ref(false);
@@ -215,6 +216,13 @@ const saveError = ref(false);
 const existingSession = ref(false);
 
 const isSem = computed(() => props.sem === true);
+
+const sessionTitle = computed(() => {
+  if (isSem.value) return props.date;
+  const day = praktikumDay.value ?? props.praktikumDay;
+  if (day != null) return `Versuchstag ${day} (${props.date})`;
+  return props.date;
+});
 
 const canSave = computed(() =>
   isSem.value ? true : praktikumDay.value !== null,
@@ -273,10 +281,12 @@ async function deleteSession() {
   saveError.value = false;
 
   try {
+    const day = praktikumDay.value ?? props.praktikumDay;
     await attendanceStore.deleteSession(
       props.date,
       isSem.value ? "" : (props.group ?? ""),
       isSem.value ? "LECTURE" : "LAB",
+      isSem.value ? undefined : (day ?? undefined),
     );
     deleteDialog.value = false;
     await router.push("/attendance");
@@ -356,16 +366,14 @@ onMounted(async () => {
     return;
   }
 
-  // LAB session
+  // LAB session — identity is group + praktikum_day
   await attendanceStore.fetchLabDates();
-  const labSession = await attendanceStore.fetchSingleLabSession(
-    props.date,
-    props.group ?? "",
-  );
-  existingSession.value = labSession !== null;
+  const day = props.praktikumDay;
+  const group = props.group ?? "";
 
-  // create new session if not found
-  if (!labSession) {
+  if (day == null) {
+    // new session: date comes from calendar, user enters Versuchstag
+    existingSession.value = false;
     rows.value = store.attendees.map((student) => ({
       id: student.id,
       name: student.name,
@@ -373,6 +381,20 @@ onMounted(async () => {
       present: false,
     }));
     praktikumDay.value = null;
+    return;
+  }
+
+  const labSession = await attendanceStore.fetchSingleLabSession(day, group);
+  existingSession.value = labSession !== null;
+  praktikumDay.value = day;
+
+  if (!labSession) {
+    rows.value = store.attendees.map((student) => ({
+      id: student.id,
+      name: student.name,
+      firstName: student.firstName,
+      present: false,
+    }));
   } else {
     rows.value = labSession.map((attendee) => ({
       id: attendee.student,
@@ -381,9 +403,6 @@ onMounted(async () => {
       present: attendee.is_present,
       ...(attendee.comment ? { comment: attendee.comment } : {}),
     }));
-    praktikumDay.value =
-      attendanceStore.getLabDate(props.date, props.group ?? "")
-        ?.praktikum_day ?? null;
   }
 });
 </script>

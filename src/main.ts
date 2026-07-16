@@ -112,10 +112,16 @@ const routes = [
     }),
   },
   {
-    path: "/attendance/:date/:group?",
+    path: "/attendance/:date/:group/:praktikumDay?",
     name: "SingleSession",
     component: SingleSession,
-    props: true,
+    props: (route: RouteLocationNormalized) => ({
+      date: route.params.date as string,
+      group: route.params.group as string,
+      praktikumDay: route.params.praktikumDay
+        ? Number(route.params.praktikumDay)
+        : undefined,
+    }),
   },
 ];
 
