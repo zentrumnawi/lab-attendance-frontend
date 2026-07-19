@@ -61,7 +61,13 @@
             </v-btn>
             <v-btn
               color="primary"
-              :disabled="saving || deleting || rows.length === 0 || !canSave"
+              :disabled="
+                saving ||
+                deleting ||
+                rows.length === 0 ||
+                !canSave ||
+                isSaveExpired
+              "
               :loading="saving"
               @click="saveAttendance"
             >
@@ -215,6 +221,19 @@ const saveError = ref(false);
 const existingSession = ref(false);
 
 const isSem = computed(() => props.sem === true);
+
+const isSaveExpired = computed(() => {
+  const attendanceDate = new Date(props.date);
+  const today = new Date();
+
+  attendanceDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  const diffInDays =
+    (today.getTime() - attendanceDate.getTime()) / (1000 * 60 * 60 * 24);
+
+  return diffInDays > 7;
+});
 
 const canSave = computed(() =>
   isSem.value ? true : praktikumDay.value !== null,

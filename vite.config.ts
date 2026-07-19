@@ -12,6 +12,15 @@ const pathSegments = path.dirname(filename);
 export default defineConfig({
   base: "/attendance-app/",
   plugins: [vue(), vuetify({ autoImport: true })],
+
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8080",
+        changeOrigin: true,
+      },
+    },
+  },
   css: {
     postcss: {
       plugins: [autoprefixer],
