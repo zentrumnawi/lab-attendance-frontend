@@ -64,9 +64,8 @@
               :disabled="
                 saving ||
                 deleting ||
-                rows.length === 0 ||
                 !canSave ||
-                isSaveExpired
+                (!isSuperuser && isSaveExpired)
               "
               :loading="saving"
               @click="saveAttendance"
@@ -190,6 +189,9 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAttendeeStore } from "@/stores/attendeeStore";
 import { useAttendanceStore } from "@/stores/attendance";
+import { useAuthStore } from "@/stores/auth";
+const auth = useAuthStore();
+const isSuperuser = computed(() => auth.isSuperuser);
 
 const props = defineProps<{
   date: string;
