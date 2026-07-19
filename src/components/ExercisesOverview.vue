@@ -123,12 +123,7 @@ const formModel = ref(createNewRecord());
 const dialog = shallowRef(false);
 const isEditing = computed(() => !!formModel.value.id);
 const isSuperuser = computed(() => AuthStore.isSuperuser);
-const headers: {
-  title: string;
-  key: string;
-  align: "start" | "end";
-  sortable: boolean;
-}[] = [
+const headers = computed(() => [
   { title: "Titel", key: "title", align: "start" as const, sortable: true },
   ...(isSuperuser.value
     ? [
@@ -140,7 +135,7 @@ const headers: {
         },
       ]
     : []),
-];
+]);
 
 function add() {
   formModel.value = createNewRecord();
