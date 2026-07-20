@@ -7,6 +7,7 @@ export interface Attendee {
   email: string;
   labPartner: string;
   group: string;
+  department: null | Department;
   [key: string]: any;
 }
 

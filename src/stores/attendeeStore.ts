@@ -63,6 +63,7 @@ export const useAttendeeStore = defineStore("attendees", {
           email: newStudent.email,
           labPartner: newStudent.lab_partner || "",
           group: newStudent.group?.id ?? "",
+          department: newStudent.department?.name ?? null,
         });
       }
     },
@@ -95,6 +96,7 @@ export const useAttendeeStore = defineStore("attendees", {
         email: "f.scott.fitzgerald@example.com",
         labPartner: "Tim Banks",
         group: "",
+        department: null,
       });
     },
 
@@ -118,6 +120,7 @@ export const useAttendeeStore = defineStore("attendees", {
           email: student.email,
           labPartner: student.lab_partner || "",
           group: student.group?.id ?? "",
+          department: student.department?.name ?? null,
         }));
 
         this.attendees = attendees;
@@ -169,6 +172,7 @@ export const useAttendeeStore = defineStore("attendees", {
         email: student.email,
         labPartner: student.lab_partner || "",
         group: student.group?.id ?? "",
+        department: student.department?.name ?? null,
       };
 
       this.attendees.push(attendee);

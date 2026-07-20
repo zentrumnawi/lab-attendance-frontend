@@ -79,7 +79,7 @@
 
           <v-col cols="8">
             <v-text-field
-              :model-value="attendee?.department"
+              :model-value="attendee?.department ?? ''"
               readonly
             ></v-text-field>
           </v-col>
