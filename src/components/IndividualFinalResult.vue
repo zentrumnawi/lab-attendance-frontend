@@ -79,7 +79,11 @@
 
           <v-col cols="8">
             <v-text-field
-              :model-value="attendee?.department ?? ''"
+              :model-value="
+                departmentStore.getDepartmentNameById(
+                  attendee?.department ?? '',
+                ) ?? ''
+              "
               readonly
             ></v-text-field>
           </v-col>
@@ -259,10 +263,12 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 import { useAttendeeStore } from "@/stores/attendeeStore";
 import { useGroupStore } from "@/stores/groupStore";
+import { useDepartmentStore } from "@/stores/departmentStore";
 import { useExperimentStore } from "@/stores/experimentStore";
 import { downloadIndividualResultPdf } from "@/utils/generateIndividualResultPdf";
 
 const groupStore = useGroupStore();
+const departmentStore = useDepartmentStore();
 const experimentStore = useExperimentStore();
 
 const props = defineProps<{
@@ -302,7 +308,9 @@ function downloadPdf() {
     lastName: attendee.value.name ?? "",
     email: attendee.value.email ?? "",
     matriculationNumber: String(attendee.value.matriculationNumber ?? ""),
-    department: String(attendee.value.department ?? ""),
+    department:
+      departmentStore.getDepartmentNameById(attendee.value.department ?? "") ??
+      "",
     groupName: groupStore.getGroupNameById(attendee.value.group ?? "") ?? "",
     papersCompleted: String(performance.value?.papers_completed ?? ""),
     exercisesCompleted: String(performance.value?.exercises_completed ?? ""),
@@ -339,6 +347,7 @@ async function loadPageData() {
     loadStudentData(),
     experimentStore.fetchExperiments(),
     groupStore.fetchGroups(),
+    departmentStore.fetchDepartments(),
   ]);
 }
 
