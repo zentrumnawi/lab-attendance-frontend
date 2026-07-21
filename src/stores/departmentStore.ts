@@ -62,5 +62,5 @@ export const useDepartmentStore = defineStore("departments", {
     },
   },
 
-  persist: true,
+  persist: false,
 });
