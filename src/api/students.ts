@@ -86,3 +86,7 @@ export async function deleteStudent(id: string) {
     method: "DELETE",
   });
 }
+
+export async function getDepartments() {
+  return await httpJson<{ id: string; name: string }[]>(`/api/departments/`);
+}
