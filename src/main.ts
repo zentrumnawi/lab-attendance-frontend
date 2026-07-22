@@ -149,25 +149,25 @@ export const router = createRouter({
 });
 
 // direct to login if not authenticated and not public
-// router.beforeEach((to) => {
-//   const auth = useAuthStore(pinia);
+router.beforeEach((to) => {
+  const auth = useAuthStore(pinia);
 
-//   if (auth.isAuthenticated) {
-//     if (to.name === "Login") {
-//       return { path: "/" };
-//     }
-//     return true;
-//   }
+  if (auth.isAuthenticated) {
+    if (to.name === "Login") {
+      return { path: "/" };
+    }
+    return true;
+  }
 
-//   if (to.meta.public) {
-//     return true;
-//   }
+  if (to.meta.public) {
+    return true;
+  }
 
-//   return {
-//     path: "/login",
-//     query: { redirect: to.fullPath },
-//   };
-// });
+  return {
+    path: "/login",
+    query: { redirect: to.fullPath },
+  };
+});
 
 async function bootstrap() {
   const app = createApp(App);
