@@ -11,6 +11,7 @@ import {
   saveSeminarAttendance,
   type BulkAttendancePayload,
   type SeminarAttendancePayload,
+  changeLabDayOfSession,
 } from "@/api/attendance";
 import { defineStore } from "pinia";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
@@ -163,6 +164,7 @@ export const useAttendanceStore = defineStore("attendance", {
       praktikumDay: number,
       records: AttendanceRecordWrite[],
       group: string,
+      previousPraktikumDay?: number,
     ) {
       const payload: BulkAttendancePayload = {
         date,
@@ -172,7 +174,25 @@ export const useAttendanceStore = defineStore("attendance", {
         records,
       };
 
-      await saveBulkAttendance(payload);
+      const dayChanged =
+        previousPraktikumDay != null && previousPraktikumDay !== praktikumDay;
+
+      if (dayChanged) {
+        payload.old_praktikum_day = previousPraktikumDay;
+        await changeLabDayOfSession(payload);
+        // adjust state
+        this.labDates = this.labDates.filter(
+          (d) => !isSameLabSession(d, group, previousPraktikumDay),
+        );
+        this.labSessions = this.labSessions.filter(
+          (s) => !isSameLabSession(s, group, previousPraktikumDay),
+        );
+        this.dayNumbersInUse = this.dayNumbersInUse.filter(
+          (d) => d !== previousPraktikumDay,
+        );
+      } else {
+        await saveBulkAttendance(payload);
+      }
 
       const existingLabDate = this.getLabDate(praktikumDay, group);
       if (existingLabDate) {
