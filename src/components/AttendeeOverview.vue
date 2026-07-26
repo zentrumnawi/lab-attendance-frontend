@@ -113,6 +113,23 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <v-dialog v-model="deleteDialog" max-width="400">
+    <v-card>
+      <v-card-title class="text-h6"> Übungsblatt löschen </v-card-title>
+
+      <v-card-text>
+        Sind Sie sicher, dass Sie dieses Studierenden löschen möchten?
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer />
+
+        <v-btn text="Abbrechen" variant="text" @click="deleteDialog = false" />
+
+        <v-btn color="red" text="Löschen" @click="removeConfirmed" />
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -126,6 +143,8 @@ const groupStore = useGroupStore();
 const router = useRouter();
 const auth = useAuthStore();
 const isSuperuser = computed(() => auth.isSuperuser);
+const deleteDialog = ref(false);
+const selectedAttendeeId = ref<string | null>(null);
 function createNewRecord() {
   return {
     id: "",
@@ -196,7 +215,17 @@ function edit(id: string): void {
 }
 
 function remove(id: string): void {
-  store.removeAttendee(id);
+  selectedAttendeeId.value = id;
+  deleteDialog.value = true;
+}
+
+async function removeConfirmed(): Promise<void> {
+  if (!selectedAttendeeId.value) return;
+
+  await store.removeAttendee(selectedAttendeeId.value);
+
+  deleteDialog.value = false;
+  selectedAttendeeId.value = null;
 }
 
 async function save() {
