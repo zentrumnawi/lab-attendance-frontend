@@ -324,6 +324,9 @@ async function saveAttendance() {
     } else {
       const day = praktikumDay.value;
       if (day === null || day <= 0) return;
+      const previousPraktikumDay = existingSession.value
+        ? props.praktikumDay
+        : undefined;
       await attendanceStore.saveLabSession(
         props.date,
         day,
@@ -333,7 +336,19 @@ async function saveAttendance() {
           ...(row.comment ? { comment: row.comment } : {}),
         })),
         props.group ?? "",
+        previousPraktikumDay,
       );
+      // keep URL in sync with new lab day number
+      if (existingSession.value && day !== props.praktikumDay) {
+        await router.replace({
+          name: "SingleSession",
+          params: {
+            date: props.date,
+            group: props.group ?? "",
+            praktikumDay: String(day),
+          },
+        });
+      }
     }
     saveMessage.value = "Anwesenheit gespeichert.";
   } catch {
