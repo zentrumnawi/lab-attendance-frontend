@@ -118,7 +118,7 @@
       <v-card-title class="text-h6"> Übungsblatt löschen </v-card-title>
 
       <v-card-text>
-        Sind Sie sicher, dass Sie dieses Übungsblatt löschen möchten?
+        Sind Sie sicher, dass Sie dieses Studierenden löschen möchten?
       </v-card-text>
 
       <v-card-actions>
