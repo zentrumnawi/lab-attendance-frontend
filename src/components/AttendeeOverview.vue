@@ -124,10 +124,10 @@
   </v-dialog>
   <v-dialog v-model="deleteDialog" max-width="400">
     <v-card>
-      <v-card-title class="text-h6"> Übungsblatt löschen </v-card-title>
+      <v-card-title class="text-h6"> Studierenden löschen </v-card-title>
 
       <v-card-text>
-        Sind Sie sicher, dass Sie dieses Studierenden löschen möchten?
+        Sind Sie sicher, dass Sie diesen Studierenden löschen möchten?
       </v-card-text>
 
       <v-card-actions>
