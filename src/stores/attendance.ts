@@ -16,6 +16,7 @@ import { NetworkError } from "@/api/http";
 import { defineStore } from "pinia";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 import { labDedupeKey, useSyncQueue } from "@/stores/syncQueue";
+import { QueuedLocallyError } from "@/utils/network";
 
 // this is because of different API shapes for read vs write
 function writeRecordsToReadRecords(
@@ -168,7 +169,7 @@ export const useAttendanceStore = defineStore("attendance", {
         records,
       };
 
-      await saveBulkAttendance(payload);
+      // await saveBulkAttendance(payload);
 
       const existingLabDate = this.getLabDate(praktikumDay, group);
       if (existingLabDate) {
@@ -203,10 +204,10 @@ export const useAttendanceStore = defineStore("attendance", {
             createdAt: new Date().toISOString(),
             status: "pending",
           });
+          throw new QueuedLocallyError();
         } else {
           throw error;
         }
-        return;
       }
 
       // invalidate for affected students so that their performance is recalculated
