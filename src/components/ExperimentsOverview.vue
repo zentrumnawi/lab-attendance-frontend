@@ -152,12 +152,21 @@ const formModel = ref(createNewRecord());
 const dialog = shallowRef(false);
 const isEditing = computed(() => !!formModel.value.id);
 
-const headers = [
+const headers = computed(() => [
   { title: "Titel", key: "title", align: "start" as const },
   { title: "Beschreibung", key: "description", align: "start" as const },
   { title: "Versuchstag", key: "lab_day", align: "start" as const },
-  { title: "Aktion", key: "actions", align: "end" as const, sortable: false },
-];
+  ...(isSuperuser.value
+    ? [
+        {
+          title: "Aktion",
+          key: "actions",
+          align: "end" as const,
+          sortable: false,
+        },
+      ]
+    : []),
+]);
 
 function add() {
   formModel.value = createNewRecord();
