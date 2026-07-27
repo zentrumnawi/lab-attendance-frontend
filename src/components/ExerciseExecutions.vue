@@ -268,7 +268,9 @@ watch(labDay, (day) => {
 
 const rows = computed<ExerciseRow[]>(() =>
   attendeeStore.attendees.map((attendee) => {
-    const completed = store.exercise_completions.includes(attendee.id);
+    const completed =
+      store.exercise_completions.get(labDay.value)?.includes(attendee.id) ??
+      false;
     return {
       id: attendee.id,
       name: attendee.name ?? "",
