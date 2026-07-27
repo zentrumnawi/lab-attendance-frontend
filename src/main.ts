@@ -13,8 +13,6 @@ import "@mdi/font/css/materialdesignicons.css";
 import { aliases, mdi } from "vuetify/iconsets/mdi";
 
 import App from "./App.vue";
-import Admin from "@/components/Admin.vue";
-import Form from "@/components/AttendeeForm.vue";
 import Overview from "@/components/AttendeeOverview.vue";
 import ExercisesOverview from "@/components/ExercisesOverview.vue";
 import ExperimentsOverview from "@/components/ExperimentsOverview.vue";
@@ -30,7 +28,6 @@ import ExperimentExecutions from "@/components/ExperimentExecutions.vue";
 import ProtocolOverview from "@/components/ProtocolOverview.vue";
 import ExerciseExecutions from "@/components/ExerciseExecutions.vue";
 import LabPartners from "@/components/LabPartners.vue";
-import AttendeeOverview from "@/components/AttendeeOverview.vue";
 
 const vuetify = createVuetify({
   icons: {
@@ -50,20 +47,9 @@ const routes = [
     meta: { public: true },
   },
   {
-    path: "/admin",
-    name: "Admin",
-    component: Admin,
-  },
-
-  {
     path: "/",
     name: "Overview",
     component: Overview,
-  },
-  {
-    path: "/add-student",
-    name: "Form",
-    component: Form,
   },
   {
     path: "/departments",
@@ -79,11 +65,6 @@ const routes = [
     path: "/experiments",
     name: "Experiments",
     component: ExperimentsOverview,
-  },
-  {
-    path: "/students",
-    name: "Teilnehmer",
-    component: AttendeeOverview,
   },
   {
     path: "/experiment-executions",
@@ -131,10 +112,16 @@ const routes = [
     }),
   },
   {
-    path: "/attendance/:date/:group?",
+    path: "/attendance/:date/:group/:praktikumDay?",
     name: "SingleSession",
     component: SingleSession,
-    props: true,
+    props: (route: RouteLocationNormalized) => ({
+      date: route.params.date as string,
+      group: route.params.group as string,
+      praktikumDay: route.params.praktikumDay
+        ? Number(route.params.praktikumDay)
+        : undefined,
+    }),
   },
 ];
 

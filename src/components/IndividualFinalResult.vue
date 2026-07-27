@@ -1,11 +1,22 @@
 <template>
-  <v-breadcrumbs
-    :items="[
-      { title: 'Teilnehmer', to: '/' },
-      { title: attendee?.matriculationNumber ?? 'Unbekannt' },
-    ]"
-    divider=">"
-  ></v-breadcrumbs>
+  <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-2">
+    <v-breadcrumbs
+      :items="[
+        { title: 'Teilnehmer', to: '/' },
+        { title: attendee?.matriculationNumber ?? 'Unbekannt' },
+      ]"
+      divider=">"
+      class="pa-0"
+    ></v-breadcrumbs>
+    <v-btn
+      color="primary"
+      prepend-icon="mdi-file-pdf-box"
+      text="PDF herunterladen"
+      variant="tonal"
+      :disabled="!attendee || loading"
+      @click="downloadPdf"
+    />
+  </div>
   <v-expansion-panels v-model="expanded" multiple :elevation="5">
     <v-expansion-panel>
       <v-expansion-panel-title color="blue-grey-lighten-4"
@@ -18,7 +29,10 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field :model-value="attendee?.firstName"></v-text-field>
+            <v-text-field
+              :model-value="attendee?.firstName"
+              readonly
+            ></v-text-field>
           </v-col>
         </v-row>
 
@@ -28,7 +42,7 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field :model-value="attendee?.name"></v-text-field>
+            <v-text-field :model-value="attendee?.name" readonly></v-text-field>
           </v-col>
         </v-row>
 
@@ -38,7 +52,10 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field :model-value="attendee?.email"></v-text-field>
+            <v-text-field
+              :model-value="attendee?.email"
+              readonly
+            ></v-text-field>
           </v-col>
         </v-row>
 
@@ -51,6 +68,7 @@
             <v-text-field
               :model-value="attendee?.matriculationNumber"
               type="number"
+              readonly
             ></v-text-field>
           </v-col>
         </v-row>
@@ -60,7 +78,10 @@
           </v-col>
 
           <v-col cols="8">
-            <v-text-field :model-value="attendee?.department"></v-text-field>
+            <v-text-field
+              :model-value="attendee?.department"
+              readonly
+            ></v-text-field>
           </v-col>
         </v-row>
         <v-row>
@@ -71,6 +92,7 @@
           <v-col cols="8">
             <v-text-field
               :model-value="groupStore.getGroupNameById(attendee?.group ?? '')"
+              readonly
             ></v-text-field>
           </v-col>
         </v-row>
@@ -238,6 +260,7 @@ import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 import { useAttendeeStore } from "@/stores/attendeeStore";
 import { useGroupStore } from "@/stores/groupStore";
 import { useExperimentStore } from "@/stores/experimentStore";
+import { downloadIndividualResultPdf } from "@/utils/generateIndividualResultPdf";
 
 const groupStore = useGroupStore();
 const experimentStore = useExperimentStore();
@@ -267,6 +290,29 @@ const savingComment = ref(false);
 function openCommentDialog() {
   commentText.value = performance.value?.comment ?? "";
   commentDialog.value = true;
+}
+
+function downloadPdf() {
+  if (!attendee.value) {
+    return;
+  }
+
+  downloadIndividualResultPdf({
+    firstName: attendee.value.firstName ?? "",
+    lastName: attendee.value.name ?? "",
+    email: attendee.value.email ?? "",
+    matriculationNumber: String(attendee.value.matriculationNumber ?? ""),
+    department: String(attendee.value.department ?? ""),
+    groupName: groupStore.getGroupNameById(attendee.value.group ?? "") ?? "",
+    papersCompleted: String(performance.value?.papers_completed ?? ""),
+    exercisesCompleted: String(performance.value?.exercises_completed ?? ""),
+    labAttendanceCount: String(performance.value?.lab_attendance_count ?? ""),
+    lectureAttendanceCount: String(
+      performance.value?.lecture_attendance_count ?? "",
+    ),
+    experimentsCompleted: experimentsCompletionDisplay.value,
+    comment: performance.value?.comment ?? "",
+  });
 }
 
 async function saveComment() {

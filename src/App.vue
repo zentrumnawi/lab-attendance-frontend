@@ -9,10 +9,8 @@
       :temporary="$vuetify.display.mobile"
     >
       <v-list base-color="white" active-color="white" nav>
-        <v-list-item title="Teilnehmer" to="/students" link />
+        <v-list-item title="Teilnehmer" to="/" link />
         <v-list-item title="Anwesenheit" to="/attendance" link />
-
-        <v-list-item title="Studiengänge" to="/departments" link />
 
         <v-list-item title="Übungsblätter" to="/exercises" link />
 
@@ -27,10 +25,14 @@
           to="/exercise-executions"
           link
         />
-        <v-list-item title="Endergebnisse" link />
         <v-list-item title="Protokollabgaben" to="/protocols" link />
         <v-list-item title="Gruppen" to="/groups" link />
-        <v-list-item title="Labor-Partner" to="/lab-partners" link />
+        <v-list-item
+          v-if="!isSuperuser"
+          title="Labor-Partner"
+          to="/lab-partners"
+          link
+        />
       </v-list>
     </v-navigation-drawer>
 
@@ -117,7 +119,12 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useAuthStore, ["isAuthenticated", "username", "groupName"]),
+    ...mapState(useAuthStore, [
+      "isAuthenticated",
+      "username",
+      "groupName",
+      "isSuperuser",
+    ]),
   },
   methods: {
     async logout() {

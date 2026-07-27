@@ -1,9 +1,9 @@
 import {
   AttendanceRecordWrite,
-  deleteLabSessionByDate,
+  deleteLabSessionByLabDay,
   deleteSeminarSessionByDate,
   getLabDates,
-  getLabSessionByDate,
+  getLabSessionByLabDay,
   getSeminarSessionByDate,
   AttendanceRecordRead,
   LabDate,
@@ -38,6 +38,14 @@ function readRecordsToWriteRecords(
   }));
 }
 
+function isSameLabSession(
+  a: { group: string; praktikum_day: number },
+  group: string,
+  praktikumDay: number,
+) {
+  return a.group === group && a.praktikum_day === praktikumDay;
+}
+
 export const useAttendanceStore = defineStore("attendance", {
   state: () => ({
     // list of passed lab dates, minimal info for calendar view
@@ -64,25 +72,25 @@ export const useAttendanceStore = defineStore("attendance", {
         this.labDates = [];
       }
     },
-    async fetchSingleLabSession(date: string, group: string) {
+    async fetchSingleLabSession(praktikumDay: number, group: string) {
       if (this.labDates.length === 0) await this.fetchLabDates();
-      const labDate = this.getLabDate(date, group);
+      const labDate = this.getLabDate(praktikumDay, group);
       // only fetch details if it's a past session (vs. newly to be created)
       if (!labDate) return null;
 
-      const cached = this.labSessions.find(
-        (session) => session.date === date && session.group === group,
+      const cached = this.labSessions.find((session) =>
+        isSameLabSession(session, group, praktikumDay),
       );
       if (cached) {
         return writeRecordsToReadRecords(cached.records);
       }
 
-      const labSession = await getLabSessionByDate(date, group);
+      const labSession = await getLabSessionByLabDay(praktikumDay, group);
 
       const payload: BulkAttendancePayload = {
-        date,
+        date: labDate.date,
         group,
-        praktikum_day: labDate.praktikum_day,
+        praktikum_day: praktikumDay,
         day_type: "LAB",
         records: readRecordsToWriteRecords(labSession),
       };
@@ -118,9 +126,9 @@ export const useAttendanceStore = defineStore("attendance", {
         return null;
       }
     },
-    getLabDate(date: string, group: string): LabDate | undefined {
-      return this.labDates.find(
-        (labDate) => labDate.date === date && labDate.group === group,
+    getLabDate(praktikumDay: number, group: string): LabDate | undefined {
+      return this.labDates.find((labDate) =>
+        isSameLabSession(labDate, group, praktikumDay),
       );
     },
     async saveSeminarSession(date: string, records: AttendanceRecordWrite[]) {
@@ -160,10 +168,11 @@ export const useAttendanceStore = defineStore("attendance", {
         records,
       };
 
-      // update the lab date if it exists
-      const existingLabDate = this.getLabDate(date, group);
+      await saveBulkAttendance(payload);
+
+      const existingLabDate = this.getLabDate(praktikumDay, group);
       if (existingLabDate) {
-        existingLabDate.praktikum_day = praktikumDay;
+        existingLabDate.date = date;
       } else {
         this.labDates.push({
           date,
@@ -172,12 +181,11 @@ export const useAttendanceStore = defineStore("attendance", {
         });
       }
 
-      // update or create the lab session
-      const existingSession = this.labSessions.find(
-        (session) => session.date === date && session.group === group,
+      const existingSession = this.labSessions.find((session) =>
+        isSameLabSession(session, group, praktikumDay),
       );
       if (existingSession) {
-        existingSession.praktikum_day = praktikumDay;
+        existingSession.date = date;
         existingSession.records = records;
       } else {
         this.labSessions.push(payload);
@@ -211,20 +219,23 @@ export const useAttendanceStore = defineStore("attendance", {
       date: string,
       group: string,
       day_type: "LAB" | "LECTURE",
+      praktikumDay?: number,
     ) {
       if (day_type === "LAB") {
-        await deleteLabSessionByDate(date, group);
-      } else {
-        await deleteSeminarSessionByDate(date);
-      }
-      if (day_type === "LAB") {
+        if (praktikumDay === undefined) {
+          throw new Error(
+            "praktikumDay is required when deleting a LAB session",
+          );
+        }
+        await deleteLabSessionByLabDay(praktikumDay, group);
         this.labDates = this.labDates.filter(
-          (labDate) => labDate.date !== date || labDate.group !== group,
+          (labDate) => !isSameLabSession(labDate, group, praktikumDay),
         );
         this.labSessions = this.labSessions.filter(
-          (session) => !(session.date === date && session.group === group),
+          (session) => !isSameLabSession(session, group, praktikumDay),
         );
       } else {
+        await deleteSeminarSessionByDate(date);
         this.seminarSessions = this.seminarSessions.filter(
           (session) => session.date !== date,
         );
