@@ -10,6 +10,11 @@
       max-width="280"
     />
 
+    <v-sheet v-if="!dayHasExercises" border rounded class="mb-4 pa-4">
+      <div class="text-subtitle-2">
+        Keine Übungsblätter für diesen Versuchstag
+      </div>
+    </v-sheet>
     <v-sheet border rounded>
       <v-data-table
         :headers="headers"
@@ -17,7 +22,7 @@
         expand-strategy="single"
         item-value="id"
         :hide-default-footer="rows.length < 11"
-        show-expand
+        :show-expand="dayHasExercises"
       >
         <template #[`item.status`]="{ value }">
           <v-tooltip :text="value">
@@ -253,6 +258,7 @@ onMounted(async () => {
   await Promise.all([
     attendeeStore.fetchStudents(),
     store.fetchExerciseStatus(labDay.value),
+    store.fetchExercises(),
   ]);
 });
 
@@ -273,4 +279,8 @@ const rows = computed<ExerciseRow[]>(() =>
     };
   }),
 );
+
+const dayHasExercises = computed(() => {
+  return store.exercises.some((exercise) => exercise.lab_day === labDay.value);
+});
 </script>

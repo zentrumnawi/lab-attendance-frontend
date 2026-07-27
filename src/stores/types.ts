@@ -18,6 +18,7 @@ export interface Department {
 export interface Exercise {
   id: string;
   title: string;
+  lab_day: number;
 }
 
 export interface Experiment {
