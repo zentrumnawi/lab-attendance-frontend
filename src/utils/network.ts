@@ -5,6 +5,13 @@ export class NetworkError extends Error {
   }
 }
 
+export class QueuedLocallyError extends Error {
+  constructor(message = "Saved locally; pending sync") {
+    super(message);
+    this.name = "QueuedLocallyError";
+  }
+}
+
 export function isFetchNetworkFailure(e: unknown): boolean {
   // If no network connection, there is an error that looks sth like "TypeError: Failed to fetch",
   // depending on the browser.
