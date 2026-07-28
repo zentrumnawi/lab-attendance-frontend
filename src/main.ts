@@ -20,6 +20,7 @@ import DepartmentOverview from "@/components/DepartmentOverview.vue";
 import GroupsOverview from "@/components/GroupsOverview.vue";
 import IndividualFinalResult from "@/components/IndividualFinalResult.vue";
 import Attendance from "@/components/Attendance.vue";
+import AttendanceSync from "@/components/AttendanceSync.vue";
 import SingleSession from "@/components/SingleSession.vue";
 import Login from "@/components/Login.vue";
 import { setCsrfTokenProvider } from "@/api/http";
@@ -101,6 +102,11 @@ const routes = [
     path: "/attendance",
     name: "Attendance",
     component: Attendance,
+  },
+  {
+    path: "/sync",
+    name: "AttendanceSync",
+    component: AttendanceSync,
   },
   {
     path: "/attendance/:date/sem",

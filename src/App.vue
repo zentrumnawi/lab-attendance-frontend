@@ -11,6 +11,12 @@
       <v-list base-color="white" active-color="white" nav>
         <v-list-item title="Teilnehmer" to="/" link />
         <v-list-item title="Anwesenheit" to="/attendance" link />
+        <v-list-item to="/sync" link>
+          <v-list-item-title>Ausstehende Synchronisation</v-list-item-title>
+          <template v-if="syncQueueCount > 0" #append>
+            <v-badge :content="syncQueueCount" color="warning" inline />
+          </template>
+        </v-list-item>
 
         <v-list-item title="Übungsblätter" to="/exercises" link />
 
@@ -109,6 +115,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import { useSyncQueue } from "@/stores/syncQueue";
 import { mapState } from "pinia";
 
 export default defineComponent({
@@ -125,6 +132,9 @@ export default defineComponent({
       "groupName",
       "isSuperuser",
     ]),
+    syncQueueCount(): number {
+      return useSyncQueue().queueCount;
+    },
   },
   methods: {
     async logout() {
