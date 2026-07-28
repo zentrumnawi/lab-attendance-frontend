@@ -1,4 +1,4 @@
-# mathezentrum-app
+# lab-attendance-app
 
 ## Project setup
 ```

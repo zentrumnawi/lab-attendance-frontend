@@ -21,6 +21,7 @@ export interface AttendanceRecordWrite {
 export interface BulkAttendancePayload {
   date: string;
   praktikum_day: number;
+  old_praktikum_day?: number;
   group: string;
   day_type: "LAB";
   records: AttendanceRecordWrite[];
@@ -81,4 +82,11 @@ export async function deleteSeminarSessionByDate(date: string) {
       method: "DELETE",
     },
   );
+}
+
+export async function changeLabDayOfSession(payload: BulkAttendancePayload) {
+  return await httpJson<void>(`/api/attendance-records/session/`, {
+    method: "PATCH",
+    body: payload,
+  });
 }

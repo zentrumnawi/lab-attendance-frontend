@@ -66,7 +66,7 @@
         expand-strategy="single"
         item-value="id"
         :hide-default-footer="rows.length < 11"
-        show-expand
+        :show-expand="experimentsForLabDay.length > 0"
       >
         <template #[`item.status`]="{ value }">
           {{ value }}
