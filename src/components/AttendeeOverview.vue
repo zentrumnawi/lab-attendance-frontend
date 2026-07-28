@@ -98,6 +98,16 @@
               ></v-text-field>
             </v-col>
 
+            <v-col cols="12">
+              <v-select
+                v-model="formModel.department"
+                :items="departmentOptions"
+                item-title="title"
+                item-value="value"
+                label="Studiengang"
+              ></v-select>
+            </v-col>
+
             <v-col v-if="isSuperuser" cols="12">
               <v-select
                 v-model="formModel.group"
@@ -145,10 +155,12 @@
 import { computed, onMounted, ref, shallowRef, toRef } from "vue";
 import { useAttendeeStore } from "@/stores/attendeeStore";
 import { useGroupStore } from "@/stores/groupStore";
+import { useDepartmentStore } from "@/stores/departmentStore";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 const store = useAttendeeStore();
 const groupStore = useGroupStore();
+const departmentStore = useDepartmentStore();
 const router = useRouter();
 const auth = useAuthStore();
 const isSuperuser = computed(() => auth.isSuperuser);
@@ -164,6 +176,7 @@ function createNewRecord() {
     email: "",
     labPartner: "",
     group: "",
+    department: "",
   };
 }
 
@@ -172,6 +185,12 @@ const groupOptions = computed(() =>
   groupStore.groups.map((group) => ({
     title: group.name,
     value: group.id,
+  })),
+);
+const departmentOptions = computed(() =>
+  departmentStore.departments.map((department) => ({
+    title: department.name,
+    value: department.id,
   })),
 );
 const form = ref();
@@ -217,6 +236,7 @@ const headers: {
 function add() {
   formModel.value = createNewRecord();
   dialog.value = true;
+  void departmentStore.fetchDepartments();
 }
 
 function edit(id: string): void {
@@ -231,9 +251,11 @@ function edit(id: string): void {
     email: found.email,
     labPartner: found.labPartner,
     group: found.group,
+    department: found.department,
   };
 
   dialog.value = true;
+  void departmentStore.fetchDepartments();
 }
 
 function remove(id: string): void {
