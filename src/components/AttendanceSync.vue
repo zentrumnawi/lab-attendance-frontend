@@ -11,7 +11,7 @@
     </v-alert>
 
     <div class="d-flex align-center justify-space-between mb-4">
-      <div class="text-h6">Ausstehende Synchronisation</div>
+      <div class="text-h6">Ausstehende Synchronisation Anwesenheit</div>
       <v-btn
         v-if="items.length > 0"
         color="primary"
@@ -99,6 +99,67 @@
         </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
+
+    <div class="d-flex align-center justify-space-between mb-4">
+      <div class="text-h6">
+        Ausstehende Synchronisation Versuchsdurchführungen
+      </div>
+      <v-btn
+        v-if="experimentExecutionItems.length > 0"
+        color="primary"
+        :disabled="syncingAll"
+        :loading="syncingAll"
+        @click="syncAllExperimentExecutionItems"
+      >
+        Alle senden
+      </v-btn>
+    </div>
+
+    <v-sheet
+      v-if="experimentExecutionItems.length === 0"
+      border
+      rounded
+      class="pa-6 text-center"
+    >
+      <v-icon
+        class="mb-2"
+        color="medium-emphasis"
+        icon="mdi-cloud-check-outline"
+        size="40"
+      />
+      <div class="text-subtitle-1">
+        Keine ausstehenden Versuchsdurchführungen
+      </div>
+      <div class="text-body-2 text-medium-emphasis mt-1">
+        Alle gespeicherten Daten wurden mit dem Server synchronisiert.
+      </div>
+    </v-sheet>
+
+    <v-expansion-panels v-else multiple>
+      <v-expansion-panel
+        v-for="item in experimentExecutionItems"
+        :key="item.dedupeKey"
+      >
+        <v-expansion-panel-title>
+          <div
+            class="d-flex flex-column flex-sm-row align-sm-center ga-2 w-100"
+          >
+            <span class="font-weight-medium">{{
+              labelForExperimentExecutionItem(item)
+            }}</span>
+            <v-spacer />
+            <v-chip
+              :color="statusColor(item.status)"
+              label
+              size="small"
+              variant="tonal"
+            >
+              {{ statusLabel(item.status) }}
+            </v-chip>
+          </div>
+        </v-expansion-panel-title>
+      </v-expansion-panel>
+    </v-expansion-panels>
   </div>
 </template>
 
@@ -110,6 +171,9 @@ import {
   type AttendanceQueueItem,
   useSyncQueue,
 } from "@/stores/syncQueue";
+import { useSyncQueueExperiments } from "@/stores/syncQueueExperiments";
+import { ExperimentExecutionQueueItem } from "@/stores/syncQueueExperiments";
+import { labelForExperimentExecutionItem } from "@/stores/syncQueueExperiments";
 
 interface AttendanceDetailRow {
   id: string;
@@ -119,7 +183,15 @@ interface AttendanceDetailRow {
   comment: string;
 }
 
+interface ExperimentExecutionDetailRow {
+  student_id: string;
+  name: string;
+  firstName: string;
+  experiment_ids: string[];
+}
+
 const syncAttendanceQueue = useSyncQueue();
+const syncExperimentExecutionQueue = useSyncQueueExperiments();
 const attendeeStore = useAttendeeStore();
 
 const syncingAll = ref(false);
@@ -127,12 +199,21 @@ const feedbackMessage = ref<string | null>(null);
 const feedbackType = ref<"success" | "error" | "warning">("success");
 
 const items = computed(() => syncAttendanceQueue.queuedItems);
+const experimentExecutionItems = computed(
+  () => syncExperimentExecutionQueue.queuedItems,
+);
 
 const attendanceDetailHeaders = [
   { title: "Name", key: "name" },
   { title: "Vorname", key: "firstName" },
   { title: "Anwesend", key: "present", sortable: false },
   { title: "Kommentar", key: "comment" },
+];
+
+const experimentExecutionDetailHeaders = [
+  { title: "Name", key: "name" },
+  { title: "Vorname", key: "firstName" },
+  { title: "Versuche", key: "experiment_ids" },
 ];
 
 function labelForItem(item: AttendanceQueueItem): string {
@@ -143,7 +224,7 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleString("de-DE");
 }
 
-function statusLabel(status: AttendanceQueueItem["status"]): string {
+function statusLabel(status: "pending" | "syncing" | "failed"): string {
   switch (status) {
     case "pending":
       return "Ausstehend";
@@ -154,7 +235,7 @@ function statusLabel(status: AttendanceQueueItem["status"]): string {
   }
 }
 
-function statusColor(status: AttendanceQueueItem["status"]): string {
+function statusColor(status: "pending" | "syncing" | "failed"): string {
   switch (status) {
     case "pending":
       return "warning";
@@ -176,6 +257,20 @@ function attendanceDetailRows(
       firstName: attendee?.firstName ?? "—",
       present: record.is_present,
       comment: record.comment ?? "",
+    };
+  });
+}
+
+function experimentExecutionDetailRows(
+  item: ExperimentExecutionQueueItem,
+): ExperimentExecutionDetailRow[] {
+  return item.records.map((record) => {
+    const student = attendeeStore.getAttendeeById(record.student_id);
+    return {
+      student_id: record.student_id,
+      name: student?.name ?? "—",
+      firstName: student?.firstName ?? "—",
+      experiment_ids: record.experiment_ids,
     };
   });
 }
