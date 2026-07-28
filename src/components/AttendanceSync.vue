@@ -17,7 +17,7 @@
         color="primary"
         :disabled="syncingAll"
         :loading="syncingAll"
-        @click="syncAll"
+        @click="syncAllAttendanceItems"
       >
         Alle senden
       </v-btn>
@@ -71,9 +71,9 @@
           </v-alert>
 
           <v-data-table
-            :headers="detailHeaders"
-            :items="detailRows(item)"
-            :hide-default-footer="detailRows(item).length < 11"
+            :headers="attendanceDetailHeaders"
+            :items="attendanceDetailRows(item)"
+            :hide-default-footer="attendanceDetailRows(item).length < 11"
             density="compact"
             item-value="id"
           >
@@ -91,7 +91,7 @@
               color="primary"
               :disabled="item.status === 'syncing' || syncingAll"
               :loading="item.status === 'syncing'"
-              @click="syncOne(item.dedupeKey)"
+              @click="syncOneAttendanceItem(item.dedupeKey)"
             >
               Jetzt senden
             </v-btn>
@@ -111,7 +111,7 @@ import {
   useSyncQueue,
 } from "@/stores/syncQueue";
 
-interface DetailRow {
+interface AttendanceDetailRow {
   id: string;
   name: string;
   firstName: string;
@@ -119,16 +119,16 @@ interface DetailRow {
   comment: string;
 }
 
-const syncQueue = useSyncQueue();
+const syncAttendanceQueue = useSyncQueue();
 const attendeeStore = useAttendeeStore();
 
 const syncingAll = ref(false);
 const feedbackMessage = ref<string | null>(null);
 const feedbackType = ref<"success" | "error" | "warning">("success");
 
-const items = computed(() => syncQueue.queuedItems);
+const items = computed(() => syncAttendanceQueue.queuedItems);
 
-const detailHeaders = [
+const attendanceDetailHeaders = [
   { title: "Name", key: "name" },
   { title: "Vorname", key: "firstName" },
   { title: "Anwesend", key: "present", sortable: false },
@@ -165,7 +165,9 @@ function statusColor(status: AttendanceQueueItem["status"]): string {
   }
 }
 
-function detailRows(item: AttendanceQueueItem): DetailRow[] {
+function attendanceDetailRows(
+  item: AttendanceQueueItem,
+): AttendanceDetailRow[] {
   return item.payload.records.map((record) => {
     const attendee = attendeeStore.getAttendeeById(record.student_id);
     return {
@@ -186,22 +188,22 @@ function showFeedback(
   feedbackType.value = type;
 }
 
-async function syncOne(dedupeKey: string) {
-  const ok = await syncQueue.syncItem(dedupeKey);
+async function syncOneAttendanceItem(dedupeKey: string) {
+  const ok = await syncAttendanceQueue.syncItem(dedupeKey);
   if (ok) {
     showFeedback("Anwesenheitsliste erfolgreich synchronisiert.");
   } else {
-    const item = syncQueue.getItemByDedupeKey(dedupeKey);
+    const item = syncAttendanceQueue.getItemByDedupeKey(dedupeKey);
     showFeedback(item?.lastError ?? "Synchronisation fehlgeschlagen.", "error");
   }
 }
 
-async function syncAll() {
+async function syncAllAttendanceItems() {
   syncingAll.value = true;
   feedbackMessage.value = null;
 
   try {
-    const { succeeded, failed } = await syncQueue.syncAllPending();
+    const { succeeded, failed } = await syncAttendanceQueue.syncAllPending();
 
     if (failed === 0) {
       showFeedback(
