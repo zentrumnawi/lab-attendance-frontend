@@ -225,14 +225,18 @@ const sessionTitle = computed(() => {
 });
 
 const canSave = computed(() => {
-  if (existingSession.value) {
+  // lab days should have valid non-null lab day
+  if (existingSession.value && !isSem.value) {
     return (
       praktikumDay.value !== null &&
       (praktikumDay.value === props.praktikumDay ||
         !attendanceStore.dayNumbersInUse.includes(praktikumDay.value ?? 0))
     );
   }
-  return isSem.value ? true : praktikumDay.value !== null;
+  return isSem.value
+    ? true
+    : praktikumDay.value !== null &&
+        !attendanceStore.dayNumbersInUse.includes(praktikumDay.value ?? 0);
 });
 
 const allPresent = computed(
