@@ -225,18 +225,11 @@ const sessionTitle = computed(() => {
 });
 
 const canSave = computed(() => {
-  // lab days should have valid non-null lab day
-  if (existingSession.value && !isSem.value) {
-    return (
-      praktikumDay.value !== null &&
-      (praktikumDay.value === props.praktikumDay ||
-        !attendanceStore.dayNumbersInUse.includes(praktikumDay.value ?? 0))
-    );
-  }
-  return isSem.value
-    ? true
-    : praktikumDay.value !== null &&
-        !attendanceStore.dayNumbersInUse.includes(praktikumDay.value ?? 0);
+  if (isSem.value) return true;
+  if (praktikumDay.value === null) return false;
+  if (existingSession.value && praktikumDay.value === props.praktikumDay)
+    return true;
+  return !attendanceStore.dayNumbersInUse.includes(praktikumDay.value);
 });
 
 const allPresent = computed(
