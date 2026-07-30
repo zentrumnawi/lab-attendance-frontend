@@ -16,6 +16,7 @@
         :weekdays="[1, 2, 3, 4, 5]"
         @change="getEvents"
         @click:event="handleEventClick"
+        @click:more="handleMoreClick"
       >
         <template #day-label="{ date }">
           <div class="day-label">
@@ -35,6 +36,35 @@
         </template>
       </v-calendar>
     </v-sheet>
+    <v-dialog v-model="showMoreDialog" max-width="500">
+      <v-card>
+        <v-card-title> Events on {{ selectedDate }} </v-card-title>
+
+        <v-card-text>
+          <v-list>
+            <v-list-item
+              v-for="(event, index) in selectedEvents"
+              :key="`${event.name}-${event.start}-${index}`"
+              @click="handleEventFromDialog(event)"
+            >
+              <template #prepend>
+                <v-icon icon="mdi-calendar" :color="event.color" />
+              </template>
+
+              <v-list-item-title>
+                {{ event.name }}
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer />
+
+          <v-btn @click="showMoreDialog = false"> Close </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -60,6 +90,48 @@ const events = ref<
     day_type?: string;
   }[]
 >([]);
+
+const showMoreDialog = ref(false);
+const selectedDate = ref("");
+const selectedEvents = ref<typeof events.value>([]);
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-CA");
+}
+
+function handleMoreClick(nativeEvent: MouseEvent, { date }: { date: string }) {
+  nativeEvent.stopPropagation();
+
+  selectedDate.value = date;
+
+  selectedEvents.value = events.value.filter(
+    (event) => formatDate(event.start) === date,
+  );
+
+  showMoreDialog.value = true;
+}
+
+function handleEventFromDialog(event: (typeof events.value)[number]) {
+  showMoreDialog.value = false;
+
+  if (event.day_type === "seminar") {
+    router.push({
+      name: "SingleSessionSem",
+      params: {
+        date: formatDate(event.start),
+      },
+    });
+  } else if (event.day_type === "lab") {
+    router.push({
+      name: "SingleSession",
+      params: {
+        date: formatDate(event.start),
+        group: event.group ?? "",
+        praktikumDay: String(event.praktikum_day),
+      },
+    });
+  }
+}
 
 const SEMINAR_DAYS = ["2026-08-03", "2026-08-10", "2026-08-17", "2026-08-24"];
 
