@@ -94,9 +94,12 @@
       <v-card title="Protokollabgabe">
         <template #text>
           <p v-if="selectedStudent" class="text-body-1 mb-4">
-            {{ selectedStudent.firstName }} {{ selectedStudent.name }}
+            Hauptautor: {{ selectedStudent.firstName }}
+            {{ selectedStudent.name }}
           </p>
-
+          <p v-if="selectedStudent" class="text-body-1 mb-4">
+            Labor-Partner: {{ selectedStudent.labPartner }}
+          </p>
           <v-checkbox
             v-model="acceptImmediately"
             hide-details
@@ -148,9 +151,12 @@
       <v-card title="Abgabe bearbeiten">
         <template #text>
           <p v-if="selectedEditStudent" class="text-body-1 mb-4">
-            {{ selectedEditStudent.firstName }} {{ selectedEditStudent.name }}
+            Hauptautor: {{ selectedEditStudent.firstName }}
+            {{ selectedEditStudent.name }}
           </p>
-
+          <p v-if="selectedEditStudent" class="text-body-1 mb-4">
+            Labor-Partner: {{ selectedEditStudent.labPartner }}
+          </p>
           <v-list density="compact" class="bg-surface-light rounded mb-4">
             <v-list-item>
               <v-list-item-title>Einreichungsdatum</v-list-item-title>
@@ -209,9 +215,12 @@
       <v-card title="Abgabe zurückziehen">
         <template #text>
           <p v-if="selectedEditStudent" class="text-body-1 mb-4">
-            {{ selectedEditStudent.firstName }} {{ selectedEditStudent.name }}
+            Hauptautor: {{ selectedEditStudent.firstName }}
+            {{ selectedEditStudent.name }}
           </p>
-
+          <p v-if="selectedEditStudent" class="text-body-1 mb-4">
+            Labor-Partner: {{ selectedEditStudent.labPartner }}
+          </p>
           <v-list density="compact" class="bg-surface-light rounded mb-4">
             <v-list-item>
               <v-list-item-title>Einreichungsdatum</v-list-item-title>
@@ -304,6 +313,7 @@ interface ProtocolRow {
   necessary_corrections: string | null;
   submission_date: Date | null;
   submitted: boolean;
+  main_author: boolean;
 }
 
 const headers: {
@@ -424,6 +434,7 @@ function buildSubmissionRecords(student: ProtocolRow): SubmitPaperRecord[] {
     {
       student_id: student.id,
       submitted: true,
+      main_author: true,
       submission_date: submissionDate,
       necessary_corrections: necessaryCorrections,
       accepted: acceptImmediately.value,
@@ -435,6 +446,7 @@ function buildSubmissionRecords(student: ProtocolRow): SubmitPaperRecord[] {
     records.push({
       student_id: student.labPartnerId,
       submitted: true,
+      main_author: false,
       submission_date: submissionDate,
       necessary_corrections: necessaryCorrections,
       accepted: acceptImmediately.value,
@@ -471,6 +483,7 @@ async function saveEditedSubmission() {
     submission_date: selectedEditStudent.value.submission_date,
     necessary_corrections: selectedEditStudent.value.necessary_corrections,
     accepted: true,
+    main_author: true,
     accepted_date: new Date(),
   };
 
@@ -485,6 +498,7 @@ async function saveEditedSubmission() {
     records.push({
       ...baseData,
       student_id: selectedEditStudent.value.labPartnerId,
+      main_author: false,
     });
   }
 
@@ -508,6 +522,7 @@ async function saveWithdrawSubmission() {
     necessary_corrections: selectedEditStudent.value.necessary_corrections,
     accepted: false,
     accepted_date: null,
+    main_author: true,
   };
 
   const records = [
@@ -521,6 +536,7 @@ async function saveWithdrawSubmission() {
     records.push({
       ...baseData,
       student_id: selectedEditStudent.value.labPartnerId,
+      main_author: false,
     });
   }
 
@@ -567,6 +583,7 @@ const rows = computed<ProtocolRow[]>(() =>
       necessary_corrections: protocol?.necessary_corrections ?? null,
       submission_date: protocol?.submission_date ?? null,
       submitted: protocol?.submitted ?? false,
+      main_author: protocol?.main_author ?? false,
     };
   }),
 );

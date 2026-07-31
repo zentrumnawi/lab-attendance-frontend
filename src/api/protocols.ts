@@ -6,6 +6,7 @@ export interface ProtocolData {
     matriculationNumber: string;
   };
   submitted: boolean;
+  main_author: boolean;
   submission_date: Date | null;
   necessary_corrections: string | null;
   accepted: boolean;
@@ -20,6 +21,7 @@ export interface SubmitPaperPayload {
 export interface SubmitPaperRecord {
   student_id: string;
   submitted: boolean;
+  main_author: boolean;
   submission_date: Date | null;
   necessary_corrections?: string | null;
   accepted?: boolean;
