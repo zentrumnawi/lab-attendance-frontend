@@ -97,11 +97,10 @@
       <v-card title="Protokollabgabe">
         <template #text>
           <p v-if="selectedStudent" class="text-body-1 mb-4">
-            Hauptautor: {{ selectedStudent.firstName }}
-            {{ selectedStudent.name }}
+            Hauptautor: {{ mainAuthorLabel(selectedStudent) }}
           </p>
           <p v-if="selectedStudent" class="text-body-1 mb-4">
-            Labor-Partner: {{ selectedStudent.labPartner }}
+            Labor-Partner: {{ labPartnerLabel(selectedStudent) }}
           </p>
           <v-checkbox
             v-model="acceptImmediately"
@@ -154,11 +153,10 @@
       <v-card title="Abgabe bearbeiten">
         <template #text>
           <p v-if="selectedEditStudent" class="text-body-1 mb-4">
-            Hauptautor: {{ selectedEditStudent.firstName }}
-            {{ selectedEditStudent.name }}
+            Hauptautor: {{ mainAuthorLabel(selectedEditStudent) }}
           </p>
           <p v-if="selectedEditStudent" class="text-body-1 mb-4">
-            Labor-Partner: {{ selectedEditStudent.labPartner }}
+            Labor-Partner: {{ labPartnerLabel(selectedEditStudent) }}
           </p>
           <v-list density="compact" class="bg-surface-light rounded mb-4">
             <v-list-item>
@@ -218,11 +216,10 @@
       <v-card title="Abgabe zurückziehen">
         <template #text>
           <p v-if="selectedEditStudent" class="text-body-1 mb-4">
-            Hauptautor: {{ selectedEditStudent.firstName }}
-            {{ selectedEditStudent.name }}
+            Hauptautor: {{ mainAuthorLabel(selectedEditStudent) }}
           </p>
           <p v-if="selectedEditStudent" class="text-body-1 mb-4">
-            Labor-Partner: {{ selectedEditStudent.labPartner }}
+            Labor-Partner: {{ labPartnerLabel(selectedEditStudent) }}
           </p>
           <v-list density="compact" class="bg-surface-light rounded mb-4">
             <v-list-item>
@@ -406,10 +403,6 @@ function openWithdrawSubmissionDialog(item: ProtocolRow) {
   withdrawSubmissionDialog.value = true;
 }
 
-function isMainAuthor(student: ProtocolRow): boolean {
-  return student.main_author || !student.labPartner;
-}
-
 function buildLabPartnerName(student: Attendee): string {
   if (!student.labPartner) return "—";
 
@@ -417,6 +410,46 @@ function buildLabPartnerName(student: Attendee): string {
   if (!labPartner) return "—";
 
   return `${labPartner.firstName} ${labPartner.name}`;
+}
+
+function formatStudentName(
+  student: Pick<ProtocolRow, "firstName" | "name">,
+): string {
+  return `${student.firstName} ${student.name}`;
+}
+
+// Don't derive main author from who was clicked on
+function resolveAuthorRoles(student: ProtocolRow): {
+  mainAuthor: ProtocolRow;
+  labPartner: ProtocolRow | null;
+} {
+  if (!student.labPartnerId) {
+    return { mainAuthor: student, labPartner: null };
+  }
+
+  const partner =
+    rows.value.find((row) => row.id === student.labPartnerId) ?? null;
+
+  if (student.main_author) {
+    return { mainAuthor: student, labPartner: partner };
+  }
+
+  if (partner?.main_author) {
+    return { mainAuthor: partner, labPartner: student };
+  }
+
+  // No main author established yet (first submission): treat clicked student as author
+  return { mainAuthor: student, labPartner: partner };
+}
+
+function mainAuthorLabel(student: ProtocolRow): string {
+  return formatStudentName(resolveAuthorRoles(student).mainAuthor);
+}
+
+function labPartnerLabel(student: ProtocolRow): string {
+  const { labPartner } = resolveAuthorRoles(student);
+  if (!labPartner) return student.labPartner;
+  return formatStudentName(labPartner);
 }
 
 function formatSubmissionDate(value: Date | string | null | undefined): string {
@@ -446,10 +479,11 @@ function buildSubmissionRecords(student: ProtocolRow): SubmitPaperRecord[] {
   const necessaryCorrections = requireCorrections.value
     ? correctionsText.value.trim() || null
     : null;
+  const { mainAuthor, labPartner } = resolveAuthorRoles(student);
 
   const records: SubmitPaperRecord[] = [
     {
-      student_id: student.id,
+      student_id: mainAuthor.id,
       submitted: true,
       main_author: true,
       submission_date: submissionDate,
@@ -459,9 +493,9 @@ function buildSubmissionRecords(student: ProtocolRow): SubmitPaperRecord[] {
     },
   ];
 
-  if (student.labPartnerId) {
+  if (labPartner) {
     records.push({
-      student_id: student.labPartnerId,
+      student_id: labPartner.id,
       submitted: true,
       main_author: false,
       submission_date: submissionDate,
@@ -495,27 +529,30 @@ async function saveEditedSubmission() {
 
   savingEditSubmission.value = true;
 
+  const { mainAuthor, labPartner } = resolveAuthorRoles(
+    selectedEditStudent.value,
+  );
+
   const baseData = {
     submitted: true,
     submission_date: selectedEditStudent.value.submission_date,
     necessary_corrections: selectedEditStudent.value.necessary_corrections,
     accepted: true,
-    main_author: isMainAuthor(selectedEditStudent.value),
     accepted_date: new Date(),
   };
-
-  const records = [
+  const records: SubmitPaperRecord[] = [
     {
+      student_id: mainAuthor.id,
       ...baseData,
-      student_id: selectedEditStudent.value.id,
+      main_author: true,
     },
   ];
 
-  if (selectedEditStudent.value.labPartnerId) {
+  if (labPartner) {
     records.push({
       ...baseData,
-      student_id: selectedEditStudent.value.labPartnerId,
-      main_author: !isMainAuthor(selectedEditStudent.value),
+      student_id: labPartner.id,
+      main_author: false,
     });
   }
 
@@ -533,27 +570,30 @@ async function saveEditedSubmission() {
 async function saveWithdrawSubmission() {
   if (!selectedEditStudent.value || !withdrawSubmission.value) return;
 
+  const { mainAuthor, labPartner } = resolveAuthorRoles(
+    selectedEditStudent.value,
+  );
+
   const baseData = {
     submitted: true,
     submission_date: selectedEditStudent.value.submission_date,
     necessary_corrections: selectedEditStudent.value.necessary_corrections,
     accepted: false,
     accepted_date: null,
-    main_author: isMainAuthor(selectedEditStudent.value),
   };
-
-  const records = [
+  const records: SubmitPaperRecord[] = [
     {
+      student_id: mainAuthor.id,
       ...baseData,
-      student_id: selectedEditStudent.value.id,
+      main_author: true,
     },
   ];
 
-  if (selectedEditStudent.value.labPartnerId) {
+  if (labPartner) {
     records.push({
       ...baseData,
-      student_id: selectedEditStudent.value.labPartnerId,
-      main_author: !isMainAuthor(selectedEditStudent.value),
+      student_id: labPartner.id,
+      main_author: false,
     });
   }
 
