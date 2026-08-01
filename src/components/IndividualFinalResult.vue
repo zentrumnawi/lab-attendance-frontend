@@ -230,6 +230,59 @@
     </v-expansion-panel>
   </v-expansion-panels>
 
+  <div v-if="performance && !loading" class="mt-6">
+    <template v-if="isPassedConfirmed">
+      <div class="d-flex align-center ga-3 pass-status">
+        <v-icon icon="mdi-check-circle" color="success" size="x-large" />
+        <span class="text-h5 font-weight-bold text-success">Bestanden</span>
+      </div>
+    </template>
+
+    <template v-else>
+      <v-alert
+        :type="meetsPassCriteria ? 'success' : 'error'"
+        :icon="
+          meetsPassCriteria ? 'mdi-check-circle' : 'mdi-close-circle-outline'
+        "
+        variant="tonal"
+        density="compact"
+        class="pass-status"
+      >
+        {{
+          meetsPassCriteria
+            ? "Bestehenskriterien erfüllt"
+            : "Bestehenskriterien nicht erfüllt"
+        }}
+      </v-alert>
+
+      <div class="d-flex align-center flex-wrap ga-4 mt-4">
+        <v-checkbox
+          v-model="confirmPass"
+          hide-details
+          label="Als bestanden markieren"
+          density="comfortable"
+        />
+        <v-btn
+          color="primary"
+          text="Speichern"
+          variant="tonal"
+          :disabled="!confirmPass"
+          :loading="savingPassed"
+          @click="savePassed"
+        />
+      </div>
+      <v-alert
+        v-if="passError"
+        type="error"
+        variant="tonal"
+        density="compact"
+        class="mt-3"
+      >
+        {{ passError }}
+      </v-alert>
+    </template>
+  </div>
+
   <v-dialog v-model="commentDialog" max-width="500">
     <v-card>
       <v-card-title class="text-h6">Kommentar</v-card-title>
@@ -291,9 +344,58 @@ const experimentsCompletionDisplay = computed(
     `${performance.value?.experiments_completed ?? ""} / ${experimentStore.experiments.length}`,
 );
 
+const PASS_REQUIREMENTS = {
+  papers: 4,
+  exercises: 8,
+  labAttendance: 8,
+  lectureAttendance: 4,
+} as const;
+
+const isPassedConfirmed = computed(() => performance.value?.status === "PASS");
+
+const meetsPassCriteria = computed(() => {
+  const p = performance.value;
+  if (!p) {
+    return false;
+  }
+  const totalExperiments = experimentStore.experiments.length;
+  const experimentsOk =
+    totalExperiments > 0 && p.experiments_completed >= totalExperiments;
+  return (
+    p.papers_completed >= PASS_REQUIREMENTS.papers &&
+    p.exercises_completed >= PASS_REQUIREMENTS.exercises &&
+    p.lab_attendance_count >= PASS_REQUIREMENTS.labAttendance &&
+    p.lecture_attendance_count >= PASS_REQUIREMENTS.lectureAttendance &&
+    experimentsOk
+  );
+});
+
+const confirmPass = ref(false);
+const savingPassed = ref(false);
+const passError = ref<string | null>(null);
+
 const commentDialog = ref(false);
 const commentText = ref("");
 const savingComment = ref(false);
+
+async function savePassed() {
+  if (!confirmPass.value) {
+    return;
+  }
+  savingPassed.value = true;
+  passError.value = null;
+  try {
+    await performanceStore.savePassed(props.id);
+    confirmPass.value = false;
+  } catch (e) {
+    passError.value =
+      e instanceof Error
+        ? e.message
+        : "Status konnte nicht gespeichert werden.";
+  } finally {
+    savingPassed.value = false;
+  }
+}
 
 function openCommentDialog() {
   commentText.value = performance.value?.comment ?? "";
