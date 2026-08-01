@@ -41,48 +41,51 @@
         <template #expanded-row="{ columns, item }">
           <tr>
             <td :colspan="columns.length">
-              <div
-                class="d-flex justify-end"
-                v-if="item.status === 'Nicht eingereicht'"
-              >
-                <v-btn
-                  class="text-none"
-                  color="blue-darken-4"
-                  rounded="0"
-                  variant="outlined"
-                  text="Abgabe"
-                  @click="openSubmissionDialog(item)"
-                />
-              </div>
-              <div
-                class="d-flex justify-end"
-                v-if="item.status === 'Eingereicht'"
-              >
-                <v-btn
-                  class="text-none"
-                  color="blue-darken-4"
-                  rounded="0"
-                  variant="outlined"
-                  text="Abgabe akzeptieren"
-                  @click="openEditedSubmissionDialog(item)"
-                />
-              </div>
-              <div
-                class="d-flex justify-space-between"
-                v-if="item.status === 'Akzeptiert'"
-              >
-                <span
-                  >Akzeptiert am
-                  {{ formatSubmissionDate(item.accepted_date) }}</span
-                >
-                <v-btn
-                  class="text-none"
-                  color="blue-darken-4"
-                  rounded="0"
-                  variant="outlined"
-                  text="Zurückziehen"
-                  @click="openWithdrawSubmissionDialog(item)"
-                />
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <v-chip
+                    v-if="item.main_author"
+                    class="ma-2"
+                    color="yellow-darken-4"
+                    label
+                  >
+                    <v-icon icon="mdi-pencil" start></v-icon>
+                    Hauptautor
+                  </v-chip>
+                  <span v-if="item.status === 'Akzeptiert'" class="ma-2">
+                    Akzeptiert am
+                    {{ formatSubmissionDate(item.accepted_date) }}
+                  </span>
+                </div>
+                <div>
+                  <v-btn
+                    v-if="item.status === 'Nicht eingereicht'"
+                    class="text-none"
+                    color="blue-darken-4"
+                    rounded="0"
+                    variant="outlined"
+                    text="Abgabe"
+                    @click="openSubmissionDialog(item)"
+                  />
+                  <v-btn
+                    v-if="item.status === 'Eingereicht'"
+                    class="text-none"
+                    color="blue-darken-4"
+                    rounded="0"
+                    variant="outlined"
+                    text="Abgabe akzeptieren"
+                    @click="openEditedSubmissionDialog(item)"
+                  />
+                  <v-btn
+                    v-if="item.status === 'Akzeptiert'"
+                    class="text-none"
+                    color="blue-darken-4"
+                    rounded="0"
+                    variant="outlined"
+                    text="Zurückziehen"
+                    @click="openWithdrawSubmissionDialog(item)"
+                  />
+                </div>
               </div>
             </td>
           </tr>
