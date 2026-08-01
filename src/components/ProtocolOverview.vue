@@ -300,6 +300,7 @@ import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import { useAttendeeStore } from "@/stores/attendeeStore";
 import type { SubmitPaperRecord } from "@/api/protocols";
 import { format } from "date-fns";
+import { Attendee } from "@/stores/types";
 
 type ProtocolStatus = "Akzeptiert" | "Eingereicht" | "Nicht eingereicht";
 
@@ -405,6 +406,19 @@ function openWithdrawSubmissionDialog(item: ProtocolRow) {
   withdrawSubmissionDialog.value = true;
 }
 
+function isMainAuthor(student: ProtocolRow): boolean {
+  return student.main_author || !student.labPartner;
+}
+
+function buildLabPartnerName(student: Attendee): string {
+  if (!student.labPartner) return "—";
+
+  const labPartner = attendeeStore.getAttendeeById(student.labPartner);
+  if (!labPartner) return "—";
+
+  return `${labPartner.firstName} ${labPartner.name}`;
+}
+
 function formatSubmissionDate(value: Date | string | null | undefined): string {
   if (!value) return "—";
 
@@ -486,7 +500,7 @@ async function saveEditedSubmission() {
     submission_date: selectedEditStudent.value.submission_date,
     necessary_corrections: selectedEditStudent.value.necessary_corrections,
     accepted: true,
-    main_author: true,
+    main_author: isMainAuthor(selectedEditStudent.value),
     accepted_date: new Date(),
   };
 
@@ -501,7 +515,7 @@ async function saveEditedSubmission() {
     records.push({
       ...baseData,
       student_id: selectedEditStudent.value.labPartnerId,
-      main_author: false,
+      main_author: !isMainAuthor(selectedEditStudent.value),
     });
   }
 
@@ -525,7 +539,7 @@ async function saveWithdrawSubmission() {
     necessary_corrections: selectedEditStudent.value.necessary_corrections,
     accepted: false,
     accepted_date: null,
-    main_author: true,
+    main_author: isMainAuthor(selectedEditStudent.value),
   };
 
   const records = [
@@ -539,7 +553,7 @@ async function saveWithdrawSubmission() {
     records.push({
       ...baseData,
       student_id: selectedEditStudent.value.labPartnerId,
-      main_author: false,
+      main_author: !isMainAuthor(selectedEditStudent.value),
     });
   }
 
@@ -573,9 +587,7 @@ const rows = computed<ProtocolRow[]>(() =>
       firstName: attendee.firstName ?? "",
       matriculationNumber: attendee.matriculationNumber ?? "",
       labPartnerId: attendee.labPartner || null,
-      labPartner: attendee.labPartner
-        ? (attendeeStore.getAttendeeById(attendee.labPartner)?.name ?? "—")
-        : "—",
+      labPartner: buildLabPartnerName(attendee),
       status: protocol?.accepted
         ? "Akzeptiert"
         : protocol?.submitted
