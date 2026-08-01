@@ -51,7 +51,7 @@ function addSection(
     doc.setFont("helvetica", "normal");
 
     const lines = doc.splitTextToSize(value || "—", 110);
-    doc.text(lines, 90, y);
+    doc.text(lines, 110, y);
     y += Math.max(LINE_HEIGHT, lines.length * LINE_HEIGHT);
   }
 
@@ -93,7 +93,7 @@ export function generateIndividualResultPdf(
     doc,
     "Anwesenheit und Leistung",
     [
-      ["Anzahl akzeptierter Protokolle", data.papersCompleted],
+      ["Anzahl akzeptierter Protokolle (Hauptautor)", data.papersCompleted],
       ["Anzahl akzeptierter Übungsblätter", data.exercisesCompleted],
       ["Anzahl besuchter Labortage", data.labAttendanceCount],
       ["Anzahl besuchter Seminarsitzungen", data.lectureAttendanceCount],

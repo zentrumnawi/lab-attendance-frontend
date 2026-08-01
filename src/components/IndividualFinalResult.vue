@@ -119,7 +119,9 @@
         </v-alert>
         <v-row>
           <v-col cols="4">
-            <v-list-subheader>Anzahl akzeptierter Protokolle</v-list-subheader>
+            <v-list-subheader
+              >Anzahl akzeptierter Protokolle (Hauptautor)</v-list-subheader
+            >
           </v-col>
 
           <v-col cols="8">
