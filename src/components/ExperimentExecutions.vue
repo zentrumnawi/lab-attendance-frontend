@@ -10,6 +10,17 @@
     v-model="snackbar"
   >
   </v-snackbar>
+  <v-snackbar
+    color="error"
+    location="bottom end"
+    prepend-icon="$error"
+    text="Versuchsdurchführung(en) konnte(n) nicht gespeichert werden."
+    timeout="3000"
+    title="Fehler beim Speichern"
+    contained
+    v-model="saveErrorSnackbar"
+  >
+  </v-snackbar>
   <div>
     <v-select
       v-model="labDay"
@@ -158,6 +169,7 @@ const labDayOptions = Array.from({ length: 8 }, (_, index) => ({
 const snackbar = ref(false);
 const saveMessage = ref<string | null>(null);
 const saveError = ref(false);
+const saveErrorSnackbar = ref(false);
 
 const headers: {
   title: string;
@@ -257,13 +269,15 @@ async function saveCompletions(studentId: string) {
     snackbar.value = true;
   } catch (e) {
     if (e instanceof QueuedLocallyError) {
+      saveError.value = true;
       saveMessage.value =
         "Nur lokal gespeichert. Synchronisation unter „Ausstehende Synchronisation“.";
-      saveError.value = false;
+      saveErrorSnackbar.value = true;
     } else {
+      saveErrorSnackbar.value = true;
+      saveError.value = true;
       saveMessage.value =
         "Versuchsdurchführung(en) konnte(n) nicht gespeichert werden.";
-      saveError.value = true;
     }
   }
   const remainingDrafts = { ...draftCompletions.value };
