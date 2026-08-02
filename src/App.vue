@@ -42,6 +42,12 @@
         >Praktikum AAC</v-toolbar-title
       >
       <v-spacer></v-spacer>
+      <v-icon
+        class="me-2"
+        :icon="isOnline ? 'mdi-wifi' : 'mdi-wifi-off'"
+        :color="isOnline ? 'light-green' : 'red-lighten-1'"
+        :title="isOnline ? 'Online' : 'Keine Internetverbindung'"
+      />
       <div v-if="isAuthenticated" class="d-flex align-center ga-3 me-2">
         <v-menu min-width="200px">
           <template #activator="{ props }">
@@ -116,6 +122,7 @@ export default defineComponent({
   data() {
     return {
       drawer: true,
+      isOnline: navigator.onLine,
     };
   },
   computed: {
@@ -126,7 +133,18 @@ export default defineComponent({
       "isSuperuser",
     ]),
   },
+  mounted() {
+    window.addEventListener("online", this.updateOnlineStatus);
+    window.addEventListener("offline", this.updateOnlineStatus);
+  },
+  beforeUnmount() {
+    window.removeEventListener("online", this.updateOnlineStatus);
+    window.removeEventListener("offline", this.updateOnlineStatus);
+  },
   methods: {
+    updateOnlineStatus() {
+      this.isOnline = navigator.onLine;
+    },
     async logout() {
       await useAuthStore().logout();
       this.$router.push("/login");
