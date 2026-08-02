@@ -31,6 +31,24 @@
         </v-toolbar>
       </template>
 
+      <template #[`item.name`]="{ item }">
+        <v-tooltip text="Klicken, um Details anzuzeigen">
+          <template #activator="{ props }">
+            <span
+              v-bind="props"
+              class="d-inline-flex align-center ga-1 cursor-pointer"
+            >
+              {{ item.name }}
+              <v-icon
+                icon="mdi-open-in-new"
+                size="x-small"
+                color="medium-emphasis"
+              />
+            </span>
+          </template>
+        </v-tooltip>
+      </template>
+
       <template #[`item.group`]="{ item }">
         {{ groupLabel(item.group) }}
       </template>
