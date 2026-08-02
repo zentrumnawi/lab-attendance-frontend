@@ -13,8 +13,13 @@
         <v-list-item title="Anwesenheit" to="/attendance" link />
         <v-list-item to="/sync" link>
           <v-list-item-title>Ausstehende Synchronisation</v-list-item-title>
-          <template v-if="syncQueueCount > 0" #append>
-            <v-badge :content="syncQueueCount" color="warning" inline />
+          <template #append>
+            <v-badge
+              :content="syncQueueCount + syncQueueExperimentsCount"
+              color="warning"
+              inline
+              v-if="syncQueueCount + syncQueueExperimentsCount > 0"
+            />
           </template>
         </v-list-item>
 
@@ -116,6 +121,7 @@
 import { defineComponent } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useSyncQueue } from "@/stores/syncQueue";
+import { useSyncQueueExperiments } from "@/stores/syncQueueExperiments";
 import { mapState } from "pinia";
 
 export default defineComponent({
@@ -134,6 +140,9 @@ export default defineComponent({
     ]),
     syncQueueCount(): number {
       return useSyncQueue().queueCount;
+    },
+    syncQueueExperimentsCount(): number {
+      return useSyncQueueExperiments().queueCount;
     },
   },
   methods: {
