@@ -110,7 +110,7 @@ export const useExperimentStore = defineStore("experiments", {
       }
 
       // Update local state for one or two students.
-      await this._writeNewCompletionsToStorage(
+      this._writeNewCompletionsToStorage(
         labDay,
         {
           student: studentId,
@@ -126,7 +126,7 @@ export const useExperimentStore = defineStore("experiments", {
         perfStore.invalidate(labPartnerId);
       }
     },
-    async _writeNewCompletionsToStorage(
+    _writeNewCompletionsToStorage(
       labDay: number,
       entry: ExperimentCompletion,
       labPartnerId?: string,
