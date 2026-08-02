@@ -170,6 +170,50 @@
             </v-chip>
           </div>
         </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <div class="text-body-2 text-medium-emphasis mb-3">
+            Gespeichert am {{ formatDate(item.createdAt) }}
+          </div>
+
+          <v-alert
+            v-if="item.lastError"
+            type="error"
+            density="compact"
+            class="mb-3"
+            variant="tonal"
+          >
+            {{ item.lastError }}
+          </v-alert>
+
+          <v-data-table
+            :headers="experimentExecutionDetailHeaders"
+            :items="experimentExecutionDetailRows(item)"
+            :hide-default-footer="
+              experimentExecutionDetailRows(item).length < 11
+            "
+            density="compact"
+            item-value="id"
+          >
+            <template #[`item.present`]="{ value }">
+              <v-icon
+                :color="value ? 'success' : 'medium-emphasis'"
+                :icon="value ? 'mdi-check-circle' : 'mdi-close-circle-outline'"
+                size="small"
+              />
+            </template>
+          </v-data-table>
+
+          <div class="d-flex justify-end mt-4">
+            <v-btn
+              color="primary"
+              :disabled="item.status === 'syncing' || syncingAll"
+              :loading="item.status === 'syncing'"
+              @click="syncOneExperimentExecutionItem(item.dedupeKey)"
+            >
+              Jetzt senden
+            </v-btn>
+          </div>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
   </div>
@@ -305,6 +349,16 @@ async function syncOneAttendanceItem(dedupeKey: string) {
   }
 }
 
+async function syncOneExperimentExecutionItem(dedupeKey: string) {
+  const ok = await syncExperimentExecutionQueue.syncItem(dedupeKey);
+  if (ok) {
+    showFeedback("Versuchsdurchführung erfolgreich synchronisiert.");
+  } else {
+    const item = syncExperimentExecutionQueue.getItemByDedupeKey(dedupeKey);
+    showFeedback(item?.lastError ?? "Synchronisation fehlgeschlagen.", "error");
+  }
+}
+
 async function syncAllAttendanceItems() {
   syncingAll.value = true;
   feedbackMessage.value = null;
@@ -323,6 +377,34 @@ async function syncAllAttendanceItems() {
         failed === 1
           ? "1 Anwesenheitsliste konnte nicht synchronisiert werden."
           : `${failed} Anwesenheitslisten konnten nicht synchronisiert werden.`,
+        "error",
+      );
+    } else {
+      showFeedback(
+        `${succeeded} synchronisiert, ${failed} fehlgeschlagen.`,
+        "warning",
+      );
+    }
+  } finally {
+    syncingAll.value = false;
+  }
+}
+
+async function syncAllExperimentExecutionItems() {
+  syncingAll.value = true;
+  feedbackMessage.value = null;
+
+  try {
+    const { succeeded, failed } =
+      await syncExperimentExecutionQueue.syncAllPending();
+
+    if (failed === 0) {
+      showFeedback(
+        `${succeeded} Versuchsdurchführung(en) erfolgreich synchronisiert.`,
+      );
+    } else if (succeeded === 0) {
+      showFeedback(
+        `${failed} Versuchsdurchführung(en) konnten nicht synchronisiert werden.`,
         "error",
       );
     } else {
