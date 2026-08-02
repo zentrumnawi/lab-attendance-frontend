@@ -5,6 +5,7 @@ import {
   saveExperimentCompletions,
   SaveExperimentCompletionsPayload,
 } from "@/api/experiments";
+import { useAttendeeStore } from "@/stores/attendeeStore";
 export type ExperimentExecutionQueueItem = {
   id: string;
   dedupeKey: string;
@@ -26,10 +27,11 @@ export function labelForExperimentExecutionItem(
   item: ExperimentExecutionQueueItem,
 ): string {
   const experimentCount = item.records[0].experiment_ids.length;
-  const studentCount = item.records.length;
-  const students = item.records.map((r) => r.student_id).join(", ");
+  const students = item.records
+    .map((r) => useAttendeeStore().getAttendeeById(r.student_id)?.name)
+    .join(", ");
 
-  return `Versuchstag ${item.lab_day} — ${experimentCount} Versuche-${studentCount} ${students}`;
+  return `Versuchstag ${item.lab_day} — ${experimentCount} erfolgreiche Versuche- ${students}`;
 }
 
 function formatSyncError(error: unknown): string {
