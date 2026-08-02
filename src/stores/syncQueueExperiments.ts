@@ -6,6 +6,7 @@ import {
   SaveExperimentCompletionsPayload,
 } from "@/api/experiments";
 import { useAttendeeStore } from "@/stores/attendeeStore";
+import { useExperimentStore } from "@/stores/experimentStore";
 export type ExperimentExecutionQueueItem = {
   id: string;
   dedupeKey: string;
@@ -117,6 +118,13 @@ export const useSyncQueueExperiments = defineStore("syncQueueExperiments", {
           records: item.records,
         });
         this.removeByDedupeKey(dedupeKey);
+        // update local state
+        for (const record of item.records) {
+          useExperimentStore()._writeNewCompletionsToStorage(item.lab_day, {
+            student: record.student_id,
+            experiment_completions: record.experiment_ids,
+          });
+        }
         return true;
       } catch (error) {
         item.status = "failed";
