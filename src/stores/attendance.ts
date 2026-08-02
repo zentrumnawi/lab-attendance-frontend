@@ -132,6 +132,33 @@ export const useAttendanceStore = defineStore("attendance", {
         isSameLabSession(labDate, group, praktikumDay),
       );
     },
+    applyLabDateLocally(date: string, praktikumDay: number, group: string) {
+      const existingLabDate = this.getLabDate(praktikumDay, group);
+      if (existingLabDate) {
+        existingLabDate.date = date;
+      } else {
+        this.labDates.push({
+          date,
+          praktikum_day: praktikumDay,
+          group,
+        });
+      }
+    },
+    applyLabSessionLocally(payload: BulkAttendancePayload) {
+      const { date, praktikum_day: praktikumDay, group, records } = payload;
+
+      this.applyLabDateLocally(date, praktikumDay, group);
+
+      const existingSession = this.labSessions.find((session) =>
+        isSameLabSession(session, group, praktikumDay),
+      );
+      if (existingSession) {
+        existingSession.date = date;
+        existingSession.records = records;
+      } else {
+        this.labSessions.push(payload);
+      }
+    },
     async saveSeminarSession(date: string, records: AttendanceRecordWrite[]) {
       const payload: SeminarAttendancePayload = {
         date,
@@ -171,29 +198,11 @@ export const useAttendanceStore = defineStore("attendance", {
 
       // await saveBulkAttendance(payload);
 
-      const existingLabDate = this.getLabDate(praktikumDay, group);
-      if (existingLabDate) {
-        existingLabDate.date = date;
-      } else {
-        this.labDates.push({
-          date,
-          praktikum_day: praktikumDay,
-          group,
-        });
-      }
-
-      const existingSession = this.labSessions.find((session) =>
-        isSameLabSession(session, group, praktikumDay),
-      );
-      if (existingSession) {
-        existingSession.date = date;
-        existingSession.records = records;
-      } else {
-        this.labSessions.push(payload);
-      }
+      // this.applyLabSessionLocally(payload);
 
       try {
         await saveBulkAttendance(payload);
+        this.applyLabSessionLocally(payload);
       } catch (error) {
         if (error instanceof NetworkError) {
           useSyncQueue().enqueueAttendance({
@@ -208,12 +217,6 @@ export const useAttendanceStore = defineStore("attendance", {
         } else {
           throw error;
         }
-      }
-
-      // invalidate for affected students so that their performance is recalculated
-      const perfStore = useStudentPerformanceStore();
-      for (const record of records) {
-        perfStore.invalidate(record.student_id);
       }
     },
     async deleteSession(

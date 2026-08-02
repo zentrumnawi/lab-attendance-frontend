@@ -5,6 +5,8 @@ import {
   type SeminarAttendancePayload,
 } from "@/api/attendance";
 import { defineStore } from "pinia";
+import { useStudentPerformanceStore } from "@/stores/studentPerformance";
+import { useAttendanceStore } from "@/stores/attendance";
 
 export type AttendanceQueueItem = {
   id: string;
@@ -44,6 +46,13 @@ async function postAttendancePayload(
 ): Promise<void> {
   if (payload.day_type === "LAB") {
     await saveBulkAttendance(payload);
+
+    useAttendanceStore().applyLabSessionLocally(payload);
+
+    const perfStore = useStudentPerformanceStore();
+    for (const record of payload.records) {
+      perfStore.invalidate(record.student_id);
+    }
     return;
   }
 
