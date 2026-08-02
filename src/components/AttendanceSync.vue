@@ -13,7 +13,7 @@
     <div class="d-flex align-center justify-space-between mb-4">
       <div class="text-h6">Ausstehende Synchronisation Anwesenheit</div>
       <v-btn
-        v-if="items.length > 0"
+        v-if="AttendanceItems.length > 0"
         color="primary"
         :disabled="syncingAll"
         :loading="syncingAll"
@@ -23,7 +23,12 @@
       </v-btn>
     </div>
 
-    <v-sheet v-if="items.length === 0" border rounded class="pa-6 text-center">
+    <v-sheet
+      v-if="AttendanceItems.length === 0"
+      border
+      rounded
+      class="pa-6 text-center"
+    >
       <v-icon
         class="mb-2"
         color="medium-emphasis"
@@ -37,43 +42,50 @@
     </v-sheet>
 
     <v-expansion-panels v-else multiple>
-      <v-expansion-panel v-for="item in items" :key="item.dedupeKey">
+      <v-expansion-panel
+        v-for="AttendanceItem in AttendanceItems"
+        :key="AttendanceItem.dedupeKey"
+      >
         <v-expansion-panel-title>
           <div
             class="d-flex flex-column flex-sm-row align-sm-center ga-2 w-100"
           >
-            <span class="font-weight-medium">{{ labelForItem(item) }}</span>
+            <span class="font-weight-medium">{{
+              labelForItem(AttendanceItem)
+            }}</span>
             <v-spacer />
             <v-chip
-              :color="statusColor(item.status)"
+              :color="statusColor(AttendanceItem.status)"
               label
               size="small"
               variant="tonal"
             >
-              {{ statusLabel(item.status) }}
+              {{ statusLabel(AttendanceItem.status) }}
             </v-chip>
           </div>
         </v-expansion-panel-title>
 
         <v-expansion-panel-text>
           <div class="text-body-2 text-medium-emphasis mb-3">
-            Gespeichert am {{ formatDate(item.createdAt) }}
+            Gespeichert am {{ formatDate(AttendanceItem.createdAt) }}
           </div>
 
           <v-alert
-            v-if="item.lastError"
+            v-if="AttendanceItem.lastError"
             type="error"
             density="compact"
             class="mb-3"
             variant="tonal"
           >
-            {{ item.lastError }}
+            {{ AttendanceItem.lastError }}
           </v-alert>
 
           <v-data-table
             :headers="attendanceDetailHeaders"
-            :items="attendanceDetailRows(item)"
-            :hide-default-footer="attendanceDetailRows(item).length < 11"
+            :items="attendanceDetailRows(AttendanceItem)"
+            :hide-default-footer="
+              attendanceDetailRows(AttendanceItem).length < 11
+            "
             density="compact"
             item-value="id"
           >
@@ -89,9 +101,9 @@
           <div class="d-flex justify-end mt-4">
             <v-btn
               color="primary"
-              :disabled="item.status === 'syncing' || syncingAll"
-              :loading="item.status === 'syncing'"
-              @click="syncOneAttendanceItem(item.dedupeKey)"
+              :disabled="AttendanceItem.status === 'syncing' || syncingAll"
+              :loading="AttendanceItem.status === 'syncing'"
+              @click="syncOneAttendanceItem(AttendanceItem.dedupeKey)"
             >
               Jetzt senden
             </v-btn>
@@ -198,7 +210,7 @@ const syncingAll = ref(false);
 const feedbackMessage = ref<string | null>(null);
 const feedbackType = ref<"success" | "error" | "warning">("success");
 
-const items = computed(() => syncAttendanceQueue.queuedItems);
+const AttendanceItems = computed(() => syncAttendanceQueue.queuedItems);
 const experimentExecutionItems = computed(
   () => syncExperimentExecutionQueue.queuedItems,
 );
