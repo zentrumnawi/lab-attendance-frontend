@@ -42,6 +42,12 @@
         >Praktikum AAC</v-toolbar-title
       >
       <v-spacer></v-spacer>
+      <a
+        href="javascript:void(0)"
+        @click="checkBackendHealth"
+        class="me-2 text-white"
+        >Verbindung prüfen</a
+      >
       <v-icon
         class="me-2"
         :icon="isOnline ? 'mdi-wifi' : 'mdi-wifi-off'"
@@ -109,6 +115,14 @@
         </v-col>
       </v-layout>
     </v-footer>
+    <v-snackbar
+      v-model="healthSnackbar"
+      :color="healthOk ? 'success' : 'error'"
+      location="bottom end"
+      :timeout="4000"
+    >
+      {{ healthMessage }}
+    </v-snackbar>
   </v-app>
 </template>
 
@@ -116,6 +130,7 @@
 import { defineComponent } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { mapState } from "pinia";
+import { fetchHealth } from "@/api/health";
 
 export default defineComponent({
   name: "App",
@@ -123,6 +138,9 @@ export default defineComponent({
     return {
       drawer: true,
       isOnline: navigator.onLine,
+      healthSnackbar: false,
+      healthOk: false,
+      healthMessage: "",
     };
   },
   computed: {
@@ -144,6 +162,19 @@ export default defineComponent({
   methods: {
     updateOnlineStatus() {
       this.isOnline = navigator.onLine;
+    },
+    async checkBackendHealth() {
+      try {
+        const data = await fetchHealth();
+        this.healthOk = data.ok === true;
+        this.healthMessage = this.healthOk
+          ? "Backend erreichbar"
+          : "Backend nicht erreichbar";
+      } catch {
+        this.healthOk = false;
+        this.healthMessage = "Backend nicht erreichbar";
+      }
+      this.healthSnackbar = true;
     },
     async logout() {
       await useAuthStore().logout();
