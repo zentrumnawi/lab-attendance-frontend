@@ -17,6 +17,7 @@ export interface StudentPerformance {
   lecture_attendance_count: number;
   experiments_completed: number;
   comment?: string;
+  status?: "INC" | "PASS" | "FAIL";
   [key: string]: any;
 }
 
