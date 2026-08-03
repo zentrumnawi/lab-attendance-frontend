@@ -54,6 +54,7 @@ export async function httpJson<T>(
     body?: unknown;
     signal?: AbortSignal;
     headers?: Record<string, string>;
+    cache?: "default" | "no-store";
   },
 ): Promise<T> {
   const headers: Record<string, string> = {
@@ -84,6 +85,7 @@ export async function httpJson<T>(
       body,
       signal: opts?.signal,
       credentials: "include",
+      cache: opts?.cache,
     });
   } catch (e) {
     if (isFetchNetworkFailure(e)) {

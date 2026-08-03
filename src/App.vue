@@ -53,6 +53,18 @@
         >Praktikum AAC</v-toolbar-title
       >
       <v-spacer></v-spacer>
+      <a
+        href="javascript:void(0)"
+        @click="checkBackendHealth"
+        class="me-2 text-white"
+        >Verbindung prüfen</a
+      >
+      <v-icon
+        class="me-2"
+        :icon="isOnline ? 'mdi-wifi' : 'mdi-wifi-off'"
+        :color="isOnline ? 'light-green' : 'red-lighten-1'"
+        :title="isOnline ? 'Online' : 'Keine Internetverbindung'"
+      />
       <div v-if="isAuthenticated" class="d-flex align-center ga-3 me-2">
         <v-menu min-width="200px">
           <template #activator="{ props }">
@@ -114,6 +126,14 @@
         </v-col>
       </v-layout>
     </v-footer>
+    <v-snackbar
+      v-model="healthSnackbar"
+      :color="healthOk ? 'success' : 'error'"
+      location="bottom end"
+      :timeout="4000"
+    >
+      {{ healthMessage }}
+    </v-snackbar>
   </v-app>
 </template>
 
@@ -123,12 +143,17 @@ import { useAuthStore } from "@/stores/auth";
 import { useSyncQueue } from "@/stores/syncQueue";
 import { useSyncQueueExperiments } from "@/stores/syncQueueExperiments";
 import { mapState } from "pinia";
+import { fetchHealth } from "@/api/health";
 
 export default defineComponent({
   name: "App",
   data() {
     return {
       drawer: true,
+      isOnline: navigator.onLine,
+      healthSnackbar: false,
+      healthOk: false,
+      healthMessage: "",
     };
   },
   computed: {
@@ -145,7 +170,31 @@ export default defineComponent({
       return useSyncQueueExperiments().queueCount;
     },
   },
+  mounted() {
+    window.addEventListener("online", this.updateOnlineStatus);
+    window.addEventListener("offline", this.updateOnlineStatus);
+  },
+  beforeUnmount() {
+    window.removeEventListener("online", this.updateOnlineStatus);
+    window.removeEventListener("offline", this.updateOnlineStatus);
+  },
   methods: {
+    updateOnlineStatus() {
+      this.isOnline = navigator.onLine;
+    },
+    async checkBackendHealth() {
+      try {
+        const data = await fetchHealth();
+        this.healthOk = data.ok === true;
+        this.healthMessage = this.healthOk
+          ? "Backend erreichbar"
+          : "Backend nicht erreichbar";
+      } catch {
+        this.healthOk = false;
+        this.healthMessage = "Backend nicht erreichbar";
+      }
+      this.healthSnackbar = true;
+    },
     async logout() {
       await useAuthStore().logout();
       this.$router.push("/login");
