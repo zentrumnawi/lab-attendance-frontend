@@ -7,6 +7,8 @@ import { useExerciseStore } from "@/stores/exerciseStore";
 import { useExperimentStore } from "@/stores/experimentStore";
 import { useProtocolStore } from "@/stores/protocols";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
+import { useSyncQueueExperiments } from "@/stores/syncQueueExperiments";
+import { useSyncQueue } from "@/stores/syncQueue";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -80,6 +82,8 @@ function resetApplicationStores(): void {
   useExperimentStore().$reset();
   useProtocolStore().$reset();
   useStudentPerformanceStore().$reset();
+  useSyncQueueExperiments().$reset();
+  useSyncQueue().$reset();
 }
 
 function formatAuthError(e: unknown): string {
