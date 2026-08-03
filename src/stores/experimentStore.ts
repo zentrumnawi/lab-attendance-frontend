@@ -9,6 +9,11 @@ import {
   saveExperimentCompletions,
 } from "@/api/experiments";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
+import {
+  useSyncQueueExperiments,
+  experimentExecutionDedupeKey,
+} from "@/stores/syncQueueExperiments";
+import { NetworkError, QueuedLocallyError } from "@/utils/network";
 
 export const useExperimentStore = defineStore("experiments", {
   state: () => ({
@@ -83,13 +88,29 @@ export const useExperimentStore = defineStore("experiments", {
           experiment_ids: experimentIds,
         });
       }
-      await saveExperimentCompletions({
-        lab_day: labDay,
-        records: records,
-      });
+      try {
+        await saveExperimentCompletions({
+          lab_day: labDay,
+          records: records,
+        });
+      } catch (error) {
+        if (error instanceof NetworkError) {
+          useSyncQueueExperiments().enqueueExperimentExecution({
+            id: crypto.randomUUID(),
+            dedupeKey: experimentExecutionDedupeKey(labDay, studentId),
+            lab_day: labDay,
+            records: records,
+            createdAt: new Date().toISOString(),
+            status: "pending",
+          });
+          throw new QueuedLocallyError();
+        } else {
+          throw error;
+        }
+      }
 
       // Update local state for one or two students.
-      await this._writeNewCompletionsToStorage(
+      this._writeNewCompletionsToStorage(
         labDay,
         {
           student: studentId,
@@ -105,7 +126,7 @@ export const useExperimentStore = defineStore("experiments", {
         perfStore.invalidate(labPartnerId);
       }
     },
-    async _writeNewCompletionsToStorage(
+    _writeNewCompletionsToStorage(
       labDay: number,
       entry: ExperimentCompletion,
       labPartnerId?: string,

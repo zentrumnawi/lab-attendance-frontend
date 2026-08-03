@@ -184,6 +184,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAttendeeStore } from "@/stores/attendeeStore";
 import { useAttendanceStore } from "@/stores/attendance";
+import { QueuedLocallyError } from "@/utils/network";
 
 const props = defineProps<{
   date: string;
@@ -225,14 +226,11 @@ const sessionTitle = computed(() => {
 });
 
 const canSave = computed(() => {
-  if (existingSession.value) {
-    return (
-      praktikumDay.value !== null &&
-      (praktikumDay.value === props.praktikumDay ||
-        !attendanceStore.dayNumbersInUse.includes(praktikumDay.value ?? 0))
-    );
-  }
-  return isSem.value ? true : praktikumDay.value !== null;
+  if (isSem.value) return true;
+  if (praktikumDay.value === null) return false;
+  if (existingSession.value && praktikumDay.value === props.praktikumDay)
+    return true;
+  return !attendanceStore.dayNumbersInUse.includes(praktikumDay.value);
 });
 
 const allPresent = computed(
@@ -351,9 +349,15 @@ async function saveAttendance() {
       }
     }
     saveMessage.value = "Anwesenheit gespeichert.";
-  } catch {
-    saveError.value = true;
-    saveMessage.value = "Anwesenheit konnte nicht gespeichert werden.";
+  } catch (e) {
+    if (e instanceof QueuedLocallyError) {
+      saveMessage.value =
+        "Lokal gespeichert. Synchronisation unter „Ausstehende Synchronisation“.";
+      saveError.value = false;
+    } else {
+      saveMessage.value = "Anwesenheit konnte nicht gespeichert werden.";
+      saveError.value = true;
+    }
   } finally {
     saving.value = false;
   }

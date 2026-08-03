@@ -13,8 +13,11 @@ import {
   type SeminarAttendancePayload,
   changeLabDayOfSession,
 } from "@/api/attendance";
+import { NetworkError } from "@/api/http";
 import { defineStore } from "pinia";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
+import { labDedupeKey, useSyncQueue } from "@/stores/syncQueue";
+import { QueuedLocallyError } from "@/utils/network";
 
 // this is because of different API shapes for read vs write
 function writeRecordsToReadRecords(
@@ -136,6 +139,33 @@ export const useAttendanceStore = defineStore("attendance", {
         isSameLabSession(labDate, group, praktikumDay),
       );
     },
+    applyLabDateLocally(date: string, praktikumDay: number, group: string) {
+      const existingLabDate = this.getLabDate(praktikumDay, group);
+      if (existingLabDate) {
+        existingLabDate.date = date;
+      } else {
+        this.labDates.push({
+          date,
+          praktikum_day: praktikumDay,
+          group,
+        });
+      }
+    },
+    applyLabSessionLocally(payload: BulkAttendancePayload) {
+      const { date, praktikum_day: praktikumDay, group, records } = payload;
+
+      this.applyLabDateLocally(date, praktikumDay, group);
+
+      const existingSession = this.labSessions.find((session) =>
+        isSameLabSession(session, group, praktikumDay),
+      );
+      if (existingSession) {
+        existingSession.date = date;
+        existingSession.records = records;
+      } else {
+        this.labSessions.push(payload);
+      }
+    },
     async saveSeminarSession(date: string, records: AttendanceRecordWrite[]) {
       const payload: SeminarAttendancePayload = {
         date,
@@ -177,51 +207,51 @@ export const useAttendanceStore = defineStore("attendance", {
       const dayChanged =
         previousPraktikumDay != null && previousPraktikumDay !== praktikumDay;
 
-      if (dayChanged) {
-        payload.old_praktikum_day = previousPraktikumDay;
-        await changeLabDayOfSession(payload);
-        // adjust state
-        this.labDates = this.labDates.filter(
-          (d) => !isSameLabSession(d, group, previousPraktikumDay),
-        );
-        this.labSessions = this.labSessions.filter(
-          (s) => !isSameLabSession(s, group, previousPraktikumDay),
-        );
-        this.dayNumbersInUse = this.dayNumbersInUse.filter(
-          (d) => d !== previousPraktikumDay,
-        );
-      } else {
-        await saveBulkAttendance(payload);
-      }
+      try {
+        if (dayChanged) {
+          // Changing lab day number of existing session is fundamentally different
+          // from other session-related operations, so we need to handle it separately.
+          // Queueing not (yet) possible
+          payload.old_praktikum_day = previousPraktikumDay;
+          await changeLabDayOfSession(payload);
+          // Remove traces of old lab day number-keyed session: labDates, labSessions, dayNumbersInUse
+          this.labDates = this.labDates.filter(
+            (d) => !isSameLabSession(d, group, previousPraktikumDay),
+          );
+          this.labSessions = this.labSessions.filter(
+            (s) => !isSameLabSession(s, group, previousPraktikumDay),
+          );
+          this.dayNumbersInUse = this.dayNumbersInUse.filter(
+            (d) => d !== previousPraktikumDay,
+          );
+        } else {
+          await saveBulkAttendance(payload);
+        }
 
-      const existingLabDate = this.getLabDate(praktikumDay, group);
-      if (existingLabDate) {
-        existingLabDate.date = date;
-      } else {
-        this.labDates.push({
-          date,
-          praktikum_day: praktikumDay,
-          group,
-        });
-      }
+        this.applyLabSessionLocally(payload);
 
-      // Block use of this lab day for new sessions
-      this.dayNumbersInUse.push(praktikumDay);
+        if (!this.dayNumbersInUse.includes(praktikumDay)) {
+          this.dayNumbersInUse.push(praktikumDay);
+        }
 
-      const existingSession = this.labSessions.find((session) =>
-        isSameLabSession(session, group, praktikumDay),
-      );
-      if (existingSession) {
-        existingSession.date = date;
-        existingSession.records = records;
-      } else {
-        this.labSessions.push(payload);
-      }
-
-      // invalidate for affected students so that their performance is recalculated
-      const perfStore = useStudentPerformanceStore();
-      for (const record of records) {
-        perfStore.invalidate(record.student_id);
+        const perfStore = useStudentPerformanceStore();
+        for (const record of records) {
+          perfStore.invalidate(record.student_id);
+        }
+      } catch (error) {
+        if (error instanceof NetworkError && !dayChanged) {
+          useSyncQueue().enqueueAttendance({
+            id: crypto.randomUUID(),
+            type: "attendance.lab",
+            dedupeKey: labDedupeKey(date, group),
+            payload,
+            createdAt: new Date().toISOString(),
+            status: "pending",
+          });
+          throw new QueuedLocallyError();
+        } else {
+          throw error;
+        }
       }
     },
     async deleteSession(

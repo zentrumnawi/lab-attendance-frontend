@@ -10,6 +10,17 @@
     v-model="snackbar"
   >
   </v-snackbar>
+  <v-snackbar
+    color="error"
+    location="bottom end"
+    prepend-icon="$error"
+    text="Versuchsdurchführung(en) konnte(n) nicht gespeichert werden."
+    timeout="3000"
+    title="Fehler beim Speichern"
+    contained
+    v-model="saveErrorSnackbar"
+  >
+  </v-snackbar>
   <div>
     <v-select
       v-model="labDay"
@@ -28,6 +39,15 @@
     <br />
 
     <v-sheet border rounded class="mb-4 pa-4">
+      <v-alert
+        v-if="saveMessage"
+        :type="saveError ? 'error' : 'success'"
+        class="ma-4"
+        closable
+        @click:close="saveMessage = null"
+      >
+        {{ saveMessage }}
+      </v-alert>
       <div class="text-subtitle-2 font-weight-medium mb-2">Experimente</div>
 
       <ul
@@ -122,6 +142,7 @@
 import { useAttendeeStore } from "@/stores/attendeeStore";
 import { useExperimentStore } from "@/stores/experimentStore";
 import { ref, onMounted, computed, watch } from "vue";
+import { QueuedLocallyError } from "@/utils/network";
 
 interface ExperimentExecutionRow {
   id: string;
@@ -146,6 +167,9 @@ const labDayOptions = Array.from({ length: 8 }, (_, index) => ({
   value: index + 1,
 }));
 const snackbar = ref(false);
+const saveMessage = ref<string | null>(null);
+const saveError = ref(false);
+const saveErrorSnackbar = ref(false);
 
 const headers: {
   title: string;
@@ -223,6 +247,8 @@ function updateDraft(
 }
 
 async function saveCompletions(studentId: string) {
+  saveMessage.value = null;
+  saveError.value = false;
   const draft = draftCompletions.value[studentId];
   if (!draft) return;
 
@@ -233,17 +259,30 @@ async function saveCompletions(studentId: string) {
     }
   }
 
-  await experimentStore.setExperimentCompletion(
-    labDay.value,
-    studentId,
-    experimentIds,
-    attendeeStore.getAttendeeById(studentId)?.labPartner,
-  );
-
+  try {
+    await experimentStore.setExperimentCompletion(
+      labDay.value,
+      studentId,
+      experimentIds,
+      attendeeStore.getAttendeeById(studentId)?.labPartner,
+    );
+    snackbar.value = true;
+  } catch (e) {
+    if (e instanceof QueuedLocallyError) {
+      saveError.value = true;
+      saveMessage.value =
+        "Nur lokal gespeichert. Synchronisation unter „Ausstehende Synchronisation“.";
+      saveErrorSnackbar.value = true;
+    } else {
+      saveErrorSnackbar.value = true;
+      saveError.value = true;
+      saveMessage.value =
+        "Versuchsdurchführung(en) konnte(n) nicht gespeichert werden.";
+    }
+  }
   const remainingDrafts = { ...draftCompletions.value };
   delete remainingDrafts[studentId];
   draftCompletions.value = remainingDrafts;
-  snackbar.value = true;
 }
 
 const experimentsForLabDay = computed(() =>
