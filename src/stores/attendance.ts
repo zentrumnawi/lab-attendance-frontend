@@ -243,7 +243,7 @@ export const useAttendanceStore = defineStore("attendance", {
           useSyncQueue().enqueueAttendance({
             id: crypto.randomUUID(),
             type: "attendance.lab",
-            dedupeKey: labDedupeKey(date, group),
+            dedupeKey: labDedupeKey(praktikumDay, group),
             payload,
             createdAt: new Date().toISOString(),
             status: "pending",

@@ -18,8 +18,8 @@ export type AttendanceQueueItem = {
   status: "pending" | "syncing" | "failed";
 };
 
-export function labDedupeKey(date: string, group: string): string {
-  return `lab:${date}:${group}`;
+export function labDedupeKey(praktikumDay: number, group: string): string {
+  return `lab:${group}:${praktikumDay}`;
 }
 
 export function seminarDedupeKey(date: string): string {
