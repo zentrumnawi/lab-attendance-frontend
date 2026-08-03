@@ -41,48 +41,51 @@
         <template #expanded-row="{ columns, item }">
           <tr>
             <td :colspan="columns.length">
-              <div
-                class="d-flex justify-end"
-                v-if="item.status === 'Nicht eingereicht'"
-              >
-                <v-btn
-                  class="text-none"
-                  color="blue-darken-4"
-                  rounded="0"
-                  variant="outlined"
-                  text="Abgabe"
-                  @click="openSubmissionDialog(item)"
-                />
-              </div>
-              <div
-                class="d-flex justify-end"
-                v-if="item.status === 'Eingereicht'"
-              >
-                <v-btn
-                  class="text-none"
-                  color="blue-darken-4"
-                  rounded="0"
-                  variant="outlined"
-                  text="Abgabe akzeptieren"
-                  @click="openEditedSubmissionDialog(item)"
-                />
-              </div>
-              <div
-                class="d-flex justify-space-between"
-                v-if="item.status === 'Akzeptiert'"
-              >
-                <span
-                  >Akzeptiert am
-                  {{ formatSubmissionDate(item.accepted_date) }}</span
-                >
-                <v-btn
-                  class="text-none"
-                  color="blue-darken-4"
-                  rounded="0"
-                  variant="outlined"
-                  text="Zurückziehen"
-                  @click="openWithdrawSubmissionDialog(item)"
-                />
+              <div class="d-flex align-center justify-space-between">
+                <div>
+                  <v-chip
+                    v-if="item.main_author"
+                    class="ma-2"
+                    color="yellow-darken-4"
+                    label
+                  >
+                    <v-icon icon="mdi-pencil" start></v-icon>
+                    Hauptautor
+                  </v-chip>
+                  <span v-if="item.status === 'Akzeptiert'" class="ma-2">
+                    Akzeptiert am
+                    {{ formatSubmissionDate(item.accepted_date) }}
+                  </span>
+                </div>
+                <div>
+                  <v-btn
+                    v-if="item.status === 'Nicht eingereicht'"
+                    class="text-none"
+                    color="blue-darken-4"
+                    rounded="0"
+                    variant="outlined"
+                    text="Abgabe"
+                    @click="openSubmissionDialog(item)"
+                  />
+                  <v-btn
+                    v-if="item.status === 'Eingereicht'"
+                    class="text-none"
+                    color="blue-darken-4"
+                    rounded="0"
+                    variant="outlined"
+                    text="Abgabe akzeptieren"
+                    @click="openEditedSubmissionDialog(item)"
+                  />
+                  <v-btn
+                    v-if="item.status === 'Akzeptiert'"
+                    class="text-none"
+                    color="blue-darken-4"
+                    rounded="0"
+                    variant="outlined"
+                    text="Zurückziehen"
+                    @click="openWithdrawSubmissionDialog(item)"
+                  />
+                </div>
               </div>
             </td>
           </tr>
@@ -94,9 +97,11 @@
       <v-card title="Protokollabgabe">
         <template #text>
           <p v-if="selectedStudent" class="text-body-1 mb-4">
-            {{ selectedStudent.firstName }} {{ selectedStudent.name }}
+            Hauptautor: {{ mainAuthorLabel(selectedStudent) }}
           </p>
-
+          <p v-if="selectedStudent" class="text-body-1 mb-4">
+            Labor-Partner: {{ labPartnerLabel(selectedStudent) }}
+          </p>
           <v-checkbox
             v-model="acceptImmediately"
             hide-details
@@ -148,9 +153,11 @@
       <v-card title="Abgabe bearbeiten">
         <template #text>
           <p v-if="selectedEditStudent" class="text-body-1 mb-4">
-            {{ selectedEditStudent.firstName }} {{ selectedEditStudent.name }}
+            Hauptautor: {{ mainAuthorLabel(selectedEditStudent) }}
           </p>
-
+          <p v-if="selectedEditStudent" class="text-body-1 mb-4">
+            Labor-Partner: {{ labPartnerLabel(selectedEditStudent) }}
+          </p>
           <v-list density="compact" class="bg-surface-light rounded mb-4">
             <v-list-item>
               <v-list-item-title>Einreichungsdatum</v-list-item-title>
@@ -209,9 +216,11 @@
       <v-card title="Abgabe zurückziehen">
         <template #text>
           <p v-if="selectedEditStudent" class="text-body-1 mb-4">
-            {{ selectedEditStudent.firstName }} {{ selectedEditStudent.name }}
+            Hauptautor: {{ mainAuthorLabel(selectedEditStudent) }}
           </p>
-
+          <p v-if="selectedEditStudent" class="text-body-1 mb-4">
+            Labor-Partner: {{ labPartnerLabel(selectedEditStudent) }}
+          </p>
           <v-list density="compact" class="bg-surface-light rounded mb-4">
             <v-list-item>
               <v-list-item-title>Einreichungsdatum</v-list-item-title>
@@ -288,6 +297,7 @@ import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import { useAttendeeStore } from "@/stores/attendeeStore";
 import type { SubmitPaperRecord } from "@/api/protocols";
 import { format } from "date-fns";
+import { Attendee } from "@/stores/types";
 
 type ProtocolStatus = "Akzeptiert" | "Eingereicht" | "Nicht eingereicht";
 
@@ -304,6 +314,7 @@ interface ProtocolRow {
   necessary_corrections: string | null;
   submission_date: Date | null;
   submitted: boolean;
+  main_author: boolean;
 }
 
 const headers: {
@@ -392,6 +403,55 @@ function openWithdrawSubmissionDialog(item: ProtocolRow) {
   withdrawSubmissionDialog.value = true;
 }
 
+function buildLabPartnerName(student: Attendee): string {
+  if (!student.labPartner) return "—";
+
+  const labPartner = attendeeStore.getAttendeeById(student.labPartner);
+  if (!labPartner) return "—";
+
+  return `${labPartner.firstName} ${labPartner.name}`;
+}
+
+function formatStudentName(
+  student: Pick<ProtocolRow, "firstName" | "name">,
+): string {
+  return `${student.firstName} ${student.name}`;
+}
+
+// Don't derive main author from who was clicked on
+function resolveAuthorRoles(student: ProtocolRow): {
+  mainAuthor: ProtocolRow;
+  labPartner: ProtocolRow | null;
+} {
+  if (!student.labPartnerId) {
+    return { mainAuthor: student, labPartner: null };
+  }
+
+  const partner =
+    rows.value.find((row) => row.id === student.labPartnerId) ?? null;
+
+  if (student.main_author) {
+    return { mainAuthor: student, labPartner: partner };
+  }
+
+  if (partner?.main_author) {
+    return { mainAuthor: partner, labPartner: student };
+  }
+
+  // No main author established yet (first submission): treat clicked student as author
+  return { mainAuthor: student, labPartner: partner };
+}
+
+function mainAuthorLabel(student: ProtocolRow): string {
+  return formatStudentName(resolveAuthorRoles(student).mainAuthor);
+}
+
+function labPartnerLabel(student: ProtocolRow): string {
+  const { labPartner } = resolveAuthorRoles(student);
+  if (!labPartner) return student.labPartner;
+  return formatStudentName(labPartner);
+}
+
 function formatSubmissionDate(value: Date | string | null | undefined): string {
   if (!value) return "—";
 
@@ -419,11 +479,13 @@ function buildSubmissionRecords(student: ProtocolRow): SubmitPaperRecord[] {
   const necessaryCorrections = requireCorrections.value
     ? correctionsText.value.trim() || null
     : null;
+  const { mainAuthor, labPartner } = resolveAuthorRoles(student);
 
   const records: SubmitPaperRecord[] = [
     {
-      student_id: student.id,
+      student_id: mainAuthor.id,
       submitted: true,
+      main_author: true,
       submission_date: submissionDate,
       necessary_corrections: necessaryCorrections,
       accepted: acceptImmediately.value,
@@ -431,10 +493,11 @@ function buildSubmissionRecords(student: ProtocolRow): SubmitPaperRecord[] {
     },
   ];
 
-  if (student.labPartnerId) {
+  if (labPartner) {
     records.push({
-      student_id: student.labPartnerId,
+      student_id: labPartner.id,
       submitted: true,
+      main_author: false,
       submission_date: submissionDate,
       necessary_corrections: necessaryCorrections,
       accepted: acceptImmediately.value,
@@ -466,6 +529,10 @@ async function saveEditedSubmission() {
 
   savingEditSubmission.value = true;
 
+  const { mainAuthor, labPartner } = resolveAuthorRoles(
+    selectedEditStudent.value,
+  );
+
   const baseData = {
     submitted: true,
     submission_date: selectedEditStudent.value.submission_date,
@@ -473,18 +540,19 @@ async function saveEditedSubmission() {
     accepted: true,
     accepted_date: new Date(),
   };
-
-  const records = [
+  const records: SubmitPaperRecord[] = [
     {
+      student_id: mainAuthor.id,
       ...baseData,
-      student_id: selectedEditStudent.value.id,
+      main_author: true,
     },
   ];
 
-  if (selectedEditStudent.value.labPartnerId) {
+  if (labPartner) {
     records.push({
       ...baseData,
-      student_id: selectedEditStudent.value.labPartnerId,
+      student_id: labPartner.id,
+      main_author: false,
     });
   }
 
@@ -502,6 +570,10 @@ async function saveEditedSubmission() {
 async function saveWithdrawSubmission() {
   if (!selectedEditStudent.value || !withdrawSubmission.value) return;
 
+  const { mainAuthor, labPartner } = resolveAuthorRoles(
+    selectedEditStudent.value,
+  );
+
   const baseData = {
     submitted: true,
     submission_date: selectedEditStudent.value.submission_date,
@@ -509,18 +581,19 @@ async function saveWithdrawSubmission() {
     accepted: false,
     accepted_date: null,
   };
-
-  const records = [
+  const records: SubmitPaperRecord[] = [
     {
+      student_id: mainAuthor.id,
       ...baseData,
-      student_id: selectedEditStudent.value.id,
+      main_author: true,
     },
   ];
 
-  if (selectedEditStudent.value.labPartnerId) {
+  if (labPartner) {
     records.push({
       ...baseData,
-      student_id: selectedEditStudent.value.labPartnerId,
+      student_id: labPartner.id,
+      main_author: false,
     });
   }
 
@@ -554,9 +627,7 @@ const rows = computed<ProtocolRow[]>(() =>
       firstName: attendee.firstName ?? "",
       matriculationNumber: attendee.matriculationNumber ?? "",
       labPartnerId: attendee.labPartner || null,
-      labPartner: attendee.labPartner
-        ? (attendeeStore.getAttendeeById(attendee.labPartner)?.name ?? "—")
-        : "—",
+      labPartner: buildLabPartnerName(attendee),
       status: protocol?.accepted
         ? "Akzeptiert"
         : protocol?.submitted
@@ -567,6 +638,7 @@ const rows = computed<ProtocolRow[]>(() =>
       necessary_corrections: protocol?.necessary_corrections ?? null,
       submission_date: protocol?.submission_date ?? null,
       submitted: protocol?.submitted ?? false,
+      main_author: protocol?.main_author ?? false,
     };
   }),
 );

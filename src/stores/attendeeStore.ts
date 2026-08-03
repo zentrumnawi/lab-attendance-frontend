@@ -37,6 +37,7 @@ export const useAttendeeStore = defineStore("attendees", {
           lab_partner: formData.labPartner,
           matriculation_number: formData.matriculationNumber,
           group: formData.group,
+          department: formData.department || null,
         });
         const index = this.attendees.findIndex(
           (attendee) => attendee.id === formData.id,
@@ -53,6 +54,7 @@ export const useAttendeeStore = defineStore("attendees", {
           lab_partner: formData.labPartner,
           matriculation_number: formData.matriculationNumber,
           group: formData.group,
+          department: formData.department || null,
         });
         this.attendees.push({
           id: newStudent.id,
@@ -63,6 +65,7 @@ export const useAttendeeStore = defineStore("attendees", {
           email: newStudent.email,
           labPartner: newStudent.lab_partner || "",
           group: newStudent.group?.id ?? "",
+          department: newStudent.department?.id ?? "",
         });
       }
     },
@@ -95,6 +98,7 @@ export const useAttendeeStore = defineStore("attendees", {
         email: "f.scott.fitzgerald@example.com",
         labPartner: "Tim Banks",
         group: "",
+        department: "",
       });
     },
 
@@ -118,6 +122,7 @@ export const useAttendeeStore = defineStore("attendees", {
           email: student.email,
           labPartner: student.lab_partner || "",
           group: student.group?.id ?? "",
+          department: student.department?.id ?? "",
         }));
 
         this.attendees = attendees;
@@ -169,6 +174,7 @@ export const useAttendeeStore = defineStore("attendees", {
         email: student.email,
         labPartner: student.lab_partner || "",
         group: student.group?.id ?? "",
+        department: student.department?.id ?? "",
       };
 
       this.attendees.push(attendee);

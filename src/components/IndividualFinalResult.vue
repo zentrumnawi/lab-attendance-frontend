@@ -79,7 +79,11 @@
 
           <v-col cols="8">
             <v-text-field
-              :model-value="attendee?.department"
+              :model-value="
+                departmentStore.getDepartmentNameById(
+                  attendee?.department ?? '',
+                ) ?? ''
+              "
               readonly
             ></v-text-field>
           </v-col>
@@ -115,7 +119,9 @@
         </v-alert>
         <v-row>
           <v-col cols="4">
-            <v-list-subheader>Anzahl akzeptierter Protokolle</v-list-subheader>
+            <v-list-subheader
+              >Anzahl akzeptierter Protokolle (Hauptautor)</v-list-subheader
+            >
           </v-col>
 
           <v-col cols="8">
@@ -224,6 +230,59 @@
     </v-expansion-panel>
   </v-expansion-panels>
 
+  <div v-if="performance && !loading" class="mt-6">
+    <template v-if="isPassedConfirmed">
+      <div class="d-flex align-center ga-3 pass-status">
+        <v-icon icon="mdi-check-circle" color="success" size="x-large" />
+        <span class="text-h5 font-weight-bold text-success">Bestanden</span>
+      </div>
+    </template>
+
+    <template v-else>
+      <v-alert
+        :type="meetsPassCriteria ? 'success' : 'error'"
+        :icon="
+          meetsPassCriteria ? 'mdi-check-circle' : 'mdi-close-circle-outline'
+        "
+        variant="tonal"
+        density="compact"
+        class="pass-status"
+      >
+        {{
+          meetsPassCriteria
+            ? "Bestehenskriterien erfüllt"
+            : "Bestehenskriterien nicht erfüllt"
+        }}
+      </v-alert>
+
+      <div class="d-flex align-center flex-wrap ga-4 mt-4">
+        <v-checkbox
+          v-model="confirmPass"
+          hide-details
+          label="Als bestanden markieren"
+          density="comfortable"
+        />
+        <v-btn
+          color="primary"
+          text="Speichern"
+          variant="tonal"
+          :disabled="!confirmPass"
+          :loading="savingPassed"
+          @click="savePassed"
+        />
+      </div>
+      <v-alert
+        v-if="passError"
+        type="error"
+        variant="tonal"
+        density="compact"
+        class="mt-3"
+      >
+        {{ passError }}
+      </v-alert>
+    </template>
+  </div>
+
   <v-dialog v-model="commentDialog" max-width="500">
     <v-card>
       <v-card-title class="text-h6">Kommentar</v-card-title>
@@ -259,10 +318,12 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 import { useAttendeeStore } from "@/stores/attendeeStore";
 import { useGroupStore } from "@/stores/groupStore";
+import { useDepartmentStore } from "@/stores/departmentStore";
 import { useExperimentStore } from "@/stores/experimentStore";
 import { downloadIndividualResultPdf } from "@/utils/generateIndividualResultPdf";
 
 const groupStore = useGroupStore();
+const departmentStore = useDepartmentStore();
 const experimentStore = useExperimentStore();
 
 const props = defineProps<{
@@ -283,9 +344,58 @@ const experimentsCompletionDisplay = computed(
     `${performance.value?.experiments_completed ?? ""} / ${experimentStore.experiments.length}`,
 );
 
+const PASS_REQUIREMENTS = {
+  papers: 4,
+  exercises: 8,
+  labAttendance: 8,
+  lectureAttendance: 4,
+} as const;
+
+const isPassedConfirmed = computed(() => performance.value?.status === "PASS");
+
+const meetsPassCriteria = computed(() => {
+  const p = performance.value;
+  if (!p) {
+    return false;
+  }
+  const totalExperiments = experimentStore.experiments.length;
+  const experimentsOk =
+    totalExperiments > 0 && p.experiments_completed >= totalExperiments;
+  return (
+    p.papers_completed >= PASS_REQUIREMENTS.papers &&
+    p.exercises_completed >= PASS_REQUIREMENTS.exercises &&
+    p.lab_attendance_count >= PASS_REQUIREMENTS.labAttendance &&
+    p.lecture_attendance_count >= PASS_REQUIREMENTS.lectureAttendance &&
+    experimentsOk
+  );
+});
+
+const confirmPass = ref(false);
+const savingPassed = ref(false);
+const passError = ref<string | null>(null);
+
 const commentDialog = ref(false);
 const commentText = ref("");
 const savingComment = ref(false);
+
+async function savePassed() {
+  if (!confirmPass.value) {
+    return;
+  }
+  savingPassed.value = true;
+  passError.value = null;
+  try {
+    await performanceStore.savePassed(props.id);
+    confirmPass.value = false;
+  } catch (e) {
+    passError.value =
+      e instanceof Error
+        ? e.message
+        : "Status konnte nicht gespeichert werden.";
+  } finally {
+    savingPassed.value = false;
+  }
+}
 
 function openCommentDialog() {
   commentText.value = performance.value?.comment ?? "";
@@ -302,7 +412,9 @@ function downloadPdf() {
     lastName: attendee.value.name ?? "",
     email: attendee.value.email ?? "",
     matriculationNumber: String(attendee.value.matriculationNumber ?? ""),
-    department: String(attendee.value.department ?? ""),
+    department:
+      departmentStore.getDepartmentNameById(attendee.value.department ?? "") ??
+      "",
     groupName: groupStore.getGroupNameById(attendee.value.group ?? "") ?? "",
     papersCompleted: String(performance.value?.papers_completed ?? ""),
     exercisesCompleted: String(performance.value?.exercises_completed ?? ""),
@@ -339,6 +451,7 @@ async function loadPageData() {
     loadStudentData(),
     experimentStore.fetchExperiments(),
     groupStore.fetchGroups(),
+    departmentStore.fetchDepartments(),
   ]);
 }
 

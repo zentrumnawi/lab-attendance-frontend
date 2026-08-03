@@ -53,5 +53,16 @@ export const useStudentPerformanceStore = defineStore("studentPerformance", {
         }
       }
     },
+
+    async savePassed(studentId: string): Promise<void> {
+      await patchStudentPerformance(studentId, { status: "PASS" });
+      const existing = this.byStudentId[studentId];
+      if (existing) {
+        this.byStudentId[studentId] = {
+          ...existing,
+          status: "PASS",
+        };
+      }
+    },
   },
 });

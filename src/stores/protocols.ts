@@ -5,34 +5,54 @@ import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 
 export const useProtocolStore = defineStore("protocols", {
   state: () => ({
-    protocols: [] as ProtocolData[],
+    protocolsByLabDay: new Map<number, ProtocolData[]>(),
+    currentLabDay: null as number | null,
   }),
   getters: {
+    protocols(state): ProtocolData[] {
+      if (state.currentLabDay === null) return [];
+      return state.protocolsByLabDay.get(state.currentLabDay) ?? [];
+    },
     protocalByStudentId(state): Map<string, ProtocolData> {
+      if (state.currentLabDay === null) {
+        return new Map();
+      }
+      const protocols = state.protocolsByLabDay.get(state.currentLabDay) ?? [];
       return new Map(
-        state.protocols.map((protocol) => [protocol.student.id, protocol]),
+        protocols.map((protocol) => [protocol.student.id, protocol]),
       );
     },
   },
   actions: {
     async fetchProtocols(labDay: number) {
+      this.currentLabDay = labDay;
+
+      if (this.protocolsByLabDay.has(labDay)) {
+        return this.protocolsByLabDay.get(labDay)!;
+      }
+
       const protocols = await getProtocols(labDay);
-      this.protocols = protocols;
+      this.protocolsByLabDay.set(labDay, protocols);
+      return protocols;
     },
     async submitProtocol(payload: SubmitPaperPayload) {
       const protocols = await submitPaperSubmission(payload);
+      const labDay = payload.lab_day;
+      const existing = [...(this.protocolsByLabDay.get(labDay) ?? [])];
 
       for (const protocol of protocols) {
-        const index = this.protocols.findIndex(
+        const index = existing.findIndex(
           (entry) => entry.student.id === protocol.student.id,
         );
 
         if (index !== -1) {
-          this.protocols[index] = protocol;
+          existing[index] = protocol;
         } else {
-          this.protocols.push(protocol);
+          existing.push(protocol);
         }
       }
+
+      this.protocolsByLabDay.set(labDay, existing);
 
       // Protocol acceptance/submission impacts final-results counters.
       const perfStore = useStudentPerformanceStore();
@@ -43,13 +63,20 @@ export const useProtocolStore = defineStore("protocols", {
       return protocols;
     },
     removeProtocol(id: string) {
-      const index = this.protocols.findIndex((p) => p.id === id);
+      if (this.currentLabDay === null) return;
+
+      const protocols = this.protocolsByLabDay.get(this.currentLabDay);
+      if (!protocols) return;
+
+      const index = protocols.findIndex((p) => p.id === id);
       if (index !== -1) {
-        this.protocols.splice(index, 1);
+        protocols.splice(index, 1);
+        this.protocolsByLabDay.set(this.currentLabDay, [...protocols]);
       }
     },
     clearProtocols() {
-      this.protocols = [];
+      this.protocolsByLabDay = new Map();
+      this.currentLabDay = null;
     },
   },
 });

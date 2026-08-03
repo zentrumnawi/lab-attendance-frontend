@@ -11,6 +11,7 @@ import {
   saveSeminarAttendance,
   type BulkAttendancePayload,
   type SeminarAttendancePayload,
+  changeLabDayOfSession,
 } from "@/api/attendance";
 import { NetworkError } from "@/api/http";
 import { defineStore } from "pinia";
@@ -53,6 +54,7 @@ export const useAttendanceStore = defineStore("attendance", {
     labDates: [] as LabDate[],
     labSessions: [] as BulkAttendancePayload[],
     seminarSessions: [] as SeminarAttendancePayload[],
+    dayNumbersInUse: [] as number[],
   }),
   actions: {
     async fetchLabDates() {
@@ -65,6 +67,11 @@ export const useAttendanceStore = defineStore("attendance", {
             praktikum_day: date.praktikum_day,
             group: date.group,
           })),
+        ];
+        this.dayNumbersInUse = [
+          ...(this.labDates.length > 0
+            ? this.labDates.map((date) => date.praktikum_day)
+            : []),
         ];
         console.log(this.labDates);
         return labDates;
@@ -187,6 +194,7 @@ export const useAttendanceStore = defineStore("attendance", {
       praktikumDay: number,
       records: AttendanceRecordWrite[],
       group: string,
+      previousPraktikumDay?: number,
     ) {
       const payload: BulkAttendancePayload = {
         date,
@@ -196,15 +204,42 @@ export const useAttendanceStore = defineStore("attendance", {
         records,
       };
 
-      // await saveBulkAttendance(payload);
-
-      // this.applyLabSessionLocally(payload);
+      const dayChanged =
+        previousPraktikumDay != null && previousPraktikumDay !== praktikumDay;
 
       try {
-        await saveBulkAttendance(payload);
+        if (dayChanged) {
+          // Changing lab day number of existing session is fundamentally different
+          // from other session-related operations, so we need to handle it separately.
+          // Queueing not (yet) possible
+          payload.old_praktikum_day = previousPraktikumDay;
+          await changeLabDayOfSession(payload);
+          // Remove traces of old lab day number-keyed session: labDates, labSessions, dayNumbersInUse
+          this.labDates = this.labDates.filter(
+            (d) => !isSameLabSession(d, group, previousPraktikumDay),
+          );
+          this.labSessions = this.labSessions.filter(
+            (s) => !isSameLabSession(s, group, previousPraktikumDay),
+          );
+          this.dayNumbersInUse = this.dayNumbersInUse.filter(
+            (d) => d !== previousPraktikumDay,
+          );
+        } else {
+          await saveBulkAttendance(payload);
+        }
+
         this.applyLabSessionLocally(payload);
+
+        if (!this.dayNumbersInUse.includes(praktikumDay)) {
+          this.dayNumbersInUse.push(praktikumDay);
+        }
+
+        const perfStore = useStudentPerformanceStore();
+        for (const record of records) {
+          perfStore.invalidate(record.student_id);
+        }
       } catch (error) {
-        if (error instanceof NetworkError) {
+        if (error instanceof NetworkError && !dayChanged) {
           useSyncQueue().enqueueAttendance({
             id: crypto.randomUUID(),
             type: "attendance.lab",
@@ -237,6 +272,10 @@ export const useAttendanceStore = defineStore("attendance", {
         );
         this.labSessions = this.labSessions.filter(
           (session) => !isSameLabSession(session, group, praktikumDay),
+        );
+        // Clear this day number for future sessions
+        this.dayNumbersInUse = this.dayNumbersInUse.filter(
+          (day) => day !== praktikumDay,
         );
       } else {
         await deleteSeminarSessionByDate(date);

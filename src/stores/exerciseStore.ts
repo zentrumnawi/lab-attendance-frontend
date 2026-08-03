@@ -13,7 +13,7 @@ import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 export const useExerciseStore = defineStore("exercises", {
   state: () => ({
     exercises: [] as Exercise[],
-    exercise_completions: [] as string[],
+    exercise_completions: new Map<number, string[]>(),
   }),
 
   actions: {
@@ -56,8 +56,10 @@ export const useExerciseStore = defineStore("exercises", {
       this.exercises = [];
     },
     async fetchExerciseStatus(lab_day: number) {
-      const exerciseStatus = await getExerciseStatus(lab_day);
-      this.exercise_completions = exerciseStatus;
+      if (!this.exercise_completions.has(lab_day)) {
+        const exerciseStatus = await getExerciseStatus(lab_day);
+        this.exercise_completions.set(lab_day, exerciseStatus);
+      }
     },
     async submitSingleExerciseData(
       lab_day: number,
@@ -67,15 +69,22 @@ export const useExerciseStore = defineStore("exercises", {
       await submitSingleExerciseData(lab_day, student_id, completed);
 
       if (completed) {
-        if (!this.exercise_completions.includes(student_id)) {
-          this.exercise_completions.push(student_id);
+        // add student to completions
+        if (this.exercise_completions.has(lab_day)) {
+          const completions = this.exercise_completions.get(lab_day) || [];
+          completions.push(student_id);
+          this.exercise_completions.set(lab_day, [...new Set(completions)]);
+        } else {
+          this.exercise_completions.set(lab_day, [student_id]);
         }
       } else {
-        if (this.exercise_completions.includes(student_id)) {
-          this.exercise_completions.splice(
-            this.exercise_completions.indexOf(student_id),
-            1,
-          );
+        // remove student from completions if exercise not completed
+        if (this.exercise_completions.has(lab_day)) {
+          const completions = this.exercise_completions.get(lab_day) || [];
+          if (completions.indexOf(student_id) !== -1) {
+            completions.splice(completions.indexOf(student_id), 1);
+            this.exercise_completions.set(lab_day, [...completions]);
+          }
         }
       }
 

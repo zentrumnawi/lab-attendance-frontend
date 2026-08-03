@@ -17,6 +17,7 @@ export interface StudentPerformance {
   lecture_attendance_count: number;
   experiments_completed: number;
   comment?: string;
+  status?: "INC" | "PASS" | "FAIL";
   [key: string]: any;
 }
 
@@ -85,4 +86,8 @@ export async function deleteStudent(id: string) {
   return await httpJson<void>(`/api/students/${id}/`, {
     method: "DELETE",
   });
+}
+
+export async function getDepartments() {
+  return await httpJson<{ id: string; name: string }[]>(`/api/departments/`);
 }
