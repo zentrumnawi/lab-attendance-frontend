@@ -7,6 +7,7 @@
       color="primary"
       width="250"
       :temporary="$vuetify.display.mobile"
+      v-if="isAuthenticated"
     >
       <v-list base-color="white" active-color="white" nav>
         <v-list-item title="Teilnehmer" to="/" link />
@@ -57,6 +58,7 @@
         href="javascript:void(0)"
         @click="checkBackendHealth"
         class="me-2 text-white"
+        v-if="isAuthenticated"
         >Verbindung prüfen</a
       >
       <v-icon
