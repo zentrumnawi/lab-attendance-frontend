@@ -184,6 +184,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAttendeeStore } from "@/stores/attendeeStore";
 import { useAttendanceStore } from "@/stores/attendance";
+import { QueuedLocallyError } from "@/utils/network";
 
 const props = defineProps<{
   date: string;
@@ -348,9 +349,15 @@ async function saveAttendance() {
       }
     }
     saveMessage.value = "Anwesenheit gespeichert.";
-  } catch {
-    saveError.value = true;
-    saveMessage.value = "Anwesenheit konnte nicht gespeichert werden.";
+  } catch (e) {
+    if (e instanceof QueuedLocallyError) {
+      saveMessage.value =
+        "Lokal gespeichert. Synchronisation unter „Ausstehende Synchronisation“.";
+      saveError.value = false;
+    } else {
+      saveMessage.value = "Anwesenheit konnte nicht gespeichert werden.";
+      saveError.value = true;
+    }
   } finally {
     saving.value = false;
   }
