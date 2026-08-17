@@ -43,7 +43,11 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    async login(username: string, password: string): Promise<void> {
+    async login(
+      username: string,
+      password: string,
+      group: string | null,
+    ): Promise<void> {
       this.loginLoading = true;
 
       try {
@@ -51,7 +55,9 @@ export const useAuthStore = defineStore("auth", {
         this.username = username;
         this.isAuthenticated = true;
         this.isSuperuser = response.is_superuser;
-        this.groupName = response.profile?.group?.name || null;
+        this.groupName = response.is_superuser
+          ? group
+          : response.profile?.group?.name || null;
       } finally {
         // see Django's login method to see why this is necessary
         await this.ensureCsrfToken();
