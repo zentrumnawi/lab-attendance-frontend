@@ -40,7 +40,7 @@
         <v-list-item title="Protokollabgaben" to="/protocols" link />
         <v-list-item title="Gruppen" to="/groups" link />
         <v-list-item
-          v-if="!isSuperuser"
+          v-if="!isSuperuser || groupName"
           title="Labor-Partner"
           to="/lab-partners"
           link

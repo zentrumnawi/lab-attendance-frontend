@@ -10,6 +10,7 @@ import {
   deleteStudent,
 } from "@/api/students";
 import type { Attendee } from "./types";
+import { useAuthStore } from "@/stores/auth";
 
 export const useAttendeeStore = defineStore("attendees", {
   state: () => ({
@@ -105,13 +106,17 @@ export const useAttendeeStore = defineStore("attendees", {
     async fetchStudents(): Promise<Attendee[]> {
       this.loadingStudents = true;
       this.errorStudents = null;
+      const auth = useAuthStore();
+      const adminGroup = auth.isSuperuser
+        ? (auth.groupName ?? undefined)
+        : undefined;
 
       try {
         if (this.studentsListLoaded) {
           return this.attendees;
         }
 
-        const students = await getStudents();
+        const students = await getStudents(adminGroup);
 
         const attendees = students.map((student) => ({
           id: student.id,
