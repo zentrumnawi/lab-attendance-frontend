@@ -28,7 +28,12 @@ export interface SubmitPaperRecord {
   accepted_date?: Date | null;
 }
 
-export async function getProtocols(lab_day: number) {
+export async function getProtocols(lab_day: number, adminGroup?: string) {
+  if (adminGroup) {
+    return await httpJson<ProtocolData[]>(
+      `/api/paper-submissions/?lab_day=${lab_day}&group=${adminGroup}`,
+    );
+  }
   return await httpJson<ProtocolData[]>(
     `/api/paper-submissions/?lab_day=${lab_day}`,
   );

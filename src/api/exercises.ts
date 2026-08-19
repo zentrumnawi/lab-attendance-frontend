@@ -51,7 +51,12 @@ export async function postExercise(data: Omit<Exercise, "id">) {
   });
 }
 
-export async function getExerciseStatus(lab_day: number) {
+export async function getExerciseStatus(lab_day: number, adminGroup?: string) {
+  if (adminGroup) {
+    return await httpJson<string[]>(
+      `/api/exercise-completions/status/?lab_day=${lab_day}&group=${adminGroup}`,
+    );
+  }
   return await httpJson<string[]>(
     `/api/exercise-completions/status/?lab_day=${lab_day}`,
   );
