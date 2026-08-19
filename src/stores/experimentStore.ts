@@ -14,6 +14,7 @@ import {
   experimentExecutionDedupeKey,
 } from "@/stores/syncQueueExperiments";
 import { NetworkError, QueuedLocallyError } from "@/utils/network";
+import { useAuthStore } from "./auth";
 
 export const useExperimentStore = defineStore("experiments", {
   state: () => ({
@@ -68,7 +69,10 @@ export const useExperimentStore = defineStore("experiments", {
         return this.experimentCompletions.get(labDay)!;
       }
 
-      const completions = await getExperimentCompletions(labDay);
+      // group-scoping for admins
+      const auth = useAuthStore();
+      const adminGroup = auth.adminGroupScope();
+      const completions = await getExperimentCompletions(labDay, adminGroup);
       this.experimentCompletions.set(labDay, completions);
       return completions;
     },

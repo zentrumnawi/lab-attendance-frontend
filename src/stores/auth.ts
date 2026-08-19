@@ -75,6 +75,9 @@ export const useAuthStore = defineStore("auth", {
         this.$reset();
       }
     },
+    adminGroupScope(): string | undefined {
+      return this.isSuperuser ? (this.groupName ?? undefined) : undefined;
+    },
   },
   persist: {
     pick: ["isAuthenticated", "username", "isSuperuser", "groupName"],

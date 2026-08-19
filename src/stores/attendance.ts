@@ -18,6 +18,7 @@ import { defineStore } from "pinia";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 import { labDedupeKey, useSyncQueue } from "@/stores/syncQueue";
 import { QueuedLocallyError } from "@/utils/network";
+import { useAuthStore } from "./auth";
 
 // this is because of different API shapes for read vs write
 function writeRecordsToReadRecords(
@@ -60,7 +61,9 @@ export const useAttendanceStore = defineStore("attendance", {
     async fetchLabDates() {
       if (this.labDates.length > 0) return this.labDates;
       try {
-        const labDates = await getLabDates();
+        const auth = useAuthStore();
+        const adminGroup = auth.adminGroupScope();
+        const labDates = await getLabDates(adminGroup);
         this.labDates = [
           ...labDates.dates.map((date) => ({
             date: date.date,
