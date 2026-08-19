@@ -23,7 +23,7 @@
             <div class="day-number">{{ new Date(date).getDate() }}</div>
             <v-btn
               v-if="
-                !AuthStore.isSuperuser &&
+                (!AuthStore.isSuperuser || AuthStore.groupName) &&
                 !SEMINAR_DAYS.includes(date.toString())
               "
               size="x-small"
