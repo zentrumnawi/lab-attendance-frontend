@@ -59,7 +59,7 @@ export const useExerciseStore = defineStore("exercises", {
     async fetchExerciseStatus(lab_day: number) {
       // group-scoping for admins
       const auth = useAuthStore();
-      const adminGroup = auth.adminGroupScope();
+      const adminGroup = auth.adminGroupScope;
       if (!this.exercise_completions.has(lab_day)) {
         const exerciseStatus = await getExerciseStatus(lab_day, adminGroup);
         this.exercise_completions.set(lab_day, exerciseStatus);

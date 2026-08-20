@@ -34,7 +34,7 @@ export const useProtocolStore = defineStore("protocols", {
 
       // group-scoping for admins
       const auth = useAuthStore();
-      const adminGroup = auth.adminGroupScope();
+      const adminGroup = auth.adminGroupScope;
       const protocols = await getProtocols(labDay, adminGroup);
       this.protocolsByLabDay.set(labDay, protocols);
       return protocols;

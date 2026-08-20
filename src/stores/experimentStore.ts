@@ -71,7 +71,7 @@ export const useExperimentStore = defineStore("experiments", {
 
       // group-scoping for admins
       const auth = useAuthStore();
-      const adminGroup = auth.adminGroupScope();
+      const adminGroup = auth.adminGroupScope;
       const completions = await getExperimentCompletions(labDay, adminGroup);
       this.experimentCompletions.set(labDay, completions);
       return completions;

@@ -22,6 +22,12 @@ export const useAuthStore = defineStore("auth", {
     groupName: null as string | null,
   }),
 
+  getters: {
+    adminGroupScope(state): string | undefined {
+      return state.isSuperuser ? (state.groupName ?? undefined) : undefined;
+    },
+  },
+
   actions: {
     async ensureCsrfToken(): Promise<void> {
       // since Django renews csrf token after login, we need to fetch it again
@@ -74,9 +80,6 @@ export const useAuthStore = defineStore("auth", {
         resetApplicationStores();
         this.$reset();
       }
-    },
-    adminGroupScope(): string | undefined {
-      return this.isSuperuser ? (this.groupName ?? undefined) : undefined;
     },
   },
   persist: {

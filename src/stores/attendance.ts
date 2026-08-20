@@ -62,7 +62,7 @@ export const useAttendanceStore = defineStore("attendance", {
       if (this.labDates.length > 0) return this.labDates;
       try {
         const auth = useAuthStore();
-        const adminGroup = auth.adminGroupScope();
+        const adminGroup = auth.adminGroupScope;
         const labDates = await getLabDates(adminGroup);
         this.labDates = [
           ...labDates.dates.map((date) => ({
