@@ -11,6 +11,7 @@ import {
 } from "@/api/students";
 import type { Attendee } from "./types";
 import { useAuthStore } from "@/stores/auth";
+import { useGroupStore } from "./groupStore";
 
 export const useAttendeeStore = defineStore("attendees", {
   state: () => ({
@@ -40,13 +41,7 @@ export const useAttendeeStore = defineStore("attendees", {
           group: formData.group,
           department: formData.department || null,
         });
-        const index = this.attendees.findIndex(
-          (attendee) => attendee.id === formData.id,
-        );
-
-        if (index !== -1) {
-          this.attendees[index] = formData as Attendee;
-        }
+        this.updateAttendeesList(formData as Attendee);
       } else {
         const newStudent = await postStudent({
           last_name: formData.name,
@@ -57,17 +52,39 @@ export const useAttendeeStore = defineStore("attendees", {
           group: formData.group,
           department: formData.department || null,
         });
-        this.attendees.push({
-          id: newStudent.id,
-          name: newStudent.last_name,
-          firstName: newStudent.first_name,
-          studentId: newStudent.id,
-          matriculationNumber: newStudent.matriculation_number ?? "",
-          email: newStudent.email,
-          labPartner: newStudent.lab_partner || "",
-          group: newStudent.group?.id ?? "",
-          department: newStudent.department?.id ?? "",
-        });
+        // don't push if group mismatch
+        if (!this.groupMismatch(newStudent.group?.id ?? "")) {
+          this.attendees.push({
+            id: newStudent.id,
+            name: newStudent.last_name,
+            firstName: newStudent.first_name,
+            studentId: newStudent.id,
+            matriculationNumber: newStudent.matriculation_number ?? "",
+            email: newStudent.email,
+            labPartner: newStudent.lab_partner || "",
+            group: newStudent.group?.id ?? "",
+            department: newStudent.department?.id ?? "",
+          });
+        }
+      }
+    },
+
+    groupMismatch(group: string): boolean {
+      const scope = useAuthStore().adminGroupScope;
+      if (!scope) return false;
+
+      const groupName = useGroupStore().getGroupNameById(group);
+      return groupName !== scope;
+    },
+
+    updateAttendeesList(attendee: Attendee) {
+      const index = this.attendees.findIndex((a) => a.id === attendee.id);
+
+      if (this.groupMismatch(attendee.group)) {
+        if (index !== -1) this.attendees.splice(index, 1);
+      } else {
+        if (index === -1) this.attendees.push(attendee);
+        else this.attendees[index] = attendee;
       }
     },
 
