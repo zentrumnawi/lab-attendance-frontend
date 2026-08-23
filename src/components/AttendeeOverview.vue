@@ -193,7 +193,11 @@ function createNewRecord() {
     matriculationNumber: "",
     email: "",
     labPartner: "",
-    group: "",
+    group: auth.adminGroupScope
+      ? (groupOptions.value.find(
+          (group) => group.title === auth.adminGroupScope,
+        )?.value ?? null)
+      : null,
     department: "",
   };
 }

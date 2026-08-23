@@ -46,7 +46,10 @@ export async function getSingleStudentData(studentId: string) {
   );
 }
 
-export async function getStudents() {
+export async function getStudents(adminGroup?: string) {
+  if (adminGroup) {
+    return await httpJson<StudentData[]>(`/api/students/?group=${adminGroup}`);
+  }
   return await httpJson<StudentData[]>(`/api/students/`);
 }
 

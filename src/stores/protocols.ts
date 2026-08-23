@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import type { ProtocolData, SubmitPaperPayload } from "@/api/protocols";
 import { getProtocols, submitPaperSubmission } from "@/api/protocols";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
+import { useAuthStore } from "@/stores/auth";
 
 export const useProtocolStore = defineStore("protocols", {
   state: () => ({
@@ -31,7 +32,10 @@ export const useProtocolStore = defineStore("protocols", {
         return this.protocolsByLabDay.get(labDay)!;
       }
 
-      const protocols = await getProtocols(labDay);
+      // group-scoping for admins
+      const auth = useAuthStore();
+      const adminGroup = auth.adminGroupScope;
+      const protocols = await getProtocols(labDay, adminGroup);
       this.protocolsByLabDay.set(labDay, protocols);
       return protocols;
     },
