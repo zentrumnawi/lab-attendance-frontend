@@ -88,6 +88,20 @@
         :hide-default-footer="rows.length < 11"
         :show-expand="experimentsForLabDay.length > 0"
       >
+        <template #top>
+          <v-toolbar flat>
+            <v-toolbar-title>
+              <v-icon
+                color="medium-emphasis"
+                icon="mdi-flask"
+                size="x-small"
+                start
+              ></v-icon>
+
+              Versuchsdurchführung
+            </v-toolbar-title>
+          </v-toolbar>
+        </template>
         <template #[`item.status`]="{ value }">
           {{ value }}
         </template>
