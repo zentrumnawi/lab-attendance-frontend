@@ -25,6 +25,20 @@
         :hide-default-footer="rows.length < 11"
         show-expand
       >
+        <template #top>
+          <v-toolbar flat>
+            <v-toolbar-title>
+              <v-icon
+                color="medium-emphasis"
+                icon="mdi-file-document-check"
+                size="x-small"
+                start
+              ></v-icon>
+
+              Protokollabgabe
+            </v-toolbar-title>
+          </v-toolbar>
+        </template>
         <template #[`item.status`]="{ value }">
           <v-tooltip :text="value">
             <template #activator="{ props: tooltipProps }">
