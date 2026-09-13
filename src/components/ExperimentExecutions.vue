@@ -98,7 +98,7 @@
                 start
               ></v-icon>
 
-              Versuchsdurchführung
+              Versuchsdurchführungen
             </v-toolbar-title>
           </v-toolbar>
         </template>
