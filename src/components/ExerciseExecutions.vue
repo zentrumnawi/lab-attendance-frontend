@@ -15,7 +15,16 @@
         Keine Übungsblätter für diesen Versuchstag
       </div>
     </v-sheet>
-    <v-sheet border rounded>
+
+    <v-switch
+      v-model="showChecklist"
+      class="mb-4"
+      :disabled="!dayHasExercises"
+      hide-details
+      label="Checkliste"
+    />
+
+    <v-sheet v-if="!showChecklist" border rounded>
       <v-data-table
         :headers="headers"
         :items="rows"
@@ -76,6 +85,77 @@
               </div>
             </td>
           </tr>
+        </template>
+      </v-data-table>
+    </v-sheet>
+
+    <v-sheet v-else border rounded>
+      <v-alert
+        v-if="saveMessage"
+        :type="saveError ? 'error' : 'success'"
+        class="ma-4"
+        closable
+        @click:close="saveMessage = null"
+      >
+        {{ saveMessage }}
+      </v-alert>
+
+      <v-data-table
+        :headers="checklistHeaders"
+        :items="checklistRows"
+        item-value="id"
+        :hide-default-footer="checklistRows.length < 11"
+      >
+        <template #top>
+          <v-toolbar flat>
+            <v-toolbar-title>
+              <v-icon
+                color="medium-emphasis"
+                icon="mdi-clipboard-check-outline"
+                size="x-small"
+                start
+              ></v-icon>
+
+              Übungsblätterabgaben — Checkliste
+            </v-toolbar-title>
+            <v-spacer />
+            <v-btn
+              color="primary"
+              :disabled="
+                saving || checklistRows.length === 0 || !dayHasExercises
+              "
+              :loading="saving"
+              @click="saveChecklist"
+            >
+              Speichern
+            </v-btn>
+          </v-toolbar>
+        </template>
+
+        <template #[`item.completed`]="{ item }">
+          <v-checkbox-btn
+            v-model="item.completed"
+            hide-details
+            density="compact"
+            color="primary"
+          />
+        </template>
+
+        <template #[`header.completed`]>
+          <div class="d-flex align-center ga-2">
+            <v-checkbox-btn
+              :model-value="allCompleted"
+              hide-details
+              density="compact"
+              color="primary"
+              @update:model-value="toggleCompleted"
+            />
+            <span>Erledigt</span>
+          </div>
+        </template>
+
+        <template #no-data>
+          <div><p>Keine Studierenden gefunden</p></div>
         </template>
       </v-data-table>
     </v-sheet>
@@ -163,6 +243,7 @@ import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import { useAttendeeStore } from "@/stores/attendeeStore";
 
 type ExerciseStatus = "Erledigt" | "Offen";
+const showChecklist = ref(false);
 
 interface ExerciseRow {
   id: string;
@@ -188,6 +269,30 @@ const headers: {
     width: "20%",
   },
   { title: "Status", key: "status", align: "center", width: "20%" },
+];
+
+const checklistHeaders: {
+  title: string;
+  key: string;
+  align?: "start" | "end" | "center";
+  sortable?: boolean;
+  width?: string;
+}[] = [
+  { title: "Name", key: "name", align: "start", width: "40%" },
+  { title: "Vorname", key: "firstName", align: "start", width: "40%" },
+  {
+    title: "Matrikelnummer",
+    key: "matriculationNumber",
+    align: "start",
+    width: "20%",
+  },
+  {
+    title: "Erledigt",
+    key: "completed",
+    align: "end",
+    sortable: false,
+    width: "180",
+  },
 ];
 
 function statusIcon(status: ExerciseStatus): string {
@@ -221,6 +326,52 @@ const selectedStudent = ref<ExerciseRow | null>(null);
 const markCompleted = ref(false);
 const withdrawCompleted = ref(false);
 const saving = ref(false);
+const checklistRows = ref<ExerciseRow[]>([]);
+const saveMessage = ref<string | null>(null);
+const saveError = ref(false);
+
+const allCompleted = computed(
+  () =>
+    checklistRows.value.length > 0 &&
+    checklistRows.value.every((row) => row.completed),
+);
+
+function syncChecklistRows() {
+  checklistRows.value = rows.value.map((row) => ({ ...row }));
+}
+
+function toggleCompleted(value: boolean | null) {
+  const completed = value ?? !allCompleted.value;
+  checklistRows.value.forEach((row) => {
+    row.completed = completed;
+  });
+}
+
+async function saveChecklist() {
+  if (!dayHasExercises.value) return;
+
+  saving.value = true;
+  saveMessage.value = null;
+  saveError.value = false;
+
+  try {
+    await store.submitBulkExerciseData(
+      labDay.value,
+      checklistRows.value.map((row) => ({
+        student_id: row.id,
+        completed: row.completed,
+        completion_date: row.completed ? new Date() : null,
+      })),
+    );
+    saveMessage.value = "Übungsblätterabgaben gespeichert.";
+  } catch {
+    saveError.value = true;
+    saveMessage.value =
+      "Übungsblätterabgaben konnten nicht gespeichert werden.";
+  } finally {
+    saving.value = false;
+  }
+}
 
 function openCompleteDialog(item: ExerciseRow) {
   selectedStudent.value = item;
@@ -268,18 +419,6 @@ async function saveWithdrawal() {
   }
 }
 
-onMounted(async () => {
-  await Promise.all([
-    attendeeStore.fetchStudents(),
-    store.fetchExerciseStatus(labDay.value),
-    store.fetchExercises(),
-  ]);
-});
-
-watch(labDay, (day) => {
-  void store.fetchExerciseStatus(day);
-});
-
 const rows = computed<ExerciseRow[]>(() =>
   attendeeStore.attendees.map((attendee) => {
     const completed =
@@ -298,5 +437,29 @@ const rows = computed<ExerciseRow[]>(() =>
 
 const dayHasExercises = computed(() => {
   return store.exercises.some((exercise) => exercise.lab_day === labDay.value);
+});
+
+onMounted(async () => {
+  await Promise.all([
+    attendeeStore.fetchStudents(),
+    store.fetchExerciseStatus(labDay.value),
+    store.fetchExercises(),
+  ]);
+});
+
+watch(showChecklist, (enabled) => {
+  saveMessage.value = null;
+  if (enabled) {
+    syncChecklistRows();
+  }
+});
+
+watch(labDay, (day) => {
+  saveMessage.value = null;
+  void store.fetchExerciseStatus(day).then(() => {
+    if (showChecklist.value) {
+      syncChecklistRows();
+    }
+  });
 });
 </script>
