@@ -21,7 +21,7 @@
       class="mb-4"
       :disabled="!dayHasExercises"
       hide-details
-      label="Checkliste"
+      :label="showChecklist ? 'Individuelle Auswahl' : 'Checkliste'"
     />
 
     <v-sheet v-if="!showChecklist" border rounded>
