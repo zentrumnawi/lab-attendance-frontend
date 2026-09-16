@@ -18,7 +18,6 @@ export interface SubmitExercisePayload {
 export interface SubmitExerciseRecord {
   student_id: string;
   completed: boolean;
-  completion_date: Date | null;
 }
 
 export async function getExercises(lab_day: number) {

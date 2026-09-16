@@ -360,7 +360,6 @@ async function saveChecklist() {
       checklistRows.value.map((row) => ({
         student_id: row.id,
         completed: row.completed,
-        completion_date: row.completed ? new Date() : null,
       })),
     );
     saveMessage.value = "Übungsblätterabgaben gespeichert.";
