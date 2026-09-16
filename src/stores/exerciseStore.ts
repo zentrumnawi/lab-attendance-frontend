@@ -6,7 +6,7 @@ import {
   getExerciseStatus,
   patchExercise,
   postExercise,
-  submitBulkExerciseData,
+  postBulkExerciseData,
   submitSingleExerciseData,
   type SubmitExerciseRecord,
 } from "@/api/exercises";
@@ -98,7 +98,7 @@ export const useExerciseStore = defineStore("exercises", {
       lab_day: number,
       records: SubmitExerciseRecord[],
     ) {
-      await submitBulkExerciseData({ lab_day, records });
+      await postBulkExerciseData({ lab_day, records });
 
       this.exercise_completions.set(
         lab_day,

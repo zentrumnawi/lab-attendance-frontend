@@ -74,7 +74,7 @@ export async function submitSingleExerciseData(
   );
 }
 
-export async function submitBulkExerciseData(payload: SubmitExercisePayload) {
+export async function postBulkExerciseData(payload: SubmitExercisePayload) {
   return await httpJson<void>("/api/exercise-completions/bulk/", {
     method: "POST",
     body: payload,
