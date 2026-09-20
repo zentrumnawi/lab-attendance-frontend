@@ -536,6 +536,7 @@ async function saveChecklist() {
 
   for (const row of checklistRows.value) {
     const experimentIds = row.completed ? allExperimentIds : [];
+    if (experimentIds.length === 0) continue; // no need to save if not all completed
     recordsByStudent.set(row.id, {
       student_id: row.id,
       experiment_ids: experimentIds,
