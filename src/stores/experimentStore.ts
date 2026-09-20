@@ -126,6 +126,43 @@ export const useExperimentStore = defineStore("experiments", {
         perfStore.invalidate(labPartnerId);
       }
     },
+
+    async setBulkExperimentCompletions(
+      labDay: number,
+      records: { student_id: string; experiment_ids: string[] }[],
+    ) {
+      try {
+        await saveExperimentCompletions({
+          lab_day: labDay,
+          records,
+        });
+      } catch (error) {
+        if (error instanceof NetworkError) {
+          useSyncQueueExperiments().enqueueExperimentExecution({
+            id: crypto.randomUUID(),
+            dedupeKey: `experiment:${labDay}:bulk`,
+            lab_day: labDay,
+            records,
+            createdAt: new Date().toISOString(),
+            status: "pending",
+          });
+          throw new QueuedLocallyError();
+        }
+        throw error;
+      }
+
+      for (const record of records) {
+        this._writeNewCompletionsToStorage(labDay, {
+          student: record.student_id,
+          experiment_completions: record.experiment_ids,
+        });
+      }
+
+      const perfStore = useStudentPerformanceStore();
+      for (const record of records) {
+        perfStore.invalidate(record.student_id);
+      }
+    },
     _writeNewCompletionsToStorage(
       labDay: number,
       entry: ExperimentCompletion,
