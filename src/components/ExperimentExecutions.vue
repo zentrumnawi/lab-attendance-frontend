@@ -39,15 +39,6 @@
     <br />
 
     <v-sheet border rounded class="mb-4 pa-4">
-      <v-alert
-        v-if="saveMessage"
-        :type="saveError ? 'error' : 'success'"
-        class="ma-4"
-        closable
-        @click:close="saveMessage = null"
-      >
-        {{ saveMessage }}
-      </v-alert>
       <div class="text-subtitle-2 font-weight-medium mb-2">Experimente</div>
 
       <ul
@@ -79,7 +70,25 @@
       </p>
     </v-sheet>
 
-    <v-sheet border rounded>
+    <v-switch
+      v-model="showChecklist"
+      class="mb-4"
+      :disabled="experimentsForLabDay.length === 0"
+      hide-details
+      :label="showChecklist ? 'Individuelle Auswahl' : 'Checkliste'"
+    />
+
+    <v-sheet v-if="!showChecklist" border rounded>
+      <v-alert
+        v-if="saveMessage"
+        :type="saveError ? 'error' : 'success'"
+        class="ma-4"
+        closable
+        @click:close="saveMessage = null"
+      >
+        {{ saveMessage }}
+      </v-alert>
+
       <v-data-table
         :headers="headers"
         :items="rows"
@@ -149,6 +158,80 @@
         </template>
       </v-data-table>
     </v-sheet>
+
+    <v-sheet v-else border rounded>
+      <v-alert
+        v-if="checklistSaveMessage"
+        :type="checklistSaveError ? 'error' : 'success'"
+        class="ma-4"
+        closable
+        @click:close="checklistSaveMessage = null"
+      >
+        {{ checklistSaveMessage }}
+      </v-alert>
+
+      <v-data-table
+        :headers="checklistHeaders"
+        :items="checklistRows"
+        item-value="id"
+        :hide-default-footer="checklistRows.length < 11"
+      >
+        <template #top>
+          <v-toolbar flat>
+            <v-toolbar-title>
+              <v-icon
+                color="medium-emphasis"
+                icon="mdi-clipboard-check-outline"
+                size="x-small"
+                start
+              ></v-icon>
+
+              Versuchsdurchführungen — Checkliste
+            </v-toolbar-title>
+            <v-spacer />
+            <v-btn
+              color="primary"
+              :disabled="
+                savingChecklist ||
+                checklistRows.length === 0 ||
+                experimentsForLabDay.length === 0
+              "
+              :loading="savingChecklist"
+              @click="saveChecklist"
+            >
+              Speichern
+            </v-btn>
+          </v-toolbar>
+        </template>
+
+        <template #[`item.completed`]="{ item }">
+          <v-checkbox-btn
+            :model-value="item.completed"
+            hide-details
+            density="compact"
+            color="primary"
+            @update:model-value="setCompleted(item.id, $event)"
+          />
+        </template>
+
+        <template #[`header.completed`]>
+          <div class="d-flex align-center ga-2">
+            <v-checkbox-btn
+              :model-value="allCompleted"
+              hide-details
+              density="compact"
+              color="primary"
+              @update:model-value="toggleCompleted"
+            />
+            <span>Alle erledigt</span>
+          </div>
+        </template>
+
+        <template #no-data>
+          <div><p>Keine Studierenden gefunden</p></div>
+        </template>
+      </v-data-table>
+    </v-sheet>
   </div>
 </template>
 
@@ -165,6 +248,7 @@ interface ExperimentExecutionRow {
   matriculationNumber: string;
   labPartner: string;
   status: string;
+  completed: boolean;
   experimentsWithCompletionStatus: {
     id: string;
     title: string;
@@ -172,10 +256,24 @@ interface ExperimentExecutionRow {
   }[];
 }
 
+interface ChecklistRow {
+  id: string;
+  name: string;
+  firstName: string;
+  matriculationNumber: string;
+  labPartner: string;
+  completed: boolean;
+}
+
 const attendeeStore = useAttendeeStore();
 const experimentStore = useExperimentStore();
 const labDay = ref(1);
+const showChecklist = ref(false);
 const draftCompletions = ref<Record<string, Record<string, boolean>>>({});
+const checklistRows = ref<ChecklistRow[]>([]);
+const savingChecklist = ref(false);
+const checklistSaveMessage = ref<string | null>(null);
+const checklistSaveError = ref(false);
 const labDayOptions = Array.from({ length: 8 }, (_, index) => ({
   title: `Versuchstag ${index + 1}`,
   value: index + 1,
@@ -203,6 +301,31 @@ const headers: {
   { title: "Status", key: "status", align: "center", width: "20%" },
 ];
 
+const checklistHeaders: {
+  title: string;
+  key: string;
+  align?: "start" | "end" | "center";
+  sortable?: boolean;
+  width?: string;
+}[] = [
+  { title: "Name", key: "name", align: "start", width: "40%" },
+  { title: "Vorname", key: "firstName", align: "start", width: "40%" },
+  {
+    title: "Matrikelnummer",
+    key: "matriculationNumber",
+    align: "start",
+    width: "20%",
+  },
+  { title: "Labor-Partner", key: "labPartner", align: "start", width: "20%" },
+  {
+    title: "Alle erledigt",
+    key: "completed",
+    align: "end",
+    sortable: false,
+    width: "180",
+  },
+];
+
 onMounted(async () => {
   await Promise.all([
     attendeeStore.fetchStudents(),
@@ -214,7 +337,19 @@ onMounted(async () => {
 watch(labDay, (day) => {
   // reset unsaved state of checkboxes
   draftCompletions.value = {};
-  void experimentStore.fetchExperimentCompletions(day);
+  checklistSaveMessage.value = null;
+  void experimentStore.fetchExperimentCompletions(day).then(() => {
+    if (showChecklist.value) {
+      syncChecklistRows();
+    }
+  });
+});
+
+watch(showChecklist, (enabled) => {
+  checklistSaveMessage.value = null;
+  if (enabled) {
+    syncChecklistRows();
+  }
 });
 
 type SuccessfulExperiment =
@@ -324,6 +459,9 @@ const rows = computed<ExperimentExecutionRow[]>(() =>
     const completedCount = experimentsWithCompletionStatus.filter(
       (experiment) => experiment.completed,
     ).length;
+    const allDone =
+      experimentsWithCompletionStatus.length > 0 &&
+      completedCount === experimentsWithCompletionStatus.length;
 
     return {
       id: attendee.id,
@@ -334,8 +472,93 @@ const rows = computed<ExperimentExecutionRow[]>(() =>
         ? (attendeeStore.getAttendeeById(attendee.labPartner)?.name ?? "—")
         : "—",
       status: `${completedCount}/${experimentsWithCompletionStatus.length}`,
+      completed: allDone,
       experimentsWithCompletionStatus,
     };
   }),
 );
+
+const allCompleted = computed(
+  () =>
+    checklistRows.value.length > 0 &&
+    checklistRows.value.every((row) => row.completed),
+);
+
+function syncChecklistRows() {
+  checklistRows.value = rows.value.map((row) => ({
+    id: row.id,
+    name: row.name,
+    firstName: row.firstName,
+    matriculationNumber: row.matriculationNumber,
+    labPartner: row.labPartner,
+    completed: row.completed,
+  }));
+}
+
+function setCompleted(studentId: string, value: boolean | null) {
+  if (value === null) return;
+
+  const row = checklistRows.value.find((r) => r.id === studentId);
+  if (!row) return;
+  row.completed = value;
+
+  const partnerId = attendeeStore.getAttendeeById(studentId)?.labPartner;
+  if (!partnerId) return;
+
+  const partnerRow = checklistRows.value.find((r) => r.id === partnerId);
+  if (partnerRow) {
+    partnerRow.completed = value;
+  }
+}
+
+function toggleCompleted(value: boolean | null) {
+  const completed = value ?? !allCompleted.value;
+  checklistRows.value.forEach((row) => {
+    row.completed = completed;
+  });
+}
+
+async function saveChecklist() {
+  if (experimentsForLabDay.value.length === 0) return;
+
+  savingChecklist.value = true;
+  checklistSaveMessage.value = null;
+  checklistSaveError.value = false;
+
+  const allExperimentIds = experimentsForLabDay.value.map(
+    (experiment) => experiment.id,
+  );
+
+  const recordsByStudent = new Map<
+    string,
+    { student_id: string; experiment_ids: string[] }
+  >();
+
+  for (const row of checklistRows.value) {
+    const experimentIds = row.completed ? allExperimentIds : [];
+    recordsByStudent.set(row.id, {
+      student_id: row.id,
+      experiment_ids: experimentIds,
+    });
+  }
+
+  try {
+    await experimentStore.setBulkExperimentCompletions(labDay.value, [
+      ...recordsByStudent.values(),
+    ]);
+    checklistSaveMessage.value = "Versuchsdurchführungen gespeichert.";
+  } catch (e) {
+    if (e instanceof QueuedLocallyError) {
+      checklistSaveError.value = false;
+      checklistSaveMessage.value =
+        "Nur lokal gespeichert. Synchronisation unter „Ausstehende Synchronisation“.";
+    } else {
+      checklistSaveError.value = true;
+      checklistSaveMessage.value =
+        "Versuchsdurchführungen konnten nicht gespeichert werden.";
+    }
+  } finally {
+    savingChecklist.value = false;
+  }
+}
 </script>
