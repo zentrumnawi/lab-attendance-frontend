@@ -6,7 +6,9 @@ import {
   getExerciseStatus,
   patchExercise,
   postExercise,
+  postBulkExerciseData,
   submitSingleExerciseData,
+  type SubmitExerciseRecord,
 } from "@/api/exercises";
 import { useStudentPerformanceStore } from "@/stores/studentPerformance";
 
@@ -90,6 +92,26 @@ export const useExerciseStore = defineStore("exercises", {
 
       // Invalidate derived final-results counters
       useStudentPerformanceStore().invalidate(student_id);
+    },
+
+    async submitBulkExerciseData(
+      lab_day: number,
+      records: SubmitExerciseRecord[],
+    ) {
+      await postBulkExerciseData({ lab_day, records });
+
+      this.exercise_completions.set(
+        lab_day,
+        records
+          .filter((record) => record.completed)
+          .map((record) => record.student_id),
+      );
+
+      // Show fresh data in final-results; remove when final results filled from cache
+      const performanceStore = useStudentPerformanceStore();
+      for (const record of records) {
+        performanceStore.invalidate(record.student_id);
+      }
     },
   },
 });
