@@ -10,7 +10,13 @@ export async function getExperiments(labDay?: number): Promise<Experiment[]> {
 
 export async function getExperimentCompletions(
   labDay: number,
+  adminGroup?: string,
 ): Promise<ExperimentCompletion[]> {
+  if (adminGroup) {
+    return await httpJson<ExperimentCompletion[]>(
+      `/api/experiments/completions/?lab_day=${labDay}&group=${adminGroup}`,
+    );
+  }
   return await httpJson<ExperimentCompletion[]>(
     `/api/experiments/completions/?lab_day=${labDay}`,
   );

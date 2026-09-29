@@ -40,7 +40,7 @@
         <v-list-item title="Protokollabgaben" to="/protocols" link />
         <v-list-item title="Gruppen" to="/groups" link />
         <v-list-item
-          v-if="!isSuperuser"
+          v-if="!isSuperuser || groupName"
           title="Labor-Partner"
           to="/lab-partners"
           link
@@ -79,18 +79,28 @@
               <div class="text-h6 font-weight-medium mt-4">
                 {{ username }}
               </div>
-              <v-chip
-                class="mt-2"
-                size="small"
-                variant="tonal"
-                :color="groupName ? 'primary' : 'deep-purple'"
-                :prepend-icon="
-                  groupName ? 'mdi-account-group' : 'mdi-shield-account'
-                "
-                label
-              >
-                {{ groupName ? "Gruppe " + groupName : "Admin" }}
-              </v-chip>
+              <div class="d-flex flex-wrap ga-2 mt-2">
+                <v-chip
+                  v-if="isSuperuser"
+                  size="small"
+                  variant="tonal"
+                  color="deep-purple"
+                  prepend-icon="mdi-shield-account"
+                  label
+                >
+                  Admin
+                </v-chip>
+                <v-chip
+                  v-if="groupName"
+                  size="small"
+                  variant="tonal"
+                  color="primary"
+                  prepend-icon="mdi-account-group"
+                  label
+                >
+                  Gruppe {{ groupName }}
+                </v-chip>
+              </div>
             </v-card-text>
           </v-card>
         </v-menu>

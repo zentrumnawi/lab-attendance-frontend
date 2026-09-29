@@ -33,7 +33,12 @@ export interface SeminarAttendancePayload {
   records: AttendanceRecordWrite[];
 }
 
-export async function getLabDates() {
+export async function getLabDates(adminGroup?: string) {
+  if (adminGroup) {
+    return await httpJson<{ dates: LabDate[] }>(
+      `/api/attendance-records/calendar/?group=${adminGroup}`,
+    );
+  }
   return await httpJson<{ dates: LabDate[] }>(
     "/api/attendance-records/calendar/",
   );

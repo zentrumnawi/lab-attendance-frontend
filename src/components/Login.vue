@@ -45,6 +45,19 @@
               @keyup.enter="submit"
             />
 
+            <v-select
+              v-model="selectedGroup"
+              :items="groupOptions"
+              item-title="title"
+              item-value="value"
+              label="Gruppe (optional)"
+              clearable
+              :disabled="auth.csrfLoading || auth.loginLoading || groupsLoading"
+              :loading="groupsLoading"
+              hint="Nur für Admins: gewählte Gruppe beschränkt die Sitzung auf diese Gruppendaten. Für andere Benutzer wird die Auswahl ignoriert."
+              persistent-hint
+            />
+
             <v-alert
               v-if="loginError"
               class="mt-2"
@@ -76,27 +89,47 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { HttpError } from "@/api/http";
 import { useAuthStore } from "@/stores/auth";
+import { useGroupStore } from "@/stores/groupStore";
 
 const auth = useAuthStore();
+const groupStore = useGroupStore();
 const route = useRoute();
 const router = useRouter();
 
 const username = ref("");
 const password = ref("");
 const showPassword = ref(false);
+const selectedGroup = ref<string | null>(null);
+const groupsLoading = ref(false);
 const usernameError = ref<string[]>([]);
 const passwordError = ref<string[]>([]);
 const loginError = ref("");
+
+const groupOptions = computed(() =>
+  groupStore.groups.map((group) => ({
+    title: group.name,
+    value: group.name,
+  })),
+);
 
 onMounted(async () => {
   try {
     await auth.fetchCsrfToken();
   } catch {
     console.error("Failed to fetch CSRF token");
+  }
+
+  groupsLoading.value = true;
+  try {
+    await groupStore.fetchGroups();
+  } catch {
+    console.error("Failed to fetch groups for login");
+  } finally {
+    groupsLoading.value = false;
   }
 });
 
@@ -116,7 +149,11 @@ async function submit() {
   }
 
   try {
-    await auth.login(username.value.trim(), password.value);
+    await auth.login(
+      username.value.trim(),
+      password.value,
+      selectedGroup.value,
+    );
 
     const redirect =
       typeof route.query.redirect === "string" ? route.query.redirect : "/";
